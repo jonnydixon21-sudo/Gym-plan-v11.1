@@ -993,6 +993,8 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
     <div class="card">
       <h2>About this copy</h2>
       <p class="note mono" id="app-ver" style="white-space:pre-line"></p>
+      <div class="row"><button class="btn" type="button" id="upd-btn">Check for updates</button><span class="toast" id="upd-msg" aria-live="polite"></span></div>
+      <p class="note">If you've uploaded a new version and don't see it, tap this. Your data isn't affected.</p>
     </div>
   </section>
 
@@ -2752,7 +2754,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="11 Nov 2026 (b)";
+const APP_VERSION="11 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3618,6 +3620,11 @@ function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return nul
   const st=$("view-settings");if(st)[...st.children].filter(c=>c.classList.contains("card")&&c.tagName==="DIV").forEach((c,i)=>{const h=c.querySelector("h2");foldWrap(c,"set"+i,h?h.textContent:"Settings")});
   document.querySelectorAll("details.card.fold:not([data-fold])").forEach((d,i)=>{d.dataset.fold=d.id||("f"+i)});
   const rd=$("run-days")&&$("run-days").closest("details");if(rd){rd.classList.add("fold");rd.open=L.folds&&L.folds[rd.dataset.fold]!=null?!!L.folds[rd.dataset.fold]:true}}
+document.addEventListener("click",async e=>{if(!e.target.closest("#upd-btn"))return;$("upd-msg").textContent="Checking…";
+  try{const r=await fetch("index.html",{cache:"no-store"}),t=await r.text(),m=t.match(/const APP_VERSION="([^"]+)"/),v=m?m[1]:null;
+    if(v&&v!==APP_VERSION){$("upd-msg").textContent="Updating to "+v+"…";try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg)await reg.update();const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(err){}setTimeout(()=>location.reload(),400)}
+    else $("upd-msg").textContent=v?"You're on the latest version.":"Couldn't check. Try again with a signal."}
+  catch(err){$("upd-msg").textContent="Couldn't check. Try again with a signal."}});
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
