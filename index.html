@@ -305,7 +305,7 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .exalt .pill{justify-self:start}
 .xlist{display:grid;gap:4px;font-size:.88rem}
 .xlist div{display:flex;justify-content:space-between;gap:8px}
-.rota{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.rota{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .rd{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px;display:grid;gap:2px;justify-items:center;text-align:center}
 .rd b{font-family:var(--f-display);font-size:.9rem}
 .rd small{font-size:.7rem;color:var(--muted)}
@@ -343,6 +343,23 @@ details.card.fold>summary h2{margin:0}
 .fw-inner>h2:first-child,.fw-inner>.row.between:first-child>h2:first-child{display:none}.fw-inner>.row.between:first-child{justify-content:flex-end}
 details.fw>summary{margin:0}details.fw[open]>summary{margin-bottom:10px}
 .adjrow{display:grid;grid-template-columns:minmax(0,1fr) 80px 36px;gap:8px;align-items:center;font-size:.9rem}.adjrow input{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;text-align:right}.adjp{display:grid;gap:6px}.adjtag{margin:4px 0}
+.vbar{position:relative;height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}.vband{position:absolute;top:0;bottom:0;background:var(--good-soft);border-left:1px solid var(--good);border-right:1px solid var(--good)}
+.vfill{position:absolute;left:0;top:2px;bottom:2px;border-radius:999px;background:var(--accent)}.vfill.good{background:var(--good)}.vfill.warn{background:var(--warn)}.vfill.bad{background:var(--weak)}
+.vmeta{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}.vtrend{display:flex;align-items:flex-end;gap:2px;height:20px;flex:none}.vtrend i{display:block;width:6px;background:var(--accent-2);border-radius:2px}.vtrend i:last-of-type{background:var(--accent)}.vtrend b{margin-left:4px;font-size:.9rem}
+.vedit{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.vedit input:not([type]){width:56px;font:inherit;padding:4px 6px;border-radius:6px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-left:4px}
+.vsum{background:var(--surface-2);border-radius:10px;padding:8px 12px;margin:6px 0}.vsum p{margin:2px 0;font-size:.9rem}#vol-ind{font:inherit;padding:4px 6px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-left:4px}
+.goal{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:grid;gap:6px;margin:8px 0}.gbar{height:8px;border-radius:999px;background:var(--bg);overflow:hidden}.gfill{height:100%;background:var(--accent);border-radius:999px}.gfill.done{background:var(--good)}
+.gx{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;min-width:36px;height:32px;font-size:1.1rem}.gx.sure{color:var(--weak);font-size:.8rem;padding:0 8px}.ginp{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);flex:1 1 90px;min-width:0}
+.rd{position:relative;padding:7px 2px}.rd b{font-size:.8rem}.rd small{font-size:.6rem;line-height:1.2}.rd span{font-size:.55rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.rd.k-day{background:var(--k-note)}.rd.k-night{background:var(--k-sleep)}.rd.k-off{background:var(--k-meal)}
+.rdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 1px}.rdot.gym{background:var(--k-train-b)}.rdot.done{background:var(--good)}.rdot.run{background:var(--k-run-b)}.rd .rdot{position:absolute;top:4px;right:4px}
+.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-top:6px}.mh{text-align:center;font-size:.72rem;color:var(--muted);font-weight:700}
+.mc{border-radius:8px;padding:4px 2px;min-height:52px;display:grid;justify-items:center;align-content:start;gap:1px;border:1.5px solid transparent}.mc b{font-size:.85rem}.mc span{font-size:.6rem;color:var(--muted);font-weight:700}.mc em{font-style:normal;line-height:1}
+.mc.k-day{background:var(--k-note)}.mc.k-night{background:var(--k-sleep)}.mc.k-off{background:var(--k-meal)}.mc.today{border-color:var(--ink)}.mc.past{opacity:.55}.mc.empty{background:none}
+.klegend i.lg{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-2px;border:0}.klegend i.lg.k-day{background:var(--k-note)}.klegend i.lg.k-night{background:var(--k-sleep)}.klegend i.lg.k-off{background:var(--k-meal)}.klegend .rdot{margin-right:5px}
+.mnav b{font-family:var(--f-display)}
+#rota-custom li.rpd.k-day{background:var(--k-note);border-left-color:var(--k-note-b)}#rota-custom li.rpd.k-night{background:var(--k-sleep);border-left-color:var(--k-sleep-b)}#rota-custom li.rpd.k-off{background:var(--k-meal);border-left-color:var(--k-meal-b)}
+#food-shifts[data-rv="month"] [data-fold="rotacard"],#food-shifts[data-rv="custom"] [data-fold="rotacard"],#food-shifts[data-rv="month"] #rota-card,#food-shifts[data-rv="custom"] #rota-card{display:none!important}
 .sessrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.sessrow .field{flex:1 1 180px}
 .once{display:grid;gap:8px;border-top:1.5px solid var(--line);padding-top:12px;margin-top:4px}.once ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}.once li{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:.9rem}
 .navsub{margin-bottom:12px}
@@ -731,6 +748,7 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
   <section class="view" id="view-progress" hidden>
     <div class="card" id="week-card"></div>
     <div class="stats" id="prog-stats"></div>
+    <details class="card fold" id="goals-card" data-fold="goals"><summary><h2>Goals</h2><span class="pill" id="goals-pill"></span></summary><div id="goals-body"></div></details>
     <div class="card">
       <div class="row between"><h2>Weight</h2><div class="legend"><span><i class="dot"></i>Daily</span><span><i></i>7-day average</span><span><i class="tgt"></i>Target pace</span></div></div>
       <div class="chart" id="ch-weight"></div>
@@ -890,10 +908,13 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 
     <div class="view" id="food-shifts">
       <div style="display:grid;gap:6px">
-        <h2>Your rota</h2>
-        <p class="note">2 days, 2 nights, 4 off, repeating. Tap a day to plan it: training or rest, a flex day, an extra shift (overtime or a swap), and which version of each meal you're having. The Today tab follows whatever you set here.</p>
+        <div class="row" role="group" aria-label="Rota view"><button class="chip" type="button" data-rv="week">Week (Mon–Sun)</button><button class="chip" type="button" data-rv="roll">From today</button><button class="chip" type="button" data-rv="month">Month</button><button class="chip" type="button" data-rv="custom">Custom pattern</button></div>
+        <p class="note" id="rota-intro"></p>
+        <div class="row between" id="rota-nav" hidden><button class="btn small ghost" type="button" data-wk="-1" aria-label="Previous week">‹</button><button class="x" type="button" data-wk="0" id="rota-wk">This week</button><button class="btn small ghost" type="button" data-wk="1" aria-label="Next week">›</button></div>
       </div>
       <div class="rota" id="rota"></div>
+      <div id="rota-month" hidden></div>
+      <div id="rota-custom" hidden></div>
       <div class="card" id="rota-card">
         <div class="row between"><h2 id="rota-title"></h2><span id="rota-pill"></span></div>
         <div class="row"><button class="btn small" id="rota-flip">Make it a rest day</button><button class="btn small" id="rota-flex">Flex day</button><span class="mono note" id="rota-kcal"></span></div>
@@ -1156,13 +1177,25 @@ const PLAN = {
   ]},
 };
 /* Rota: Day, Day, Night, Night, Off x4, repeating. 2 Nov 2026 was the first Day shift. Off days 3 and 4 carry the long run and the speed run. */
-const CYCLE_START="2026-11-02";
+let CYCLE_START="2026-11-02";
 const PATTERN=[
   {slot:"day",label:"Day shift",def:"T"},{slot:"day",label:"Day shift",def:"T"},
   {slot:"n1",label:"Night 1",def:"T",run:"Easy run",runAt:"09:30"},{slot:"n2",label:"Night 2",def:"R"},
   {slot:"off1",label:"Off · after nights",def:"T"},{slot:"off",label:"Off",def:"T"},
   {slot:"off",label:"Off",def:"T",run:"Long run, 10K+"},{slot:"off",label:"Off",def:"T",run:"Speed run: intervals or tempo"},
 ];
+/* Custom shift patterns: each day is a day shift, night or day off, plus training or rest. Night 1 vs later nights, and "off after nights", are worked out from the order. */
+const DEFAULT_START=CYCLE_START;
+function defaultRota(){return {start:DEFAULT_START,days:[{type:"day",train:"T"},{type:"day",train:"T"},{type:"night",train:"T"},{type:"night",train:"R"},{type:"off",train:"T"},{type:"off",train:"T"},{type:"off",train:"T"},{type:"off",train:"T"}]}}
+let ROTA_DEF=null;
+function rotaFrom(def){const n=def.days.length;return def.days.map((d,i)=>{const prev=def.days[(i-1+n)%n];
+  if(d.type==="day")return {slot:"day",label:"Day shift",def:d.train||"T"};
+  if(d.type==="night"){let k=1;for(let j=1;j<n;j++){if(def.days[(i-j+n)%n].type==="night")k++;else break}return {slot:k===1?"n1":"n2",label:"Night "+k,def:d.train||"T"}}
+  return prev&&prev.type==="night"&&n>1?{slot:"off1",label:"Off · after nights",def:d.train||"T"}:{slot:"off",label:"Off",def:d.train||"T"}})}
+function applyRotaDef(def){if(!def||!Array.isArray(def.days)||!def.days.length)return;const np=rotaFrom(def);PATTERN.length=0;np.forEach(p=>PATTERN.push(p));CYCLE_START=def.start||CYCLE_START;ROTA_DEF=def}
+const currentRota=()=>ROTA_DEF||defaultRota();
+const isDefaultRota=()=>!ROTA_DEF||JSON.stringify(ROTA_DEF)===JSON.stringify(defaultRota());
+try{const s0=JSON.parse(localStorage.getItem("gym-plan-v1")||"{}");if(s0&&s0.rota)applyRotaDef(s0.rota)}catch(e){}
 /* Timings per shift. Rows: [time, meal id | "train" | "work" | "info", text for work/info] */
 const SCHED={
   day:{
@@ -1206,7 +1239,7 @@ const iso=d=>{const z=new Date(d);return z.getFullYear()+"-"+String(z.getMonth()
 const pd=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12)};
 /* Your "day" runs from when you wake up, not midnight: after a night shift it rolls over when the shift ends (7am), otherwise at 4am */
 const TODAY=(()=>{const now=new Date(),cal=iso(now),h=now.getHours();const y=new Date(now);y.setDate(y.getDate()-1);const yd=iso(y);
-  const slot=d=>{let o=null;try{o=((JSON.parse(localStorage.getItem("gym-plan-v1")||"{}")||{}).shifts||{})[d]}catch(e){}if(o==="night")return "n1";if(o)return o;const n=Math.round((pd(d)-pd(CYCLE_START))/864e5);return PATTERN[((n%8)+8)%8].slot};
+  const slot=d=>{let o=null;try{o=((JSON.parse(localStorage.getItem("gym-plan-v1")||"{}")||{}).shifts||{})[d]}catch(e){}if(o==="night")return "n1";if(o)return o;const n=Math.round((pd(d)-pd(CYCLE_START))/864e5);return PATTERN[((n%PATTERN.length)+PATTERN.length)%PATTERN.length].slot};
   if(h<4)return yd;if(h<7&&(slot(yd)==="n1"||slot(yd)==="n2"))return yd;return cal})();
 const addDays=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return iso(d)};
 const nice=s=>pd(s).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
@@ -1232,11 +1265,11 @@ const D={checkins:[],workouts:[],habits:{},days:{},food:{},alts:{},exswaps:{},ta
 const WD=s=>pd(s).toLocaleDateString("en-GB",{weekday:"short"});
 /* Extra shifts (overtime or a swap): set per day on the Plan tab. The usual pattern stays as it is everywhere else. */
 const shiftOf=d=>((D.days[d]||{}).shift)||((L.shifts||{})[d])||null;
-function baseSlot(d){const n=Math.round((pd(d)-pd(CYCLE_START))/864e5);return PATTERN[((n%8)+8)%8].slot}
+function baseSlot(d){const n=Math.round((pd(d)-pd(CYCLE_START))/864e5);return PATTERN[((n%PATTERN.length)+PATTERN.length)%PATTERN.length].slot}
 function rawSlot(d){const o=shiftOf(d);return o==="night"?"n1":o||baseSlot(d)}
 function o0type(date,def){const o=(D.days[date]&&D.days[date].type)||L.over[date];return o==="T"||o==="R"?o:def}
 function dayInfo(date){
-  const n=Math.round((pd(date)-pd(CYCLE_START))/864e5),i=((n%8)+8)%8,p=PATTERN[i];
+  const n=Math.round((pd(date)-pd(CYCLE_START))/864e5),L_=PATTERN.length,i=((n%L_)+L_)%L_,p=PATTERN[i];
   const ot=shiftOf(date),ps=rawSlot(addDays(date,-1)),prevNight=ps==="n1"||ps==="n2";
   let slot=p.slot,label=p.label,def=p.def;
   if(ot==="day"){slot="day";label="Extra day shift";def="R"}
@@ -1779,13 +1812,16 @@ const herTxt=h=>!h?"":h.own!=null?`She's having her own meal${h.own?": "+h.own:"
 const COOK=["chicken","steak","burger","sausage","mince","rice","basmati","pasta","sweet","pot","stir","broc","asp","pep"];
 /* Two cooking sessions: day-shift meals are cooked on rest day 4 (the last day off), night-shift meals on the first night shift. */
 const PREP_SESSIONS={
-  day:{label:"Day shift meals",where:"rest day 4",idx:7,cover:[1,2]},
+  day:{label:"Day shift meals",where:"the day before your day shifts",idx:7,cover:[1,2]},
   night:{label:"Night shift meals",where:"your first night shift",idx:2,cover:[0,1]},
   off:{label:"Days off meals",where:"your first day off",idx:4,cover:[0,1,2,3]}};
 let PREP_MODE=null,PREP_SEL=null;
 function nextCookDate(idx){let d=TODAY;for(let g=0;g<20;g++,d=addDays(d,1))if(dayInfo(d).idx===idx)return d;return TODAY}
-function prepPlan(mode){const s=PREP_SESSIONS[mode],cook=nextCookDate(s.idx);return {cook,days:s.cover.map(n=>addDays(cook,n)),s}}
-function prepMode(){if(PREP_MODE)return PREP_MODE;return ["day","night","off"].map(m=>[m,nextCookDate(PREP_SESSIONS[m].idx)]).sort((a,b)=>a[1]<b[1]?-1:a[1]>b[1]?1:0)[0][0]}
+function prepPlan(mode){const s=PREP_SESSIONS[mode],isK=d=>{const x=dayInfo(d).slot;return mode==="day"?x==="day":mode==="night"?(x==="n1"||x==="n2"):(x==="off"||x==="off1")};
+  let start=null;for(let k=mode==="day"?1:0;k<70;k++){const d=addDays(TODAY,k);if(isK(d)&&!isK(addDays(d,-1))){start=d;break}}
+  if(!start)return {cook:addDays(TODAY,365),days:[],s};const days=[];for(let d=start;isK(d)&&days.length<14;d=addDays(d,1))days.push(d);
+  return {cook:mode==="day"?addDays(start,-1):start,days,s}}
+function prepMode(){if(PREP_MODE)return PREP_MODE;return ["day","night","off"].map(m=>[m,prepPlan(m).cook]).sort((a,b)=>a[1]<b[1]?-1:a[1]>b[1]?1:0)[0][0]}
 function prepDays(){const m=prepMode();return m==="custom"?[...(PREP_SEL||[])].sort():prepPlan(m).days}
 const prepDone=()=>(L.prepDone=L.prepDone||{});
 function renderPrep(){
@@ -1976,7 +2012,7 @@ $("x-add").addEventListener("click",()=>{setTimeout(()=>{if(!$("x-name").value){
 $("d-prev").addEventListener("click",()=>{VIEW=addDays(VIEW,-1);renderToday()});
 $("d-next").addEventListener("click",()=>{VIEW=addDays(VIEW,1);renderToday()});
 $("today-flip").addEventListener("click",()=>{const t=dayType(VIEW)==="T"?"R":"T";setDayType(VIEW,t)});
-function goPlan(d){show("schedule","shifts");ROTA_SEL=d;renderRota();setTimeout(()=>{const el=$("rota-card");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
+function goPlan(d){show("schedule","shifts");const far=d<TODAY||d>addDays(TODAY,6);if(rotaView()!=="week"&&(rotaView()!=="roll"||far)){L.rotaView=far?"week":"roll";saveL()}if(rotaView()==="week")ROTA_WK=Math.round((pd(mondayOf(d))-pd(mondayOf(TODAY)))/864e5/7);ROTA_SEL=d;renderRota();setTimeout(()=>{const el=$("rota-card");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 $("today-plan").addEventListener("click",()=>goPlan(VIEW));
 $("rota-flip").addEventListener("click",()=>{const t=dayType(ROTA_SEL)==="T"?"R":"T";setDayType(ROTA_SEL,t)});
 function renderDayAll(){renderToday();renderShop();renderRota();renderPrep();if(typeof renderRun==="function"&&D.runs)renderRun()}
@@ -1997,7 +2033,7 @@ async function saveCheckin(date,patch){
 function rolling(points){
   return points.map(p=>{const from=addDays(p.date,-6);const w=points.filter(q=>q.date>=from&&q.date<=p.date);return {date:p.date,y:w.reduce((a,b)=>a+b.y,0)/w.length}});
 }
-function goalStat(avg,rate){const g=SETUP.goalWeight,cur=avg.length?avg[avg.length-1].y:null,k="To "+g+"kg";
+function goalStat(avg,rate){const wg=typeof weightGoal==="function"&&weightGoal(),g=wg?wg.target:SETUP.goalWeight,cur=avg.length?avg[avg.length-1].y:null,k="To "+g+"kg";
   if(!g||cur==null)return stat(k,"–","Shows after a few weigh-ins");
   const rem=g-cur;if(rem<=0)return stat(k,"Reached","Time to decide: hold here or keep going");
   if(rate==null)return stat(k,f1(rem)+"kg to go","Needs a week of weigh-ins");
@@ -2005,7 +2041,7 @@ function goalStat(avg,rate){const g=SETUP.goalWeight,cur=avg.length?avg[avg.leng
   const wk=rem/rate;if(wk>104)return stat(k,f1(rem)+"kg to go","Over 2 years at this pace");
   const d=new Date(Date.now()+wk*7*864e5).toLocaleDateString("en-GB",{month:"short",year:"numeric"});
   return stat(k,d,`${f1(rem)}kg to go · about ${Math.round(wk)} weeks at +${f1(rate)}kg a week`)}
-function renderProgress(){try{renderWeek();renderInjuries()}catch(e){console.error(e)}
+function renderProgress(){try{renderWeek();renderInjuries();renderGoals()}catch(e){console.error(e)}
   const pts=D.checkins.filter(c=>num(c.weight)!=null).map(c=>({date:c.date,y:num(c.weight)})).sort((a,b)=>a.date<b.date?-1:1);
   const avg=rolling(pts);
   // rate over last 14 days of the rolling average
@@ -2663,9 +2699,9 @@ $("plans").addEventListener("click",async e=>{
 });
 let ROTA_SEL=TODAY;
 function renderRota(){
-  const days=[...Array(8)].map((_,i)=>addDays(TODAY,i));
-  if(!days.includes(ROTA_SEL))ROTA_SEL=TODAY;
-  $("rota").innerHTML=days.map(d=>{const inf=dayInfo(d);return `<button class="rd${d===TODAY?" today":""}${inf.ot?" ot":""}" data-rd="${d}" data-t="${inf.type}" aria-pressed="${d===ROTA_SEL}"><b>${d===TODAY?"Today":WD(d)}</b><small>${inf.label.replace(" · after nights","")}${flexOf(d)?" · Flex":""}</small><span>${inf.type==="T"?(plannedWorkout(d)||"Train"):"Rest"}</span></button>`}).join("");
+  const days=rotaDays();
+  if(!days.includes(ROTA_SEL))ROTA_SEL=days.includes(TODAY)?TODAY:days[0];
+  $("rota").innerHTML=rotaBarHTML(days);renderRotaViews();
   const inf=dayInfo(ROTA_SEL),s=inf.sched;
   {const pat=PATTERN[inf.idx].label.replace(" · after nights","");$("rota-shift").innerHTML=`<span class="note">Shift</span><div class="opts" role="group" aria-label="Shift on this day">${[["",`Usual (${pat})`],["day","Day"],["night","Night"],["off","Off"]].map(([v,n])=>`<button type="button" class="opt" data-shift="${v}" aria-pressed="${(inf.ot||"")===v}">${n}</button>`).join("")}</div>${inf.ot&&inf.ot!=="off"?`<span class="note">Set to rest by default. Switch it to training if you want to train too.</span>`:""}`}
   $("rota-title").textContent=`${niceLong(ROTA_SEL)} · ${inf.label}${inf.type==="T"&&plannedWorkout(ROTA_SEL)?" · "+plannedWorkout(ROTA_SEL):""}`;
@@ -2733,7 +2769,7 @@ const NAV={today:[["today","view-today","Today"]],
   training:[["gym","view-gym","Gym"],["run","view-run","Run"],["library","view-library","Exercises"]],
   progress:[["body","view-progress","Body"],["lifts","view-lifts","Lifts"],["photos","view-photos","Photos"],["coach","view-coach","Coach"]],
   nutrition:[["meals","food-meals","Meals"],["prep","food-prep","Meal prep"],["shop","food-shop","Shop"],["targets","pane-targets","Targets"]],
-  schedule:[["shifts","food-shifts","Next 8 days"],["days","food-days","Day plans"],["rundays","pane-rundays","Run days"]],
+  schedule:[["shifts","food-shifts","Rota"],["days","food-days","Day plans"],["rundays","pane-rundays","Run days"]],
   settings:[["settings","view-settings","Settings"]]};
 const LEGACY={gym:["training","gym"],run:["training","run"],library:["training","library"],lifts:["progress","lifts"],photos:["progress","photos"],coach:["progress","coach"],body:["progress","body"],food:["schedule","shifts"],
   shifts:["schedule","shifts"],days:["schedule","days"],rundays:["schedule","rundays"],meals:["nutrition","meals"],prep:["nutrition","prep"],shop:["nutrition","shop"],targets:["nutrition","targets"]};
@@ -2754,7 +2790,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="11 Nov 2026 (c)";
+const APP_VERSION="11 Nov 2026 (e)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -2971,9 +3007,9 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-medi
 
 /* ---------- running ---------- */
 D.runs=[];D.runplan=null;
-const RUN_BASE=PATTERN.map(p=>p.run?{kind:/speed|interval|tempo|threshold/i.test(p.run)?"speed":"easy",label:p.run,at:p.runAt||"16:30"}:{kind:"none",label:"",at:"16:30"});
+const RUN_BASE=rotaFrom(defaultRota()).map((p,i)=>({...p,...[{},{},{run:"Easy run",runAt:"09:30"},{},{},{},{run:"Long run, 10K+"},{run:"Speed run: intervals or tempo"}][i]})).map(p=>p.run?{kind:/speed|interval|tempo|threshold/i.test(p.run)?"speed":"easy",label:p.run,at:p.runAt||"16:30"}:{kind:"none",label:"",at:"16:30"});
 function applyRunPlan(){const rp=D.runplan&&D.runplan.days;
-  PATTERN.forEach((p,i)=>{const s=(rp&&rp[i])||RUN_BASE[i];
+  PATTERN.forEach((p,i)=>{const s=(rp&&rp[i])||(isDefaultRota()?RUN_BASE[i]:null);
     if(s&&s.kind!=="none"){p.run=s.label||(s.kind==="speed"?"Speed run":"Easy run");p.runAt=s.at||"16:30";p.runKind=s.kind}else{delete p.run;delete p.runAt;delete p.runKind}})}
 const fmtDur=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${pad2(m)}:${pad2(x)}`:`${m}:${pad2(x)}`};
 const parseDur=t=>{t=String(t||"").trim().replace(",",".");if(!t)return null;
@@ -3034,7 +3070,7 @@ function renderRun(){if(!$("run-stats"))return;
   $("run-next").innerHTML=next.length?next.map(({d,inf,done})=>`<li><span><b>${d===TODAY?"Today":niceLong(d)}</b> · ${esc(inf.run)}<small class="note" style="display:block">${inf.runKind==="speed"?"Speed":"Easy"} · ${inf.runAt||"16:30"}${done?" · done":""}</small></span>${done?`<span class="pill good">Done</span>`:`<button class="btn small" data-runlog="${d}" data-k="${inf.runKind||"easy"}">Log</button>`}</li>`).join(""):`<li class="note">No runs on your plan. Set them under Run days below.</li>`;
   $("run-list").innerHTML=runs.length?runs.map(r=>`<div class="runrow"><div><b>${niceLong(r.date)}</b> · ${runTitle(r)}<small class="note" style="display:block">${esc(runLine(r))}${r.note?" · "+esc(r.note):""}</small></div><div class="row" style="flex-wrap:nowrap"><button class="x" data-runedit="${r._id}">Edit</button><button class="x" data-rundel="${r._id}">Delete</button></div></div>`).join(""):`<div class="empty">No runs yet. Tap Log a run after your next one.</div>`;
   if(!RPD||!RPD.dirty)rpdLoad();
-  $("run-days").innerHTML=`<p class="note">Your main run settings: which days of your 8-day cycle have a run, and what kind. Everything else follows this. Two ways to override it: a Run row in Day plans (adds a run to every day using that plan, if this list has none for that day), or "Just for this day" on Next 8 days (one date only).</p><div class="ed"><ol>${RPD.days.map((s,i)=>`<li class="edcol"><b>Day ${i+1} · ${esc(slotLbl(PATTERN[i].slot))}</b><div class="edrow pr"><input type="time" data-rpt="${i}" value="${esc(s.at)}" aria-label="Time"><select data-rpk="${i}" aria-label="Run type"><option value="none" ${s.kind==="none"?"selected":""}>No run</option><option value="easy" ${s.kind==="easy"?"selected":""}>Easy run</option><option value="speed" ${s.kind==="speed"?"selected":""}>Speed run</option></select></div><input data-rpl="${i}" value="${esc(s.label)}" placeholder="Label, like Long run, 10K+" maxlength="40"></li>`).join("")}</ol><div class="row"><button class="btn primary" id="rp-save">Save run days</button><button class="btn ghost small" id="rp-reset">Reset to original</button></div><p class="note" id="rp-msg"></p></div>`}
+  $("run-days").innerHTML=`<p class="note">Your main run settings: which days of your ${PATTERN.length}-day cycle have a run, and what kind. Everything else follows this. Two ways to override it: a Run row in Day plans (adds a run to every day using that plan, if this list has none for that day), or "Just for this day" on Next 8 days (one date only).</p><div class="ed"><ol>${RPD.days.map((s,i)=>`<li class="edcol"><b>Day ${i+1} · ${esc(slotLbl(PATTERN[i].slot))}</b><div class="edrow pr"><input type="time" data-rpt="${i}" value="${esc(s.at)}" aria-label="Time"><select data-rpk="${i}" aria-label="Run type"><option value="none" ${s.kind==="none"?"selected":""}>No run</option><option value="easy" ${s.kind==="easy"?"selected":""}>Easy run</option><option value="speed" ${s.kind==="speed"?"selected":""}>Speed run</option></select></div><input data-rpl="${i}" value="${esc(s.label)}" placeholder="Label, like Long run, 10K+" maxlength="40"></li>`).join("")}</ol><div class="row"><button class="btn primary" id="rp-save">Save run days</button><button class="btn ghost small" id="rp-reset">Reset to original</button></div><p class="note" id="rp-msg"></p></div>`}
 document.addEventListener("input",e=>{if(!(e.target.closest&&e.target.closest("#view-run,#pane-rundays")))return;const t=e.target;if(!RPD)return;
   if(t.dataset.rpt!==undefined){RPD.days[+t.dataset.rpt].at=t.value;RPD.dirty=true}
   if(t.dataset.rpl!==undefined){RPD.days[+t.dataset.rpl].label=t.value;RPD.dirty=true}});
@@ -3198,26 +3234,26 @@ $("rota-once").addEventListener("click",async e=>{const t=e.target.closest("butt
   if(t.id==="os-save"){const k=$("os-row").value;if(!k)return say("Nothing to skip");await saveDayDoc(d,{skip:[...new Set([...(dd.skip||[]),k])]});$("once-skip").open=false;return say("Skipped for "+nice(d))}
   if(t.dataset.once==="unskip"){const a=[...(dd.skip||[])];a.splice(+t.dataset.i,1);await saveDayDoc(d,{skip:a});return}});
 /* ================= exercise library ================= */
-const MGROUPS=["Back","Chest","Side/rear delts","Front delts","Biceps","Triceps","Quads","Hamstrings","Glutes","Calves","Adductors","Core"];
+const MGROUPS=["Back","Traps","Chest","Side/rear delts","Front delts","Biceps","Triceps","Quads","Hamstrings","Glutes","Calves","Adductors","Core"];
 const MTARGET_DEF={"Back":14,"Chest":8,"Side/rear delts":12,"Biceps":8,"Triceps":8,"Quads":10,"Hamstrings":10,"Glutes":8,"Calves":6,"Adductors":4};
 const EQUIP=["Machine","Cable","Free weight","Smith machine","Bodyweight","Other"];
 const EXCATS=["Vertical pull","Horizontal pull","Press","Squat","Hinge","Lunge","Isolation","Plyometric","Other"];
-const X=(p,s,eq,cat)=>({p,s,eq,cat});
+const X=(p,s,eq,cat,w)=>w?{p,s,eq,cat,w}:{p,s,eq,cat};
 const EXDB_BASE={
- "neutral-grip lat pulldown":X("Back",["Biceps"],"Cable","Vertical pull"),"close-grip lat pulldown":X("Back",["Biceps"],"Cable","Vertical pull"),
- "chest-supported row":X("Back",["Side/rear delts","Biceps"],"Machine","Horizontal pull"),"chest-supported t-bar row":X("Back",["Side/rear delts","Biceps"],"Machine","Horizontal pull"),
- "single-arm cable lat row":X("Back",["Biceps"],"Cable","Horizontal pull"),"wide-grip seated cable row":X("Back",["Side/rear delts","Biceps"],"Cable","Horizontal pull"),
- "machine high row":X("Back",["Biceps"],"Machine","Horizontal pull"),"dumbbell or machine shrug":X("Back",[],"Free weight","Isolation"),"machine pullover":X("Back",[],"Machine","Isolation"),
+ "neutral-grip lat pulldown":X("Back",["Biceps","Side/rear delts"],"Cable","Vertical pull",{"Side/rear delts":0.25}),"close-grip lat pulldown":X("Back",["Biceps","Side/rear delts"],"Cable","Vertical pull",{"Side/rear delts":0.25}),
+ "chest-supported row":X("Back",["Traps","Side/rear delts","Biceps"],"Machine","Horizontal pull"),"chest-supported t-bar row":X("Back",["Traps","Side/rear delts","Biceps"],"Machine","Horizontal pull"),
+ "single-arm cable lat row":X("Back",["Biceps","Side/rear delts"],"Cable","Horizontal pull",{"Side/rear delts":0.25}),"wide-grip seated cable row":X("Back",["Traps","Side/rear delts","Biceps"],"Cable","Horizontal pull"),
+ "machine high row":X("Back",["Traps","Side/rear delts","Biceps"],"Machine","Horizontal pull"),"dumbbell or machine shrug":X("Traps",[],"Free weight","Isolation"),"machine pullover":X("Back",[],"Machine","Isolation"),
  "incline machine chest press":X("Chest",["Front delts","Triceps"],"Machine","Press"),"incline smith machine press":X("Chest",["Front delts","Triceps"],"Smith machine","Press"),
  "flat machine chest press":X("Chest",["Front delts","Triceps"],"Machine","Press"),"pec deck":X("Chest",[],"Machine","Isolation"),"cable fly":X("Chest",[],"Cable","Isolation"),
- "cable lateral raise":X("Side/rear delts",[],"Cable","Isolation"),"reverse pec deck":X("Side/rear delts",["Back"],"Machine","Isolation"),
- "seated machine shoulder press":X("Front delts",["Side/rear delts","Triceps"],"Machine","Press"),
+ "cable lateral raise":X("Side/rear delts",["Traps"],"Cable","Isolation",{"Traps":0.25}),"reverse pec deck":X("Side/rear delts",["Traps"],"Machine","Isolation"),
+ "seated machine shoulder press":X("Front delts",["Side/rear delts","Triceps"],"Machine","Press",{"Side/rear delts":0.25}),
  "cable triceps pushdown":X("Triceps",[],"Cable","Isolation"),"overhead cable triceps extension":X("Triceps",[],"Cable","Isolation"),
  "hammer curl":X("Biceps",[],"Free weight","Isolation"),"neutral-grip cable curl":X("Biceps",[],"Cable","Isolation"),
  "adductor machine":X("Adductors",[],"Machine","Isolation"),"primal leg extension":X("Quads",[],"Machine","Isolation"),
  "hack squat":X("Quads",["Glutes","Adductors"],"Machine","Squat"),"single-leg press":X("Quads",["Glutes"],"Machine","Squat"),"leg press":X("Quads",["Glutes","Adductors"],"Machine","Squat"),
  "lying leg curl":X("Hamstrings",[],"Machine","Isolation"),"seated leg curl":X("Hamstrings",[],"Machine","Isolation"),
- "45-degree hyperextension":X("Glutes",["Hamstrings","Back"],"Bodyweight","Hinge"),"romanian deadlift":X("Hamstrings",["Glutes","Back"],"Free weight","Hinge"),
+ "45-degree hyperextension":X("Glutes",["Hamstrings","Back"],"Bodyweight","Hinge",{"Back":0.25}),"romanian deadlift":X("Hamstrings",["Glutes","Back","Traps"],"Free weight","Hinge",{"Back":0.25,"Traps":0.25}),
  "smith machine reverse lunge":X("Glutes",["Quads","Adductors"],"Smith machine","Lunge"),"bulgarian split squat":X("Quads",["Glutes","Adductors"],"Free weight","Lunge"),
  "copenhagen lunges":X("Adductors",["Quads","Glutes"],"Bodyweight","Lunge"),"box jumps":X("Quads",["Glutes","Calves"],"Bodyweight","Plyometric"),
  "standing calf raise":X("Calves",[],"Machine","Isolation"),"seated calf raise":X("Calves",[],"Machine","Isolation"),
@@ -3229,9 +3265,9 @@ const EX_RULES=[
  [/rdl|romanian|deadlift|good morning|hyperextension|back extension/i,X("Hamstrings",["Glutes","Back"],"Free weight","Hinge")],
  [/squat|leg press|hack/i,X("Quads",["Glutes","Adductors"],"Machine","Squat")],[/lunge|step-?up/i,X("Quads",["Glutes"],"Free weight","Lunge")],
  [/jump/i,X("Quads",["Glutes","Calves"],"Bodyweight","Plyometric")],
- [/pulldown|pull-?up|chin/i,X("Back",["Biceps"],"Cable","Vertical pull")],[/pullover/i,X("Back",[],"Machine","Isolation")],
- [/row/i,X("Back",["Side/rear delts","Biceps"],"Machine","Horizontal pull")],[/shrug/i,X("Back",[],"Free weight","Isolation")],
- [/rear|reverse pec|face pull/i,X("Side/rear delts",["Back"],"Cable","Isolation")],[/lateral/i,X("Side/rear delts",[],"Cable","Isolation")],
+ [/pulldown|pull-?up|chin/i,X("Back",["Biceps","Side/rear delts"],"Cable","Vertical pull",{"Side/rear delts":0.25})],[/pullover/i,X("Back",[],"Machine","Isolation")],
+ [/row/i,X("Back",["Traps","Side/rear delts","Biceps"],"Machine","Horizontal pull")],[/shrug/i,X("Traps",[],"Free weight","Isolation")],
+ [/rear|reverse pec|face pull/i,X("Side/rear delts",["Traps"],"Cable","Isolation")],[/lateral/i,X("Side/rear delts",[],"Cable","Isolation")],
  [/shoulder press|overhead press|military|arnold/i,X("Front delts",["Side/rear delts","Triceps"],"Machine","Press")],
  [/fly|flies|pec dec|pec deck|crossover/i,X("Chest",[],"Cable","Isolation")],
  [/bench|chest press|press-?up|push-?up|dip/i,X("Chest",["Front delts","Triceps"],"Free weight","Press")],
@@ -3250,48 +3286,123 @@ function renderLibrary(){const el=$("lib-list");if(!el)return;const all=libNames
   const order=[...MGROUPS,"Not set"].filter(g=>by[g]);
   el.innerHTML=order.map(g=>`<div class="aisle"><h3>${esc(g)} <span class="note">(${by[g].length})</span></h3>${by[g].map(x=>{const i=x.i;
     if(LIB_EDIT&&LIB_EDIT.k===x.k)return libEditor(LIB_EDIT);
-    return `<div class="libitem"><div><b>${esc(x.n)}</b><small class="note">${i?[i.s&&i.s.length?"Also: "+i.s.join(", "):"",i.eq,i.cat].filter(Boolean).join(" · "):"Muscles not set, so it isn't counted in volume"}${i&&i.src==="guess"?' · <span class="pill warn">Guessed</span>':""}${i&&i.src==="you"?' · <span class="pill">Edited</span>':""}</small></div><button class="x" type="button" data-libedit="${esc(x.k)}">Edit</button></div>`}).join("")}</div>`).join("")||`<div class="empty">No exercises match.</div>`}
+    return `<div class="libitem"><div><b>${esc(x.n)}</b><small class="note">${i?[i.s&&i.s.length?"Also: "+i.s.map(g=>g+" "+exW(i,g)).join(", "):"",i.eq,i.cat].filter(Boolean).join(" · "):"Muscles not set, so it isn't counted in volume"}${i&&i.src==="guess"?' · <span class="pill warn">Guessed</span>':""}${i&&i.src==="you"?' · <span class="pill">Edited</span>':""}</small></div><button class="x" type="button" data-libedit="${esc(x.k)}">Edit</button></div>`}).join("")}</div>`).join("")||`<div class="empty">No exercises match.</div>`}
 function libEditor(d){const opt=(arr,v)=>arr.map(a=>`<option ${a===v?"selected":""}>${esc(a)}</option>`).join("");
   return `<div class="libitem edit ed"><label class="note">Name${d.isNew?`<input id="lib-name" value="${esc(d.n)}" maxlength="50" placeholder="e.g. Cable crunch">`:`<b style="display:block">${esc(d.n)}</b>`}</label>
   <div class="g2"><label class="note">Main muscle<select id="lib-p">${opt(MGROUPS,d.p)}</select></label><label class="note">Equipment<select id="lib-eq">${opt(EQUIP,d.eq)}</select></label></div>
   <label class="note">Type<select id="lib-cat">${opt(EXCATS,d.cat)}</select></label>
   <div class="note">Also works (counts as indirect sets)</div><div class="row">${MGROUPS.filter(g=>g!==d.p).map(g=>`<button type="button" class="chip" data-libs="${esc(g)}" aria-pressed="${d.s.includes(g)}">${esc(g)}</button>`).join("")}</div>
+  ${d.s.length?`<div class="note">How much of a set each one gets</div>${d.s.map(g=>`<label class="adjrow"><span>${esc(g)}</span><select data-libw="${esc(g)}"><option value="">Default (${indDefault()})</option>${[0.25,0.5,0.75,1].map(v=>`<option value="${v}" ${d.w&&+d.w[g]===v?"selected":""}>${v}</option>`).join("")}</select><span></span></label>`).join("")}`:""}
   <div class="row"><button class="btn primary small" type="button" id="lib-save">Save</button><button class="btn ghost small" type="button" id="lib-cancel">Cancel</button>${!d.isNew&&D.exdb&&D.exdb[d.k]?`<button class="btn ghost small" type="button" id="lib-reset">${EXDB_BASE[d.k]?"Reset to default":"Delete"}</button>`:""}</div><p class="note" id="lib-msg"></p></div>`}
 async function saveExdb(){if(db){try{await db.doc("prefs/exdb").set({map:D.exdb})}catch(e){}}renderLibrary();renderAnalytics();renderReady()}
 document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!t.closest("#view-library"))return;
   if(t.id==="lib-new"){LIB_EDIT={k:"__new",isNew:true,n:"",p:"Back",s:[],eq:"Machine",cat:"Isolation"};LIB_Q="";$("lib-q").value="";renderLibrary();
     if(!$("lib-name")){$("lib-list").insertAdjacentHTML("afterbegin",libEditor(LIB_EDIT))}$("lib-name").focus();return}
-  if(t.dataset.libedit){const n=libNames().find(x=>x.k===t.dataset.libedit),i=exInfo(n.n)||{p:"Back",s:[],eq:"Machine",cat:"Isolation"};LIB_EDIT={k:n.k,n:n.n,p:i.p,s:[...(i.s||[])],eq:i.eq||"Machine",cat:i.cat||"Isolation"};renderLibrary();return}
+  if(t.dataset.libedit){const n=libNames().find(x=>x.k===t.dataset.libedit),i=exInfo(n.n)||{p:"Back",s:[],eq:"Machine",cat:"Isolation"};LIB_EDIT={k:n.k,n:n.n,p:i.p,s:[...(i.s||[])],w:{...(i.w||{})},eq:i.eq||"Machine",cat:i.cat||"Isolation"};renderLibrary();return}
   if(!LIB_EDIT)return;
-  if(t.dataset.libs){const g=t.dataset.libs;LIB_EDIT.s=LIB_EDIT.s.includes(g)?LIB_EDIT.s.filter(x=>x!==g):[...LIB_EDIT.s,g];t.setAttribute("aria-pressed",String(LIB_EDIT.s.includes(g)));return}
+  if(t.dataset.libs){const g=t.dataset.libs;LIB_EDIT.s=LIB_EDIT.s.includes(g)?LIB_EDIT.s.filter(x=>x!==g):[...LIB_EDIT.s,g];LIB_EDIT.p=$("lib-p").value;LIB_EDIT.eq=$("lib-eq").value;LIB_EDIT.cat=$("lib-cat").value;if($("lib-name"))LIB_EDIT.n=$("lib-name").value;const box=t.closest(".libitem");box.outerHTML=libEditor(LIB_EDIT);return}
   if(t.id==="lib-cancel"){LIB_EDIT=null;renderLibrary();return}
   if(t.id==="lib-reset"){const m={...D.exdb};delete m[LIB_EDIT.k];D.exdb=m;LIB_EDIT=null;await saveExdb();return}
   if(t.id==="lib-save"){const d=LIB_EDIT;d.p=$("lib-p").value;d.eq=$("lib-eq").value;d.cat=$("lib-cat").value;d.s=d.s.filter(g=>g!==d.p);
     if(d.isNew){d.n=$("lib-name").value.trim();if(!d.n){$("lib-msg").textContent="Give it a name.";return}d.k=norm(d.n)}
-    D.exdb={...D.exdb,[d.k]:{name:d.n,p:d.p,s:d.s,eq:d.eq,cat:d.cat}};LIB_EDIT=null;await saveExdb()}});
-document.addEventListener("change",e=>{if(e.target.id==="lib-p"&&LIB_EDIT){LIB_EDIT.p=e.target.value;LIB_EDIT.s=LIB_EDIT.s.filter(g=>g!==LIB_EDIT.p);LIB_EDIT.eq=$("lib-eq").value;LIB_EDIT.cat=$("lib-cat").value;if($("lib-name"))LIB_EDIT.n=$("lib-name").value;
+    const w={};Object.entries(d.w||{}).forEach(([g,v])=>{if(d.s.includes(g)&&v!==""&&v!=null)w[g]=+v});D.exdb={...D.exdb,[d.k]:{name:d.n,p:d.p,s:d.s,eq:d.eq,cat:d.cat,...(Object.keys(w).length?{w}:{})}};LIB_EDIT=null;await saveExdb()}});
+document.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.libw!=null&&LIB_EDIT){LIB_EDIT.w={...(LIB_EDIT.w||{}),[e.target.dataset.libw]:e.target.value};return}if(e.target.id==="lib-p"&&LIB_EDIT){LIB_EDIT.p=e.target.value;LIB_EDIT.s=LIB_EDIT.s.filter(g=>g!==LIB_EDIT.p);LIB_EDIT.eq=$("lib-eq").value;LIB_EDIT.cat=$("lib-cat").value;if($("lib-name"))LIB_EDIT.n=$("lib-name").value;
   const box=e.target.closest(".libitem");box.outerHTML=libEditor(LIB_EDIT)}});
 document.addEventListener("input",e=>{if(e.target.id==="lib-q"){LIB_Q=e.target.value;LIB_EDIT=null;renderLibrary()}});
 
 /* ================= volume by muscle group ================= */
-const mTarget=g=>{const m=D.mtargets||{};return m[g]!=null?+m[g]:(MTARGET_DEF[g]||0)};
 function sessionExercises(w){let exs=(w.exercises||[]).filter(e=>(e.sets||[]).length);if(exs.length)return {exs,est:false};
   const t=TEMPLATES.find(x=>norm(x.title)===norm(w.title)||norm(x.key)===norm(w.title));if(!t)return {exs:[],est:false};
   return {exs:tplOf(t.title).ex.map(e=>({name:e.name,sets:targets(e.groups).map(()=>({}))})),est:true}}
-function volumeIn(from,to){const g={};let est=0;const add=(m,k,n)=>{if(!m)return;g[m]=g[m]||{d:0,i:0};g[m][k]+=n};
+/* ================= effective sets per muscle ================= */
+/* Every set counts 1 for the exercise's main muscle. Each muscle it also works gets a fraction of a set:
+   the exercise's own weighting if it has one (library), otherwise your default indirect weighting (Volume settings). */
+D.volset=null;
+const indDefault=()=>{const v=D.volset&&+D.volset.ind;return v>0?v:0.5};
+const exW=(i,g)=>i&&i.w&&i.w[g]!=null?+i.w[g]:indDefault();
+const MRANGE_DEF={"Back":[14,20],"Traps":[8,14],"Side/rear delts":[12,18],"Chest":[6,10],"Front delts":[0,8],"Biceps":[8,12],"Triceps":[6,10],"Quads":[10,16],"Hamstrings":[8,14],"Glutes":[6,12],"Calves":[6,10],"Adductors":[4,8],"Core":[0,8]};
+const PRI_DEF=["Back","Traps","Side/rear delts"];
+function mRange(g){const m=(D.mtargets||{})[g];if(m!=null&&typeof m==="object")return {min:+m.min||0,max:+m.max||0,pri:!!m.pri};
+  if(typeof m==="number")return {min:m,max:Math.round(m*1.4),pri:PRI_DEF.includes(g)};const d=MRANGE_DEF[g]||[0,0];return {min:d[0],max:d[1],pri:PRI_DEF.includes(g)}}
+const mTarget=g=>{const r=mRange(g);return r.max?(r.min+r.max)/2:0};
+const effOf=x=>x?x.d+x.ie:0;
+function volumeIn(from,to){const g={};let est=0;const add=(m,k,n,date)=>{if(!m)return;g[m]=g[m]||{d:0,i:0,ie:0,days:new Set(),idays:new Set()};g[m][k]+=n;if(k==="d"&&n>0)g[m].days.add(date)};
   D.workouts.filter(w=>w.date>=from&&w.date<=to).forEach(w=>{const r=sessionExercises(w);if(r.est)est++;
-    r.exs.forEach(e=>{const i=exInfo(e.name);if(!i)return;const n=e.sets.length;add(i.p,"d",n);(i.s||[]).forEach(s=>add(s,"i",n))})});return {g,est}}
+    r.exs.forEach(e=>{const i=exInfo(e.name);if(!i)return;const n=e.sets.length;add(i.p,"d",n,w.date);(i.s||[]).forEach(s=>{const wt=exW(i,s);add(s,"i",n,w.date);add(s,"ie",n*wt,w.date);if(wt>0)g[s].idays.add(w.date)})})});return {g,est}}
 let MT_EDIT=false;
-function renderVolume(){const el=$("vol-card");if(!el)return;const v8=volumeIn(addDays(TODAY,-7),TODAY),v28=volumeIn(addDays(TODAY,-27),TODAY);
-  const groups=MGROUPS.filter(g=>mTarget(g)>0||(v28.g[g]&&v28.g[g].d));
-  const row=g=>{const a=v8.g[g]||{d:0,i:0},b=v28.g[g]||{d:0,i:0},st=a.d+a.i/2,st28=(b.d+b.i/2)*8/28,tg=mTarget(g),r=tg?st/tg:0,cls=!tg?"":r>=1.25?"over":r>=0.9?"hit":r>=0.6?"mid":"low";
-    return `<div class="vrow"><div class="lab"><b>${esc(g)}</b><span class="mono">${f1(st)}${tg?" / "+tg:""}</span></div>${tg?`<div class="mbar ${cls}"><div class="track"><div class="fill" style="width:${Math.min(100,r*100)}%"></div></div></div>`:""}
-      <small class="note">${a.d} direct · ${a.i} indirect · 28-day average ${f1(st28)} per 8 days</small>${MT_EDIT?`<label class="note vt">Target per 8 days <input inputmode="numeric" data-mt="${esc(g)}" value="${tg}"></label>`:""}</div>`};
+function renderVolume(){const el=$("vol-card");if(!el)return;
+  const B=[0,1,2,3].map(k=>{const to=addDays(TODAY,-8*k);return volumeIn(addDays(to,-7),to)}),v8=B[0],v28=volumeIn(addDays(TODAY,-27),TODAY);
+  const groups=MGROUPS.filter(g=>mRange(g).max>0||(v28.g[g]&&effOf(v28.g[g])>0)).sort((a,b)=>(mRange(b).pri-mRange(a).pri)||MGROUPS.indexOf(a)-MGROUPS.indexOf(b));
+  const stat=g=>{const r=mRange(g),e=effOf(v8.g[g]);if(!r.max)return ["","No target"];if(e<r.min*0.75)return ["bad","Too little"];if(e<r.min)return ["warn","A bit low"];if(e>r.max*1.25)return ["bad","Too much"];if(e>r.max)return ["warn","A bit high"];return ["good","On target"]};
+  const low=groups.filter(g=>/little|low/.test(stat(g)[1])),high=groups.filter(g=>/much|high/.test(stat(g)[1]));
+  const row=g=>{const a=v8.g[g]||{d:0,i:0,ie:0,days:new Set()},r=mRange(g),e=effOf(a),blocks=B.map(b=>effOf(b.g[g])).reverse(),prev=blocks.slice(0,3).filter(x=>x>0),pa=prev.length?prev.reduce((x,y)=>x+y,0)/prev.length:null;
+    const tr=pa==null?"":e>pa*1.2?"↑":e<pa*0.8?"↓":"→",scale=Math.max(r.max*1.3,e,1),s=stat(g),mx=Math.max(...blocks,1),f28=(v28.g[g]?v28.g[g].days.size:0)*8/28;
+    return `<div class="vrow"><div class="lab"><b>${r.pri?"★ ":""}${esc(g)}</b><span><span class="mono">${f1(e)}</span>${r.max?`<span class="note"> / ${r.min}–${r.max}</span>`:""} ${s[0]?`<span class="pill ${s[0]}">${s[1]}</span>`:""}</span></div>
+      ${r.max?`<div class="vbar"><div class="vband" style="left:${r.min/scale*100}%;width:${(r.max-r.min)/scale*100}%"></div><div class="vfill ${s[0]}" style="width:${Math.min(100,e/scale*100)}%"></div></div>`:""}
+      <div class="vmeta"><small class="note">${a.d} direct · ${a.i} indirect (= ${f1(a.ie)}) · trained directly ${a.days.size}× in 8 days (${f1(f28)}× average)</small>
+      <span class="vtrend" title="Effective sets in each of the last four 8-day blocks">${blocks.map(x=>`<i style="height:${Math.max(2,x/mx*18)}px"></i>`).join("")}<b>${tr}</b></span></div>
+      ${MT_EDIT?`<div class="vedit"><label class="note">Min <input inputmode="numeric" data-mtmin="${esc(g)}" value="${r.min}"></label><label class="note">Max <input inputmode="numeric" data-mtmax="${esc(g)}" value="${r.max}"></label><label class="chkline"><input type="checkbox" data-mtpri="${esc(g)}" ${r.pri?"checked":""}> Priority</label></div>`:""}</div>`};
   el.innerHTML=`<div class="row between"><h2>Volume by muscle</h2><button class="x" type="button" id="mt-edit">${MT_EDIT?"Done":"Edit targets"}</button></div>
-  <p class="note">Working sets over your last 8 days (one full rota). <b>Stimulus</b> counts a direct set as 1 and an indirect set as ½, so pressing doesn't count as full shoulder or triceps work. Muscles come from the Exercise library.</p>
-  ${groups.map(row).join("")}${v8.est||v28.est?`<p class="note">${v28.est} session${v28.est===1?"":"s"} were marked done without sets, so their planned sets are used.</p>`:""}`}
+  <p class="note">Effective sets over your last 8 days (one full rota). A direct set counts as 1. A muscle that an exercise also works gets part of a set: rows give your rear delts, traps and biceps credit, pressing gives front delts and triceps credit. ★ marks your priority muscles.</p>
+  <div class="row"><label class="note">Indirect sets count as <select id="vol-ind">${[0.25,0.33,0.5,0.75,1].map(v=>`<option value="${v}" ${Math.abs(indDefault()-v)<0.001?"selected":""}>${v===0.33?"⅓":v===0.25?"¼":v===0.5?"½":v===0.75?"¾":"1"} of a set</option>`).join("")}</select></label></div>
+  <p class="note">That's the default. Any exercise can have its own weighting for each muscle in Training, Exercises.</p>
+  ${low.length||high.length?`<div class="vsum">${low.length?`<p><b>Could use more:</b> ${low.map(esc).join(", ")}</p>`:""}${high.length?`<p><b>Possibly too much:</b> ${high.map(esc).join(", ")}</p>`:""}</div>`:`<p class="note">Everything's inside its target range.</p>`}
+  ${groups.map(row).join("")}${v28.est?`<p class="note">${v28.est} session${v28.est===1?" was":"s were"} marked done without sets, so planned sets are used for ${v28.est===1?"it":"them"}.</p>`:""}`}
 document.addEventListener("click",async e=>{const t=e.target.closest("#mt-edit");if(!t)return;if(MT_EDIT&&db){try{await db.doc("prefs/mtargets").set({map:D.mtargets||{}})}catch(err){}}MT_EDIT=!MT_EDIT;renderVolume()});
-document.addEventListener("input",e=>{const g=e.target.dataset&&e.target.dataset.mt;if(!g)return;const v=parseInt(e.target.value);D.mtargets={...(D.mtargets||{}),[g]:isNaN(v)?0:Math.max(0,v)}});
+const setRange=(g,patch)=>{const r=mRange(g);D.mtargets={...(D.mtargets||{}),[g]:{min:r.min,max:r.max,pri:r.pri,...patch}}};
+document.addEventListener("input",e=>{const t=e.target,d=t.dataset||{};
+  if(d.mtmin){const v=parseInt(t.value);setRange(d.mtmin,{min:isNaN(v)?0:Math.max(0,v)})}
+  if(d.mtmax){const v=parseInt(t.value);setRange(d.mtmax,{max:isNaN(v)?0:Math.max(0,v)})}});
+document.addEventListener("change",async e=>{const t=e.target;
+  if(t.dataset&&t.dataset.mtpri){setRange(t.dataset.mtpri,{pri:t.checked});return}
+  if(t.id==="vol-ind"){D.volset={...(D.volset||{}),ind:+t.value};if(db){try{await db.doc("prefs/volset").set(D.volset)}catch(err){}}renderAnalytics();renderReady()}});
+
+/* ================= goals ================= */
+D.goals=null;let GOAL_NEW=null,GOAL_LOG=null;
+const goalList=()=>(D.goals&&D.goals.list)||[];
+const weightGoal=()=>goalList().find(g=>g.type==="weight");
+async function saveGoals(list){D.goals={list};if(db){try{await db.doc("prefs/goals").set({list})}catch(e){}}renderGoals();renderProgress()}
+function weightNow(){const pts=D.checkins.filter(c=>num(c.weight)!=null).map(c=>({date:c.date,y:num(c.weight)})).sort((a,b)=>a.date<b.date?-1:1),avg=rolling(pts);if(!avg.length)return {cur:null,rate:null};
+  const a=avg[avg.length-1],old=[...avg].reverse().find(p=>p.date<=addDays(a.date,-7))||avg[0],dd=(pd(a.date)-pd(old.date))/864e5;return {cur:a.y,rate:dd>=4?(a.y-old.y)/dd*7:null}}
+function liftBest(name){const h=liftHistory()[norm(name)];if(!h||!h.ss.length)return null;const b=h.ss.reduce((m,s)=>s.perf>m.perf?s:m,h.ss[0]);return {e1:b.perf,set:b.top,date:b.date,bw:b.bw}}
+function measVals(g){const v=[...(g.log||[])];if(norm(g.name)==="waist")D.checkins.filter(c=>num(c.waist)!=null).forEach(c=>{if(!v.some(x=>x.date===c.date))v.push({date:c.date,v:num(c.waist)})});return v.sort((a,b)=>a.date<b.date?-1:1)}
+function goalView(g){const bar=(p,cls)=>`<div class="gbar"><div class="gfill ${cls||""}" style="width:${Math.max(0,Math.min(100,p*100))}%"></div></div>`;let head="",body="",p=0;
+  if(g.type==="weight"){const w=weightNow(),cur=w.cur,dir=g.mode==="cut"?-1:g.mode==="bulk"?1:0;head=`${g.mode==="cut"?"Cut":g.mode==="bulk"?"Bulk":"Maintain"} to ${g.target}kg${g.by?" by "+nice(g.by):""}`;
+    if(cur==null)body="Log a few weigh-ins to see progress.";
+    else{const start=g.startKg!=null?g.startKg:cur,tot=g.target-start;p=dir===0?1-Math.min(1,Math.abs(cur-g.target)/1.5):tot?(cur-start)/tot:1;const left=g.target-cur;
+      let eta="";if(dir&&w.rate&&Math.sign(w.rate)===dir&&Math.abs(left)>0.05){const wk=Math.abs(left/w.rate);eta=wk<104?` · about ${Math.round(wk)} weeks at your current rate`:""}
+      body=`Now ${f1(cur)}kg (7-day average)${dir?` · ${Math.abs(left)<0.05?"reached":f1(Math.abs(left))+"kg to go"}`:` · ${f1(Math.abs(cur-g.target))}kg from target`}${eta}${g.by&&dir&&w.rate!=null?(()=>{const wk=(pd(g.by)-pd(TODAY))/864e5/7;if(wk<=0)return "";const need=left/wk;return ` · needs ${need>=0?"+":""}${f1(need)}kg a week`})():""}`}}
+  if(g.type==="lift"){const b=liftBest(g.ex),tgt=e1rm(+g.kg,+g.reps);head=`${esc(g.ex)}: ${g.kg}kg × ${g.reps}`;
+    if(!b)body="No sets logged for this exercise yet.";else{const st=g.startE1||b.e1;p=tgt>st?(b.e1-st)/(tgt-st):b.e1>=tgt?1:0;if(b.e1>=tgt)p=1;
+      body=`Best so far ${b.bw?b.set.reps+" reps":b.set.kg+"kg × "+b.set.reps} (est. 1RM ${f1(b.e1)}kg) · target est. 1RM ${f1(tgt)}kg${b.e1>=tgt?" · reached":""}`}}
+  if(g.type==="measure"){const v=measVals(g),last=v[v.length-1],first=g.startV!=null?g.startV:(v[0]&&v[0].v);head=`${esc(g.name)} ${g.dir==="down"?"down":"up"} to ${g.target}cm`;
+    if(!last)body="Log a measurement to start.";else{const tot=g.target-first;p=tot?(last.v-first)/tot:1;body=`Now ${f1(last.v)}cm (${nice(last.date)}) · started ${f1(first)}cm · ${Math.abs(g.target-last.v)<0.05?"reached":f1(Math.abs(g.target-last.v))+"cm to go"}`}}
+  p=Math.max(0,Math.min(1,p||0));
+  return `<div class="goal"><div class="row between"><b>${head}</b><button class="gx" type="button" data-grm="${g.id}" aria-label="Remove goal">−</button></div>${bar(p,p>=1?"done":"")}<p class="note">${body} <span class="mono">${Math.round(p*100)}%</span></p>
+    ${g.type==="measure"?(GOAL_LOG===g.id?`<div class="row"><input class="ginp" id="gl-v" inputmode="decimal" placeholder="cm"><input class="ginp" type="date" id="gl-d" value="${TODAY}"><button class="btn small primary" type="button" data-glsave="${g.id}">Save</button></div>`:`<div class="row"><button class="x" type="button" data-glog="${g.id}">Log ${esc(g.name.toLowerCase())}</button>${(g.log||[]).length?`<span class="note">${(g.log||[]).length} entr${(g.log||[]).length>1?"ies":"y"} so far</span>`:""}</div>`):""}</div>`}
+function goalForm(){const d=GOAL_NEW,ch=(k,v,n)=>`<button type="button" class="chip" data-gf="${k}:${v}" aria-pressed="${d[k]===v}">${n}</button>`;
+  const exOpts=libNames().map(x=>`<option value="${esc(x.n)}">`).join("");
+  return `<div class="goal ed"><div class="row">${ch("type","weight","Weight")}${ch("type","lift","Exercise")}${ch("type","measure","Body measurement")}</div>
+  ${d.type==="weight"?`<div class="row">${ch("mode","bulk","Bulk")}${ch("mode","cut","Cut")}${ch("mode","maintain","Maintain")}</div><div class="g2"><label class="note">Target weight (kg)<input id="gf-kg" data-gfv="gf-kg" value="${esc(d['gf-kg']??"")}" inputmode="decimal" placeholder="93"></label><label class="note">By (optional)<input id="gf-by" data-gfv="gf-by" value="${esc(d['gf-by']??"")}" type="date"></label></div>`:""}
+  ${d.type==="lift"?`<label class="note">Exercise<input id="gf-ex" data-gfv="gf-ex" value="${esc(d['gf-ex']??"")}" list="gf-exl" placeholder="e.g. Hack squat"><datalist id="gf-exl">${exOpts}</datalist></label><div class="g2"><label class="note">Target weight (kg)<input id="gf-kg" data-gfv="gf-kg" value="${esc(d['gf-kg']??"")}" inputmode="decimal" placeholder="120"></label><label class="note">For reps<input id="gf-reps" data-gfv="gf-reps" value="${esc(d['gf-reps']??"8")}" inputmode="numeric"></label></div>`:""}
+  ${d.type==="measure"?`<div class="g2"><label class="note">Measurement<select id="gf-name" data-gfv="gf-name">${["Waist","Chest","Arms","Shoulders","Thighs","Calves","Neck","Hips"].map(n=>`<option ${d["gf-name"]===n?"selected":""}>${n}</option>`).join("")}</select></label><label class="note">Or your own<input id="gf-own" data-gfv="gf-own" value="${esc(d['gf-own']??"")}" placeholder="e.g. Forearm"></label></div><div class="row">${ch("dir","up","Increase")}${ch("dir","down","Decrease")}</div><div class="g2"><label class="note">Target (cm)<input id="gf-tg" data-gfv="gf-tg" value="${esc(d['gf-tg']??"")}" inputmode="decimal"></label><label class="note">Now (cm, optional)<input id="gf-now" data-gfv="gf-now" value="${esc(d['gf-now']??"")}" inputmode="decimal"></label></div>`:""}
+  <div class="row"><button class="btn small primary" type="button" id="gf-save">Add goal</button><button class="btn small ghost" type="button" id="gf-cancel">Cancel</button></div><p class="note" id="gf-err" style="color:#d9534f"></p></div>`}
+function renderGoals(){const el=$("goals-body");if(!el)return;const l=goalList();$("goals-pill").textContent=l.length?String(l.length):"";
+  el.innerHTML=`${l.length?l.map(goalView).join(""):`<p class="note">No goals yet. Add one for your weight, a lift or a body measurement.</p>`}
+  ${GOAL_NEW?goalForm():`<button class="btn" type="button" id="goal-add">+ Add goal</button>`}`}
+const gfMirror=e=>{const k=e.target.dataset&&e.target.dataset.gfv;if(k&&GOAL_NEW)GOAL_NEW[k]=e.target.value};document.addEventListener("input",gfMirror);document.addEventListener("change",gfMirror);
+document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!t.closest("#goals-card"))return;const n=v=>parseFloat(String(v||"").replace(",","."));
+  if(t.id==="goal-add"){GOAL_NEW={type:"weight",mode:"bulk",dir:"up"};renderGoals();return}
+  if(t.id==="gf-cancel"){GOAL_NEW=null;renderGoals();return}
+  if(t.dataset.gf){const [k,v]=t.dataset.gf.split(":");GOAL_NEW[k]=v;renderGoals();return}
+  if(t.dataset.grm){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Remove?";t.classList.add("sure");return}await saveGoals(goalList().filter(g=>g.id!==t.dataset.grm));return}
+  if(t.dataset.glog){GOAL_LOG=t.dataset.glog;renderGoals();$("gl-v").focus();return}
+  if(t.dataset.glsave){const v=n($("gl-v").value);if(!(v>0))return;const list=goalList().map(g=>g.id===t.dataset.glsave?{...g,log:[...(g.log||[]).filter(x=>x.date!==$("gl-d").value),{date:$("gl-d").value||TODAY,v}]}:g);GOAL_LOG=null;await saveGoals(list);return}
+  if(t.id==="gf-save"){const d=GOAL_NEW,err=m=>{$("gf-err").textContent=m},id="g"+Date.now().toString(36);let g=null;
+    if(d.type==="weight"){const kg=n($("gf-kg").value);if(!(kg>30&&kg<300))return err("Enter a target weight in kg.");if(weightGoal())return err("You already have a weight goal. Remove it first.");g={id,type:"weight",mode:d.mode,target:kg,by:$("gf-by").value||null,startKg:weightNow().cur}}
+    if(d.type==="lift"){const ex=$("gf-ex").value.trim(),kg=n($("gf-kg").value),r=parseInt($("gf-reps").value);if(!ex)return err("Pick an exercise.");if(!(kg>0)||!(r>0))return err("Enter the weight and reps you're aiming for.");const b=liftBest(ex);g={id,type:"lift",ex,kg,reps:r,startE1:b?b.e1:null}}
+    if(d.type==="measure"){const name=$("gf-own").value.trim()||$("gf-name").value,tg=n($("gf-tg").value),now=n($("gf-now").value);if(!(tg>0))return err("Enter your target in cm.");g={id,type:"measure",name,dir:d.dir,target:tg,startV:now>0?now:null,log:now>0?[{date:TODAY,v:now}]:[]}}
+    GOAL_NEW=null;await saveGoals([...goalList(),g])}});
 
 /* ================= lift progression ================= */
 function liftHistory(){const m={};[...D.workouts].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).forEach(w=>(w.exercises||[]).forEach(ex=>{const sets=(ex.sets||[]).filter(s=>+s.reps>0);if(!sets.length)return;
@@ -3346,19 +3457,19 @@ function fatigue(){const why=[];let sc=0;
   const last=[...D.workouts].filter(w=>w.date>=addDays(TODAY,-4)).sort((a,b)=>a.date<b.date?1:-1)[0];
   if(last&&last.rpe){if(+last.rpe>=9){sc+=2;why.push(`Last session rated ${last.rpe}/10`)}else if(+last.rpe>=8){sc+=1;why.push(`Last session rated ${last.rpe}/10`)}}
   if(last){const r=(last.exercises||[]).flatMap(e=>(e.sets||[]).map(s=>s.rir)).filter(x=>x!=null&&x!=="");if(r.length&&r.reduce((a,b)=>a+(+b),0)/r.length<=0.5){sc+=1;why.push("Last session was mostly to failure (RIR 0)")}}
-  const v=volumeIn(addDays(TODAY,-7),TODAY),gs=MGROUPS.filter(g=>mTarget(g)>0),st=gs.reduce((a,g)=>a+((v.g[g]||{d:0}).d+((v.g[g]||{i:0}).i)/2),0),tg=gs.reduce((a,g)=>a+mTarget(g),0);if(tg&&st/tg>1.25){sc+=1;why.push(`Volume ${Math.round(st/tg*100)}% of your 8-day targets`)}
+  const v=volumeIn(addDays(TODAY,-7),TODAY),gs=MGROUPS.filter(g=>mTarget(g)>0),st=gs.reduce((a,g)=>a+effOf(v.g[g]),0),tg=gs.reduce((a,g)=>a+mTarget(g),0);if(tg&&st/tg>1.25){sc+=1;why.push(`Volume ${Math.round(st/tg*100)}% of your 8-day targets`)}
   const days=new Set(D.workouts.filter(w=>w.date>=addDays(TODAY,-3)&&w.date<=TODAY).map(w=>w.date)).size;if(days>=4){sc+=1;why.push("Trained 4 days in a row")}
   const fl=Object.values(liftHistory()).filter(h=>liftReport(h).flags.some(f=>f[0]==="fatigue")).length;if(fl){sc+=1;why.push(`${fl} lift${fl>1?"s":""} dropping three sessions running`)}
   const sl0=dayInfo(TODAY).slot;if(sl0==="n1"||sl0==="n2"){sc+=1;why.push("You're on nights")}
   const lv=sc<=1?["Fresh","good","Train as planned."]:sc<=3?["Moderate","warn","Train as planned, but stop most sets with 1–2 reps in reserve."]:["High","bad","Consider a lighter session: same exercises, about a third fewer sets, or move it to your next training day."];
   return {sc,why,lv}}
 /* ================= body map: recovery per muscle, green (rested) to red (just trained) ================= */
-const MREC={Back:3,Chest:3,Quads:3.5,Hamstrings:3.5,Glutes:3,Adductors:2.5,"Side/rear delts":2,"Front delts":2,Biceps:2,Triceps:2,Calves:2,Core:1.5};
+const MREC={Back:3,Traps:2.5,Chest:3,Quads:3.5,Hamstrings:3.5,Glutes:3,Adductors:2.5,"Side/rear delts":2,"Front delts":2,Biceps:2,Triceps:2,Calves:2,Core:1.5};
 /* Each set loads its main muscle fully and the muscles it also works by half, fading out over that muscle's recovery time */
 function muscleFatigue(){const load={},last={};MGROUPS.forEach(g=>load[g]=0);
   const add=(g,n,ds,date)=>{if(load[g]==null)return;const R=MREC[g]||2.5,w=Math.max(0,1-(ds+0.5)/R);load[g]+=n*w;if(!last[g]||date>last[g])last[g]=date};
   D.workouts.forEach(w=>{const ds=Math.round((pd(TODAY)-pd(w.date))/864e5);if(ds<0||ds>14)return;const k=w.rpe?(+w.rpe>=9?1.2:+w.rpe<=5?0.8:1):1;
-    sessionExercises(w).exs.forEach(e=>{const i=exInfo(e.name);if(!i)return;const n=e.sets.length*k;add(i.p,n,ds,w.date);(i.s||[]).forEach(s=>add(s,n*0.5,ds,w.date))})});
+    sessionExercises(w).exs.forEach(e=>{const i=exInfo(e.name);if(!i)return;const n=e.sets.length*k;add(i.p,n,ds,w.date);(i.s||[]).forEach(s=>add(s,n*exW(i,s),ds,w.date))})});
   const o={};MGROUPS.forEach(g=>{const f=Math.min(1,load[g]/6);o[g]={f,last:last[g]||lastTrained()[g]||null,st:f>=0.75?"Just trained":f>=0.45?"Fatigued":f>=0.15?"Recovering":"Rested"}});return o}
 function fatColor(f){const st=[[0,[63,191,106]],[0.35,[214,212,74]],[0.65,[242,160,67]],[1,[229,72,77]]];let i=0;while(i<st.length-2&&f>st[i+1][0])i++;
   const [a,ca]=st[i],[b,cb]=st[i+1],t=Math.max(0,Math.min(1,(f-a)/(b-a)));return `rgb(${ca.map((c,j)=>Math.round(c+(cb[j]-c)*t)).join(",")})`}
@@ -3367,7 +3478,7 @@ function bodySVG(mf){const C=g=>mf[g]?fatColor(mf[g].f):"var(--surface-2)";
     ["Biceps","M50 112 Q44 132 46 156 Q54 160 60 150 Q62 128 58 104Z"],[null,"M46 160 Q36 190 34 226 Q40 230 44 226 Q54 196 58 162Z"],["Core","M99 128 L99 200 Q88 202 84 192 L84 132 Q90 128 99 128Z"],
     ["Core","M82 132 L82 190 Q74 180 72 160 Q72 140 76 128Z"],["Quads","M74 212 Q66 250 72 300 Q80 312 90 304 Q96 268 94 226 Q86 214 74 212Z"],["Adductors","M95 222 Q98 240 97 268 Q93 268 92 250 Q91 232 95 222Z"],
     [null,"M74 318 Q68 350 76 392 Q84 396 88 390 Q90 352 86 318Z"]];
-  const B=[["Back","M99 60 L99 128 Q90 110 76 92 Q74 80 80 74 Q90 68 99 60Z"],["Side/rear delts","M76 74 Q58 72 52 88 Q54 100 64 102 Q72 92 76 86Z"],["Back","M76 96 Q90 114 99 134 L99 186 Q88 182 80 166 Q72 140 70 108Z"],
+  const B=[["Traps","M99 60 L99 128 Q90 110 76 92 Q74 80 80 74 Q90 68 99 60Z"],["Side/rear delts","M76 74 Q58 72 52 88 Q54 100 64 102 Q72 92 76 86Z"],["Back","M76 96 Q90 114 99 134 L99 186 Q88 182 80 166 Q72 140 70 108Z"],
     ["Triceps","M52 100 Q44 124 46 152 Q54 158 60 150 Q64 126 62 104Z"],[null,"M46 156 Q36 190 34 226 Q40 230 44 226 Q54 196 58 160Z"],["Glutes","M99 192 L99 238 Q84 244 74 232 Q70 210 80 196 Q90 190 99 192Z"],
     ["Hamstrings","M74 240 Q68 272 74 306 Q82 314 90 306 Q96 276 96 244 Q86 248 74 240Z"],["Calves","M74 318 Q66 344 74 370 Q82 378 88 370 Q92 344 86 318Z"],[null,"M76 372 Q74 388 78 396 Q86 398 88 390 Q88 380 86 372Z"]];
   const both=x=>x+`<g transform="translate(200,0) scale(-1,1)">${x}</g>`;
@@ -3625,6 +3736,57 @@ document.addEventListener("click",async e=>{if(!e.target.closest("#upd-btn"))ret
     if(v&&v!==APP_VERSION){$("upd-msg").textContent="Updating to "+v+"…";try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg)await reg.update();const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(err){}setTimeout(()=>location.reload(),400)}
     else $("upd-msg").textContent=v?"You're on the latest version.":"Couldn't check. Try again with a signal."}
   catch(err){$("upd-msg").textContent="Couldn't check. Try again with a signal."}});
+/* ================= Schedule views: week, rolling, month, custom pattern ================= */
+let ROTA_WK=0,ROTA_MO=0,RP_DRAFT=null;
+const rotaView=()=>["week","roll","month","custom"].includes(L.rotaView)?L.rotaView:"roll";
+const shortLbl=inf=>inf.ot?(inf.ot==="day"?"Extra day":inf.ot==="night"?"Extra night":"Off (swap)"):inf.slot==="day"?"Day shift":inf.slot==="n1"||inf.slot==="n2"?inf.label.replace(/^Night/,"Night"):"Off";
+const kindOf=inf=>inf.slot==="day"?"day":inf.slot==="n1"||inf.slot==="n2"?"night":"off";
+function rotaSummary(def){const ds=(def||currentRota()).days,parts=[];let i=0;while(i<ds.length){let j=i;while(j<ds.length&&ds[j].type===ds[i].type)j++;const n=j-i,t=ds[i].type;parts.push(n+" "+(t==="day"?(n>1?"days":"day"):t==="night"?(n>1?"nights":"night"):"off"));i=j}return parts.join(", ")+", repeating"}
+function rotaDays(){const v=rotaView();if(v==="week"){const mon=addDays(mondayOf(TODAY),7*ROTA_WK);return [...Array(7)].map((_,i)=>addDays(mon,i))}return [...Array(7)].map((_,i)=>addDays(TODAY,i))}
+function rotaBarHTML(days){return days.map(d=>{const inf=dayInfo(d);return `<button class="rd k-${kindOf(inf)}${d===TODAY?" today":""}${inf.ot?" ot":""}" data-rd="${d}" data-t="${inf.type}" aria-pressed="${d===ROTA_SEL}"><b>${d===TODAY?"Today":WD(d)}</b><small>${pd(d).getDate()} · ${esc(shortLbl(inf))}${flexOf(d)?" · Flex":""}</small><span>${inf.type==="T"?esc(plannedWorkout(d)||"Train"):"Rest"}</span>${inf.run?'<i class="rdot run" title="Run"></i>':""}</button>`}).join("")}
+function monthHTML(){const base=pd(TODAY);base.setDate(1);base.setMonth(base.getMonth()+ROTA_MO);const first=iso(base),y=base.getFullYear(),m=base.getMonth(),last=new Date(y,m+1,0).getDate(),lead=(base.getDay()+6)%7;
+  const cells=[];for(let i=0;i<lead;i++)cells.push('<div class="mc empty"></div>');
+  for(let dd=1;dd<=last;dd++){const d=iso(new Date(y,m,dd)),inf=dayInfo(d),k=kindOf(inf),lg=D.workouts.some(w=>w.date===d);
+    cells.push(`<div class="mc k-${k}${d===TODAY?" today":""}${d<TODAY?" past":""}" title="${niceLong(d)}: ${esc(shortLbl(inf))}, ${inf.type==="T"?"training":"rest"}"><b>${dd}</b><span>${k==="day"?"D":k==="night"?"N":"Off"}</span><em>${inf.type==="T"?`<i class="rdot ${lg?"done":"gym"}"></i>`:""}${inf.run?'<i class="rdot run"></i>':""}</em></div>`)}
+  return `<div class="row between mnav"><button class="btn small ghost" type="button" data-mo="-1" aria-label="Previous month">‹</button><b>${base.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}</b><button class="btn small ghost" type="button" data-mo="1" aria-label="Next month">›</button></div>
+  <div class="month">${["M","T","W","T","F","S","S"].map(x=>`<div class="mh">${x}</div>`).join("")}${cells.join("")}</div>
+  <div class="klegend"><span><i class="lg k-day"></i>Day shift</span><span><i class="lg k-night"></i>Night shift</span><span><i class="lg k-off"></i>Day off</span><span><i class="rdot gym"></i>Training day</span><span><i class="rdot done"></i>Trained</span><span><i class="rdot run"></i>Run</span></div>`}
+const PRESETS=[["My rota: 2 days, 2 nights, 4 off",()=>defaultRota()],["4 days, 4 off",()=>({start:TODAY,days:[..."DDDDOOOO"].map(c=>({type:c==="D"?"day":"off",train:"T"}))})],
+  ["4 nights, 4 off",()=>({start:TODAY,days:[..."NNNNOOOO"].map((c,i)=>({type:c==="N"?"night":"off",train:c==="N"&&i>0?"R":"T"}))})],["Mon–Fri days, weekends off",()=>({start:mondayOf(TODAY),days:[..."DDDDDOO"].map(c=>({type:c==="D"?"day":"off",train:"T"}))})]];
+function customHTML(){const d=RP_DRAFT||(RP_DRAFT=JSON.parse(JSON.stringify(currentRota())));
+  return `<p class="note">Build any repeating shift pattern. Each day is a day shift, a night shift or a day off, and a training or rest day. Your meals, timings and meal prep come from the matching Day plans, so anyone on different shifts can set their own.</p>
+  <div class="row">${PRESETS.map((p,i)=>`<button type="button" class="chip" data-rpre="${i}">${esc(p[0])}</button>`).join("")}</div>
+  <label class="field" for="rp-start">Day 1 of the pattern falls on<input type="date" id="rp-start" value="${esc(d.start)}"></label>
+  <div class="ed"><ol>${d.days.map((x,i)=>`<li class="edcol rpd k-${x.type}"><div class="row between"><b>Day ${i+1}</b><span class="note">${WD(addDays(d.start,i))} ${nice(addDays(d.start,i))}</span></div>
+    <div class="row">${[["day","Day shift"],["night","Night shift"],["off","Day off"]].map(([v,n])=>`<button type="button" class="chip" data-rpt="${i}:${v}" aria-pressed="${x.type===v}">${n}</button>`).join("")}</div>
+    <div class="row">${[["T","Training"],["R","Rest"]].map(([v,n])=>`<button type="button" class="chip" data-rptr="${i}:${v}" aria-pressed="${x.train===v}">${n}</button>`).join("")}<button class="rm gx" type="button" data-rprm="${i}" aria-label="Remove day ${i+1}" ${d.days.length<2?"disabled":""}>−</button></div></li>`).join("")}</ol>
+  <button class="btn" type="button" id="rp-add">+ Add a day</button></div>
+  <p class="note"><b>${esc(rotaSummary(d))}</b>, ${d.days.length}-day cycle.</p>
+  <div class="row"><button class="btn primary" type="button" id="rp-save">Save pattern</button><button class="btn ghost" type="button" id="rp-cancel">Undo changes</button></div>
+  <p class="note" id="rp-msg"></p><p class="note">After changing it, check Run days (they follow the days of the cycle) and your Day plans.</p>`}
+function renderRotaViews(){const v=rotaView();document.querySelectorAll("[data-rv]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rv===v)));
+  $("rota-intro").textContent=`Your rota: ${rotaSummary()}.`;
+  const nav=$("rota-nav");nav.hidden=v!=="week";if(v==="week"){const mon=addDays(mondayOf(TODAY),7*ROTA_WK);$("rota-wk").textContent=ROTA_WK===0?"This week":`${nice(mon)} – ${nice(addDays(mon,6))}`}
+  $("rota").hidden=!(v==="week"||v==="roll");$("food-shifts").dataset.rv=v;
+  $("rota-month").hidden=v!=="month";$("rota-custom").hidden=v!=="custom";
+  if(v==="month")$("rota-month").innerHTML=monthHTML();if(v==="custom")$("rota-custom").innerHTML=customHTML()}
+async function saveRota(def){L.rota=def;saveL();applyRotaDef(def);applyRunPlan();if(db){try{await db.doc("prefs/rota").set(def)}catch(e){}}RP_DRAFT=null;
+  try{renderDayAll();renderRun();renderStart();renderDay()}catch(e){console.error(e)}}
+document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!t.closest("#food-shifts"))return;
+  if(t.dataset.rv){L.rotaView=t.dataset.rv;saveL();if(t.dataset.rv!=="custom")RP_DRAFT=null;renderRota();return}
+  if(t.dataset.wk){ROTA_WK=t.dataset.wk==="0"?0:ROTA_WK+(+t.dataset.wk);renderRota();return}
+  if(t.dataset.mo){ROTA_MO+= +t.dataset.mo;renderRotaViews();return}
+  const d=RP_DRAFT;if(!d)return;const upd=()=>{$("rota-custom").innerHTML=customHTML()};
+  if(t.dataset.rpre!=null){RP_DRAFT=JSON.parse(JSON.stringify(PRESETS[+t.dataset.rpre][1]()));upd();return}
+  if(t.dataset.rpt){const [i,v]=t.dataset.rpt.split(":");d.days[+i].type=v;upd();return}
+  if(t.dataset.rptr){const [i,v]=t.dataset.rptr.split(":");d.days[+i].train=v;upd();return}
+  if(t.dataset.rprm!=null){d.days.splice(+t.dataset.rprm,1);upd();return}
+  if(t.id==="rp-add"){d.days.push({type:"off",train:"T"});upd();return}
+  if(t.id==="rp-cancel"){RP_DRAFT=null;upd();return}
+  if(t.id==="rp-save"){if(!/^\d{4}-\d\d-\d\d$/.test(d.start)){$("rp-msg").textContent="Pick the date day 1 falls on.";return}if(d.days.length>28){$("rp-msg").textContent="Keep it to 28 days or fewer.";return}
+    await saveRota(JSON.parse(JSON.stringify(d)));upd();$("rp-msg").textContent="Saved. Your whole schedule now follows this pattern."}});
+document.addEventListener("change",e=>{if(e.target.id==="rp-start"&&RP_DRAFT){RP_DRAFT.start=e.target.value;$("rota-custom").innerHTML=customHTML()}});
+
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
@@ -3644,7 +3806,7 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
   renderPlans();renderAll();
   if(!db)return;
   db.collection("checkins").onSnapshot(q=>{D.checkins=q.docs.map(x=>({...x.data(),date:x.data().date||x.id}));renderAll()},()=>{});
-  db.collection("workouts").onSnapshot(q=>{D.workouts=q.docs.map(x=>({...x.data(),_id:x.id}));renderAnalytics();try{renderWeek()}catch(e){}renderToday();renderGym();renderRecs();if(W)renderLive();else renderStart()},()=>{});
+  db.collection("workouts").onSnapshot(q=>{D.workouts=q.docs.map(x=>({...x.data(),_id:x.id}));renderAnalytics();try{renderWeek();renderGoals()}catch(e){}renderToday();renderGym();renderRecs();if(W)renderLive();else renderStart()},()=>{});
   db.doc("live/session").onSnapshot(s=>{if(W||!s.exists)return;try{const w=JSON.parse(s.data().session);if(w&&w.exercises){W=w;startTick();renderLive()}}catch(e){}},()=>{});
   db.collection("habits").onSnapshot(q=>{const h={};q.docs.forEach(x=>h[x.id]=x.data());D.habits=h;renderToday();renderWater();renderRecs()},()=>{});
   db.doc("prefs/targets").onSnapshot(s=>{D.targets=s.exists?s.data():{};renderDay();renderAdjust();renderShop()},()=>{});
@@ -3659,6 +3821,9 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
   db.doc("prefs/rest").onSnapshot(s=>{D.rest=(s.exists&&s.data().map)||{}},()=>{});
   db.doc("prefs/supersets").onSnapshot(s=>{D.ssmap=(s.exists&&s.data().map)||{}},()=>{});
   db.doc("prefs/injuries").onSnapshot(s=>{D.injuries=s.exists?s.data():null;renderInjuries();if(!W)renderStart()},()=>{});
+  db.doc("prefs/volset").onSnapshot(s=>{D.volset=s.exists?s.data():null;renderAnalytics();if(!W)renderStart()},()=>{});
+  db.doc("prefs/goals").onSnapshot(s=>{D.goals=s.exists?s.data():null;renderGoals();renderProgress()},()=>{});
+  db.doc("prefs/rota").onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&d.days&&JSON.stringify(d)!==JSON.stringify(L.rota||null)){L.rota=d;saveL();applyRotaDef(d);applyRunPlan();try{renderDayAll();renderRun();renderStart()}catch(e){}}},()=>{});
   db.doc("prefs/swaps").onSnapshot(s=>{D.exswaps=(s.exists&&s.data().map)||{};if(W)renderLive()},()=>{});
   db.collection("runs").onSnapshot(q=>{D.runs=q.docs.map(x=>({...x.data(),_id:x.id}));renderRun();renderDay()},()=>{});
   db.doc("prefs/runplan").onSnapshot(s=>{D.runplan=s.exists?s.data():null;applyRunPlan();renderRun();renderDayAll()},()=>{});
