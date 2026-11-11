@@ -340,6 +340,9 @@ input.autokg{color:var(--accent-ink);font-style:italic}
 .inj{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:grid;gap:6px;margin:8px 0}.painrow{gap:4px}.painrow .chip{padding:5px 9px;min-width:34px}.ilog summary{cursor:pointer}
 .injbar{background:var(--weak-soft);border-left:3px solid var(--weak);border-radius:10px;padding:8px 12px;margin:4px 0 8px}.injbar p{margin:2px 0;font-size:.9rem}
 details.card.fold>summary h2{margin:0}
+.fw-inner>h2:first-child,.fw-inner>.row.between:first-child>h2:first-child{display:none}.fw-inner>.row.between:first-child{justify-content:flex-end}
+details.fw>summary{margin:0}details.fw[open]>summary{margin-bottom:10px}
+.adjrow{display:grid;grid-template-columns:minmax(0,1fr) 80px 36px;gap:8px;align-items:center;font-size:.9rem}.adjrow input{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;text-align:right}.adjp{display:grid;gap:6px}.adjtag{margin:4px 0}
 .sessrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.sessrow .field{flex:1 1 180px}
 .once{display:grid;gap:8px;border-top:1.5px solid var(--line);padding-top:12px;margin-top:4px}.once ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}.once li{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:.9rem}
 .navsub{margin-bottom:12px}
@@ -1323,11 +1326,15 @@ function dayScale(d){if(!d||d<SCALE_FROM||typeof dayInfo!=="function")return nul
     const f=1+left/pool;free.forEach(x=>{const before=amt[x.key],na=Math.max(x.min,Math.min(x.max,before*f));amt[x.key]=na;left-=(na-before)*x.cpg})}
   left=cs.g;items.forEach(x=>{amt[x.key]=Math.max(x.min,Math.round(amt[x.key]/5)*5);left-=(amt[x.key]-x.a)*x.cpg});
   return {amt,g:cs.g,flex:cs.flex,tg:cs.tg,short:Math.round(left)}}
-const mealParts=(id,d)=>{const base=MEALS[id].items.map((it,i)=>({it,i,v:IM[id][i]})).filter(x=>!isRemoved(x.it[0])&&itemActive(id,x.i,d));const sc=dayScale(d);if(!sc)return base;
+const mealPartsBase=(id,d)=>{const base=MEALS[id].items.map((it,i)=>({it,i,v:IM[id][i]})).filter(x=>!isRemoved(x.it[0])&&itemActive(id,x.i,d));const sc=dayScale(d);if(!sc)return base;
   return base.map(x=>{const [k,a,l]=x.it,na=sc.amt[id+"_"+x.i];if(na==null||na===a)return x;const r=na/a;
     return {...x,it:[k,na,l?(/dry/.test(l)?fmt(na,"g")+" dry":fmt(na,"g")):undefined],v:x.v.map(n=>Math.round(n*r)),scaled:a}})};
 function scaleNote(d){const sc=dayScale(d);if(!sc)return "";const why=sc.flex<0?"to make room for your flex day":sc.flex>0?"from your flex day":"for your new carb target";
   return `Carbs ${sc.g<0?"trimmed":"added"} by ${Math.abs(sc.g)}g ${why}. The rice, pasta and fruit portions are already adjusted (your overnight oats never change), so just eat what's listed.${sc.short<-5?` The last ${-sc.short}g couldn't come off without making portions too small, so you'll land slightly over.`:""}`}
+/* amounts you changed for one day (Today, Adjust amounts) sit on top of the plan and any carb scaling */
+const mealParts=(id,d)=>{const r=mealPartsBase(id,d),ov=d&&D.food[d]&&D.food[d].amt;if(!ov)return r;
+  return r.map(x=>{const na=ov[id+"_"+x.i];if(na==null||na===x.it[1])return x;const k=x.it[0],a=x.it[1],v=a>0?x.v.map(n=>Math.round(n*na/a)):macroFor(k,na);
+    return {...x,it:[k,na,typeof autoLabel==="function"?autoLabel(k,na):undefined],v,adj:true}})};
 const mealMac=(id,d)=>mealParts(id,d).reduce((a,x)=>({kcal:a.kcal+x.v[0],p:a.p+x.v[1],c:a.c+x.v[2],f:a.f+x.v[3]}),{kcal:0,p:0,c:0,f:0});
 const macT=m=>`${m.p}P · ${m.c}C · ${m.f}F · ${m.kcal} kcal`;
 const mealState=(eaten,id,d)=>{const ps=mealParts(id,d);let c=0;ps.forEach(x=>{if(itemOn(eaten,id,x.i))c++});return c===0?"none":c===ps.length?"all":"some"};
@@ -1884,7 +1891,7 @@ function renderDay(){if(EDITING_TIME)return;renderFlex();renderTrainLog();
     const panel=OPEN_SWAP===id?`<div class="swapp"><b>What did you have instead?</b>${alts.length?`<div class="alts">${alts.map(([aid,a])=>`<button type="button" class="alt" data-usealt="${id}:${aid}"><b>${esc(a.name)}</b><span class="mono">${a.p}P · ${a.c}C · ${a.f}F · ${a.kcal} kcal</span></button>`).join("")}</div>`:""}
       <div class="form"><label class="field" for="s-name-${id}">New meal<input id="s-name-${id}" type="text" maxlength="60" placeholder="e.g. Chicken wrap"></label><label class="field" for="s-kcal-${id}">kcal<input id="s-kcal-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="s-p-${id}">P (g)<input id="s-p-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="s-c-${id}">C (g)<input id="s-c-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="s-f-${id}">F (g)<input id="s-f-${id}" type="number" min="0" inputmode="numeric"></label></div>
       <div class="row"><button class="btn small primary" type="button" data-newalt="${id}">Save and use</button><button class="btn small ghost" type="button" data-closeswap="1">Cancel</button><span class="err" id="s-err-${id}"></span></div></div>`:"";
-    return `<li class="${cls}${st==="all"?" done":st==="some"?" part":""}"><time>${title.time}</time><span class="dot"></span><div class="body"><div class="mcard"><label class="mhead"><span><b>${title.name}${title.next?' <span class="pill good">Next</span>':""}</b><span class="mac">${macTxt}</span></span><input type="checkbox" data-eat="${id}" ${st==="all"?"checked":""} ${st==="some"?'data-part="1"':""} aria-label="Ate all of ${m.m}"></label>${twoTag}${altBody}${chips?`<div class="foods">${chips}</div>`:""}${folded?`<div class="row"><button type="button" class="x" data-showfoods="${id}">Show foods</button></div>`:id==="intra"?"":`<div class="row">${foldable?`<button type="button" class="x" data-hidefoods="${id}">Hide foods</button>`:""}<button type="button" class="x" data-openswap="${id}">Had something else</button>${VIEW>=TODAY&&VIEW<=addDays(TODAY,7)?`<button type="button" class="x" data-goplan="1">Change meal</button>`:""}</div>`}${panel}</div></div></li>`};
+    return `<li class="${cls}${st==="all"?" done":st==="some"?" part":""}"><time>${title.time}</time><span class="dot"></span><div class="body"><div class="mcard"><label class="mhead"><span><b>${title.name}${title.next?' <span class="pill good">Next</span>':""}</b><span class="mac">${macTxt}</span></span><input type="checkbox" data-eat="${id}" ${st==="all"?"checked":""} ${st==="some"?'data-part="1"':""} aria-label="Ate all of ${m.m}"></label>${twoTag}${altBody}${chips?`<div class="foods">${chips}</div>`:""}${folded?`<div class="row"><button type="button" class="x" data-showfoods="${id}">Show foods</button></div>`:id==="intra"?"":`<div class="row">${foldable?`<button type="button" class="x" data-hidefoods="${id}">Hide foods</button>`:""}<button type="button" class="x" data-openswap="${id}">Had something else</button><button type="button" class="x" data-adjopen="${id}">Adjust amounts</button>${VIEW>=TODAY&&VIEW<=addDays(TODAY,7)?`<button type="button" class="x" data-goplan="1">Change meal</button>`:""}</div>`}${adjPanel(id)}${panel}</div></div></li>`};
   const sleepH=num((D.habits[VIEW]||{}).sleepH);
   $("eat").innerHTML=rows.map(r=>{const {id,txt}=r,time=tcell(r);
     if(id==="work"||id==="info")return step(time,txt,stepKey(r.orig,txt),false);
@@ -2734,7 +2741,7 @@ function buildNav(){if(NAV_BUILT)return;NAV_BUILT=true;const host=$("view-today"
   Object.entries(NAV).forEach(([top,panes])=>{const sec=document.createElement("section");sec.className="view top";sec.id="sec-"+top;sec.hidden=true;
     if(panes.length>1)sec.innerHTML=`<div class="subtabs navsub" role="group" aria-label="${top} sections">${panes.map(([k,,n])=>`<button class="chip" type="button" data-sub="${top}:${k}" aria-pressed="false">${n}</button>`).join("")}</div>`;
     host.appendChild(sec);panes.forEach(([k,id])=>{const el=$(id);el.hidden=true;sec.appendChild(el)})});
-  const vf=$("view-food");if(vf)vf.remove();
+  const vf=$("view-food");if(vf)vf.remove();applyFolds();
   document.addEventListener("click",e=>{const b=e.target.closest("[data-sub]");if(!b)return;const [t,k]=b.dataset.sub.split(":");show(t,k);window.scrollTo({top:0})})}
 function show(tab,sub){buildNav();if(LEGACY[tab]){[tab,sub]=[LEGACY[tab][0],sub||LEGACY[tab][1]]}if(tab==="progress"&&!sub&&!(L.sub&&L.sub.progress))sub="body";if(!NAV[tab])tab="today";
   TABS.forEach(t=>{$("tab-"+t).setAttribute("aria-selected",t===tab);$("sec-"+t).hidden=t!==tab});
@@ -2745,7 +2752,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="11 Nov 2026";
+const APP_VERSION="11 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3578,6 +3585,39 @@ function injBanner(){const act=injList().filter(j=>j.status!=="healed");if(!act.
 function setupFolds(){L.folds=L.folds||{};document.querySelectorAll("details[data-fold]").forEach(d=>{const k=d.dataset.fold;if(L.folds[k]!=null)d.open=!!L.folds[k];
   d.addEventListener("toggle",()=>{L.folds[k]=d.open;saveL()})})}
 
+/* ---------- Today: adjust a meal's amounts for one day ---------- */
+let OPEN_ADJ=null;
+function adjPanel(id){const ov=(D.food[VIEW]||{}).amt||{},has=Object.keys(ov).some(k=>k.startsWith(id+"_"));
+  const tag=has?`<p class="note adjtag">Amounts changed for this day only. <button type="button" class="x" data-adjreset="${id}">Back to plan</button></p>`:"";
+  if(OPEN_ADJ!==id||effAlt(VIEW,id))return tag;
+  return `${tag}<div class="swapp adjp"><b>Adjust amounts for ${nice(VIEW)}</b>${mealParts(id,VIEW).map(({it:[k,a],i})=>`<label class="adjrow"><span>${esc(F[k].n)}</span><input inputmode="decimal" data-adj="${id}:${i}" value="${+(+a).toFixed(1)}" aria-label="${esc(F[k].n)} amount"><span class="note">${F[k].u===""?"each":F[k].u}</span></label>`).join("")}
+    <p class="note">Only changes this day. Your plan stays the same, and the macros, shop and prep use the new amounts for this day.</p>
+    <div class="row"><button class="btn small primary" type="button" data-adjsave="${id}">Save</button><button class="btn small ghost" type="button" data-adjclose="1">Cancel</button></div></div>`}
+document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!t.closest("#eat"))return;
+  if(t.dataset.adjopen){OPEN_ADJ=OPEN_ADJ===t.dataset.adjopen?null:t.dataset.adjopen;OPEN_SWAP=null;OPEN_MEAL.add(t.dataset.adjopen);renderDay();return}
+  if(t.dataset.adjclose){OPEN_ADJ=null;renderDay();return}
+  const cur=D.food[VIEW]||{},base=id=>mealPartsBase(id,VIEW);
+  if(t.dataset.adjsave){const id=t.dataset.adjsave,ov={...(cur.amt||{})};
+    document.querySelectorAll(`[data-adj^="${id}:"]`).forEach(inp=>{const i=+inp.dataset.adj.split(":")[1],v=parseFloat(String(inp.value).replace(",",".")),b=base(id).find(x=>x.i===i);
+      if(!(v>=0)||!b||Math.abs(v-b.it[1])<0.01)delete ov[id+"_"+i];else ov[id+"_"+i]=v});
+    OPEN_ADJ=null;await saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},amt:ov});return}
+  if(t.dataset.adjreset){const id=t.dataset.adjreset,ov={...(cur.amt||{})};Object.keys(ov).forEach(k=>{if(k.startsWith(id+"_"))delete ov[k]});OPEN_ADJ=null;await saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},amt:ov})}});
+
+/* ---------- collapsible sections everywhere (except Today's macros and plan, Progress week and stats, Nutrition) ---------- */
+function foldWrap(el,key,title,open,keep){if(!el||el.dataset.wrapped)return;el.dataset.wrapped="1";const d=document.createElement("details");d.className="card fold fw";d.dataset.fold=key;if(open)d.open=true;
+  d.innerHTML=`<summary><h2>${title}</h2></summary>`;el.parentNode.insertBefore(d,el);d.appendChild(el);el.classList.remove("card");el.classList.add(keep?"fw-keep":"fw-inner");return d}
+function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return null;const x=el.querySelector(sel);return x?x.closest(".card"):null};
+  foldWrap(card("view-today","#log-save"),"log","Log");
+  foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Waist");foldWrap(card("view-progress","#habits"),"basics","Basics");foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
+  foldWrap($("lift-dash"),"liftdash","Lift progression");foldWrap($("vol-card"),"volume","Volume by muscle");foldWrap($("effort-card"),"effort","Effort and recovery");
+  foldWrap(card("view-photos","#compare"),"compare","Compare photos");foldWrap($("p-upload-card"),"upload","Add progress photos");
+  foldWrap(card("view-coach","#review"),"review","Weekly review");
+  foldWrap(card("view-run","#run-next"),"runnext","Next runs");foldWrap(card("view-run","#run-list"),"runhist","Run history");
+  foldWrap(card("view-library","#lib-list"),"library","Exercise library",true);
+  foldWrap($("rota-card"),"rotacard","Day details",true,true);foldWrap($("days-ed"),"dayplans","Day plans",true);
+  const st=$("view-settings");if(st)[...st.children].filter(c=>c.classList.contains("card")&&c.tagName==="DIV").forEach((c,i)=>{const h=c.querySelector("h2");foldWrap(c,"set"+i,h?h.textContent:"Settings")});
+  document.querySelectorAll("details.card.fold:not([data-fold])").forEach((d,i)=>{d.dataset.fold=d.id||("f"+i)});
+  const rd=$("run-days")&&$("run-days").closest("details");if(rd){rd.classList.add("fold");rd.open=L.folds&&L.folds[rd.dataset.fold]!=null?!!L.folds[rd.dataset.fold]:true}}
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
