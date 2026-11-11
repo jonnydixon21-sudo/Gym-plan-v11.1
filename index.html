@@ -336,6 +336,10 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 input.autokg{color:var(--accent-ink);font-style:italic}
 .deload{background:var(--k-note);border-left:3px solid var(--k-note-b);border-radius:10px;padding:10px 12px;margin:8px 0;display:grid;gap:4px}.deload.on{background:var(--k-train);border-left-color:var(--k-train-b)}
 .sleepbox{background:var(--k-sleep);border-left:3px solid var(--k-sleep-b);border-radius:10px;padding:10px 12px;margin:6px 0 10px;display:grid;gap:4px}.sgrid{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:baseline}
+.xscan .row input{flex:1 1 120px;min-width:0;font:inherit;padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}#xs-out{display:grid;gap:6px;margin-top:6px}
+.inj{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:grid;gap:6px;margin:8px 0}.painrow{gap:4px}.painrow .chip{padding:5px 9px;min-width:34px}.ilog summary{cursor:pointer}
+.injbar{background:var(--weak-soft);border-left:3px solid var(--weak);border-radius:10px;padding:8px 12px;margin:4px 0 8px}.injbar p{margin:2px 0;font-size:.9rem}
+details.card.fold>summary h2{margin:0}
 .sessrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.sessrow .field{flex:1 1 180px}
 .once{display:grid;gap:8px;border-top:1.5px solid var(--line);padding-top:12px;margin-top:4px}.once ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}.once li{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:.9rem}
 .navsub{margin-bottom:12px}
@@ -674,6 +678,9 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
           <div class="row"><span class="mono note" id="pf-mac"></span><button class="btn primary" id="pf-add">Add</button><span class="toast" id="pf-toast"></span></div>
           <p class="note">Swapped one food for another? Untap the one you didn't have in the meal above, then add what you had here.</p>
         </div>
+        <div class="xscan"><span class="note" style="display:block;margin-top:12px">Packaged food? Scan it</span>
+          <div class="row"><button class="btn" type="button" id="xs-scan">Scan barcode</button><input id="xs-code" inputmode="numeric" placeholder="or type the barcode" aria-label="Barcode number"><button class="btn small" type="button" id="xs-look">Look up</button></div>
+          <div id="xs-out"></div></div>
         <span class="note" style="display:block;margin-top:12px">Or type in something else</span>
         <div class="form" style="margin-top:6px">
           <label class="field" for="x-name">What<input id="x-name" type="text" maxlength="60" placeholder="e.g. Protein bar"></label>
@@ -726,6 +733,7 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
       <div class="chart" id="ch-weight"></div>
       <p class="note">Daily weight jumps around with water and salt. Judge the line, not the dots. The dashed line is a lean-bulk pace of about 0.175% of your body weight a week (the middle of the 0.1–0.25% target).</p>
     </div>
+    <details class="card fold" id="inj-card" data-fold="inj"><summary><h2>Injuries</h2><span class="pill bad" id="inj-pill"></span></summary><div id="inj-body"></div></details>
     <div class="card" id="waist-card">
       <h2>Waist</h2>
       <div class="chart" id="ch-waist"></div>
@@ -766,37 +774,34 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
   <section class="view" id="view-gym" hidden>
     <div class="card" id="w-done" hidden></div>
 
-    <div class="card" id="ready-card"></div>
-    <div class="card" id="w-start">
-      <div class="row between"><h2>Start a workout</h2><span class="note" id="w-next"></span></div>
+    <details class="card fold" id="ready-card" data-fold="ready"><summary><h2>Readiness</h2><span class="pill" id="ready-pill"></span></summary><div id="ready-body"></div></details>
+    <details class="card fold" id="w-start" data-fold="start" open><summary><h2>Start a workout</h2><span class="note" id="w-next"></span></summary>
       <div class="tpl" id="w-tpls"></div>
       <p class="note">Tap a workout to see what's in it before you start. The cog edits it.</p>
-    </div>
-    <div class="card" id="split-card"></div>
+    </details>
+    <details class="card fold" id="split-card" data-fold="split"><summary><h2>Split</h2><span class="note" id="split-next"></span></summary><div id="split-body"></div></details>
 
     <div class="view" id="w-live" hidden></div>
 
-    <div class="card">
-      <h2>Past sessions</h2>
+    <details class="card fold" data-fold="past"><summary><h2>Past sessions</h2></summary>
       <div class="sessions" id="sessions"></div>
-    </div>
+    </details>
 
-    <details class="card">
-      <summary style="cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1.1rem">Import from Setgraph</summary>
+    <details class="card fold" data-fold="sgimport"><summary><h2>Import from Setgraph</h2></summary>
       <p class="note">In Setgraph, open a finished workout and tap Share. Choose Text, then Summary, then Copy, and paste it here. The date is today unless you change it.</p>
       <label class="field" for="g-paste">Workout text<textarea id="g-paste" placeholder="Hack Squat • 5 rep 52.5 kg, 7 rep 45 kg&#10;Sl Leg Press • 2 sets: 8 rep 45 kg&#10;Strength Training • 42 min"></textarea></label>
       <div class="row"><button class="btn primary" id="g-parse">Read workout</button><button class="btn" id="g-ai" hidden>Read it with Claude</button><span class="err" id="g-err" aria-live="polite"></span></div>
       <div class="preview" id="g-preview" hidden></div>
     </details>
 
-    <div class="stats" id="gym-stats"></div>
 
-    <div class="card">
+    <details class="card fold" data-fold="liftchart"><summary><h2>Lift chart</h2></summary>
+      <div class="stats" id="gym-stats"></div>
       <div class="row between"><h2 id="ex-title">Lift progress</h2><span id="ex-pill"></span></div>
       <div class="chart" id="ch-lift"></div>
       <p class="note" id="ex-note">Estimated 1-rep max from your best set each session (weight × (1 + reps ÷ 30)). It lets a heavier set of 8 and a lighter set of 12 be compared fairly.</p>
       <div class="ex-list" id="ex-list"></div>
-    </div>
+    </details>
 
   </section>
 
@@ -1952,7 +1957,7 @@ $("pf-add").addEventListener("click",()=>{const k=$("pf-food").value,q=num($("pf
   const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r}]});
   $("pf-food").value="";$("pf-amt").value="";$("pf-mac").textContent="";flash("pf-toast","Added")});
 pfFill();
-$("x-add").addEventListener("click",()=>{
+$("x-add").addEventListener("click",()=>{setTimeout(()=>{if(!$("x-name").value){XS=null;xsRender();$("xs-code").value=""}},50);
   const name=$("x-name").value.trim(),kcal=Math.round(num($("x-kcal").value)||0);
   if(!name||!kcal)return flash("x-toast","Add a name and the kcal");
   const x={name,kcal,p:Math.round(num($("x-p").value)||0),c:Math.round(num($("x-c").value)||0),f:Math.round(num($("x-f").value)||0)};
@@ -1991,7 +1996,7 @@ function goalStat(avg,rate){const g=SETUP.goalWeight,cur=avg.length?avg[avg.leng
   const wk=rem/rate;if(wk>104)return stat(k,f1(rem)+"kg to go","Over 2 years at this pace");
   const d=new Date(Date.now()+wk*7*864e5).toLocaleDateString("en-GB",{month:"short",year:"numeric"});
   return stat(k,d,`${f1(rem)}kg to go · about ${Math.round(wk)} weeks at +${f1(rate)}kg a week`)}
-function renderProgress(){try{renderWeek()}catch(e){console.error(e)}
+function renderProgress(){try{renderWeek();renderInjuries()}catch(e){console.error(e)}
   const pts=D.checkins.filter(c=>num(c.weight)!=null).map(c=>({date:c.date,y:num(c.weight)})).sort((a,b)=>a.date<b.date?-1:1);
   const avg=rolling(pts);
   // rate over last 14 days of the rolling average
@@ -2315,8 +2320,9 @@ function previewHTML(title){
   <div class="row"><button class="btn primary" id="pv-start">Start workout</button><button class="btn ghost" id="pv-back">Back</button></div>
   <p class="note">You can swap any exercise once you start.</p></div>`;
 }
-function renderSplit(){const el=$("split-card");if(!el)return;el.hidden=!!W;const sp=splitKeys(),ni=(()=>{const t=TEMPLATES.find(x=>x.title===nextPlanned());const k=t?sp.indexOf(t.key):-1;return k<0?nextIndex():k})(),tt=k=>(TEMPLATES.find(t=>t.key===k)||{}).title||k;
-  el.innerHTML=`<h2>Split</h2><p class="note">The order your sessions run in. After the last one it starts again from the top. Rest days don't use one up: the next session waits for your next training day. You can add a session more than once.</p>
+function renderSplit(){const el=$("split-body");if(!el)return;$("split-card").hidden=!!W;const sp=splitKeys(),ni=(()=>{const t=TEMPLATES.find(x=>x.title===nextPlanned());const k=t?sp.indexOf(t.key):-1;return k<0?nextIndex():k})(),tt=k=>(TEMPLATES.find(t=>t.key===k)||{}).title||k;
+  {const nx=TEMPLATES.find(x=>x.key===sp[ni]);$("split-next").textContent=nx?"Next: "+nx.title:""}
+  el.innerHTML=`<p class="note">The order your sessions run in. After the last one it starts again from the top. Rest days don't use one up: the next session waits for your next training day. You can add a session more than once.</p>
   <div class="ed"><ol>${sp.map((k,i)=>`<li class="edcol"><div class="row between"><b>${i+1}. ${esc(tt(k))}</b>${i===ni?'<span class="pill good">Next</span>':""}</div><div class="edbtns"><button data-spup="${i}" aria-label="Move up">↑</button><button data-spdn="${i}" aria-label="Move down">↓</button><button class="rm" data-sprm="${i}" aria-label="Remove from split">−</button></div></li>`).join("")}</ol>
   <div class="row"><select id="sp-add" aria-label="Session to add">${TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.title)}</option>`).join("")}</select><button class="btn" id="sp-addbtn">+ Add to split</button></div>
   <div class="row"><button class="btn ghost small" id="sp-reset">Reset to original order</button><span class="note" id="sp-msg"></span></div></div>`}
@@ -2324,6 +2330,7 @@ async function saveSplit(sp){const prog=D.program||{};D.program={...prog,split:s
 function renderStart(){renderSplit();if($("ready-card")){$("ready-card").hidden=!!W;if(!W)renderReady()}
   const nx=nextPlanned();
   {const lg=D.workouts.find(w=>w.date===TODAY);$("w-next").textContent=PREVIEW?"":lg?`Done today: ${lg.title} · next: ${nx}`:dayType(TODAY)==="T"?`Today: ${nx}`:`Rest day today · next: ${nx}`}
+  if(EDIT||PREVIEW)$("w-start").open=true;
   if(EDIT){$("w-tpls").classList.add("pvmode");$("w-tpls").innerHTML=editHTML();$("w-start").hidden=!!W;$("w-live").hidden=!W;return}
   if(PREVIEW){$("w-tpls").classList.add("pvmode");$("w-tpls").innerHTML=previewHTML(PREVIEW);$("w-start").hidden=!!W;$("w-live").hidden=!W;return}
   $("w-tpls").classList.remove("pvmode");
@@ -2406,6 +2413,7 @@ function renderLive(){
       return `<div class="set${s.done?" done":""}${pr?" pr":""}"><span class="no">${si+1}</span><span class="prev">${p?(p.kg?`${p.kg}×${p.reps}`:`${p.reps} reps`):"–"}<em>${esc(s.target||"")}</em></span><input inputmode="decimal" type="number" step="any" min="0" data-f="kg" data-ex="${ei}" data-s="${si}" value="${esc(s.kg)}"${s.auto?' class="autokg" title="Filled from last time"':""} placeholder="${p?p.kg:""}" aria-label="Set ${si+1} kg"><input inputmode="numeric" type="number" min="0" data-f="reps" data-ex="${ei}" data-s="${si}" value="${esc(s.reps)}" placeholder="${p?p.reps:rr(s.target).hi||""}" aria-label="Set ${si+1} reps"><select class="rir" data-f="rir" data-ex="${ei}" data-s="${si}" aria-label="Set ${si+1} reps in reserve">${["","0","1","2","3","4","5"].map(v=>`<option value="${v}" ${String(s.rir??"")===v?"selected":""}>${v===""?"–":v==="5"?"5+":v}</option>`).join("")}</select><button class="ok" data-ok="${ei}:${si}" aria-label="Complete set ${si+1}">✓</button></div>`}).join("")}
     </div><div class="row"><button class="btn small" data-addset="${ei}">+ Add set</button>${ex.sets.length>1?`<button class="x" data-rmset="${ei}">Remove last set</button>`:""}</div></div>`}).join("")}
   <div class="card"><h3>Add exercise</h3><div class="form"><label class="field" for="w-addsel">From your list<select id="w-addsel"><option value="">Choose…</option>${opts}</select></label><label class="field" for="w-addnew">Or a new one<input id="w-addnew" type="text" maxlength="60" placeholder="e.g. Cable crunch"></label></div><div class="row"><button class="btn" id="w-add">Add</button></div></div>
+  ${injBanner()?`<div class="card">${injBanner()}</div>`:""}
   ${W.deload?`<div class="card deload on"><b>Deload session</b><p class="note">Fewer sets than usual. Keep the weights, finish each set with 2–3 reps in reserve.</p></div>`:""}
   <div class="card"><b>How hard was this session?</b><p class="note">1 = very easy, 10 = couldn't have done any more. Used for fatigue and progress analytics.</p><div class="row diffrow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="chip" data-wdiff="${n}" aria-pressed="${W.diff===n}">${n}</button>`).join("")}</div></div>
   <div class="card"><label class="field" for="w-notes">Session notes (energy, niggles, anything)<input id="w-notes" type="text" maxlength="200" value="${esc(W.notes||"")}"></label></div>`;
@@ -2737,7 +2745,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="10 Nov 2026 (m)";
+const APP_VERSION="11 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3133,10 +3141,10 @@ async function fovLookup(code){const d=FOV;if(!d)return;const c=String(code||d.c
 let SCAN=null;
 function loadZXing(){return new Promise((res,rej)=>{if(window.ZXing)return res();const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";s.onload=()=>res();s.onerror=()=>rej(new Error("load"));document.head.appendChild(s);setTimeout(()=>rej(new Error("timeout")),15000)})}
 function scanStop(){if(!SCAN)return;SCAN.done=true;clearInterval(SCAN.t);try{SCAN.reader&&SCAN.reader.reset()}catch(e){}try{SCAN.stream&&SCAN.stream.getTracks().forEach(t=>t.stop())}catch(e){}SCAN=null;$("scan").hidden=true;$("scan").innerHTML="";document.body.style.overflow=FOV||MED?"hidden":""}
-async function scanOpen(){
+async function scanOpen(cb){
   $("scan").hidden=false;document.body.style.overflow="hidden";
   $("scan").innerHTML=`<div class="ed med-in"><div class="row between"><h2>Scan barcode</h2><button class="x" id="scan-x">Close</button></div><video id="scan-v" playsinline muted autoplay style="width:100%;border-radius:12px;background:#000;aspect-ratio:3/4;object-fit:cover"></video><p class="note" id="scan-m">Starting the camera…</p></div>`;
-  SCAN={done:false};const msg=t=>{const m=$("scan-m");if(m)m.textContent=t},found=c=>{if(!SCAN||SCAN.done)return;scanStop();if(FOV){FOV.code=c;fovLookup(c)}};
+  SCAN={done:false};const msg=t=>{const m=$("scan-m");if(m)m.textContent=t},found=c=>{if(!SCAN||SCAN.done)return;scanStop();if(typeof cb==="function")cb(c);else if(FOV){FOV.code=c;fovLookup(c)}};
   try{const v=$("scan-v");
     if("BarcodeDetector" in window){const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]});
       SCAN.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});v.srcObject=SCAN.stream;await v.play();msg("Point the camera at the barcode.");
@@ -3147,9 +3155,9 @@ async function scanOpen(){
   catch(e){if(SCAN)msg("Couldn't start the scanner. Check camera access is allowed and you have signal, or close this and type the barcode number instead.")}}
 $("scan").addEventListener("click",e=>{if(e.target.closest("#scan-x"))scanStop()});
 $("fov").addEventListener("input",e=>{if(FOV&&e.target.id==="fov-code")FOV.code=e.target.value});
-$("fov").addEventListener("click",e=>{const t=e.target.closest("button");if(!t||!FOV)return;if(t.id==="fov-scan")scanOpen();if(t.id==="fov-look")fovLookup()});
+$("fov").addEventListener("click",e=>{const t=e.target.closest("button");if(!t||!FOV)return;if(t.id==="fov-scan")scanOpen(null);if(t.id==="fov-look")fovLookup()});
 
-$("split-card").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const sp=[...splitKeys()];
+$("split-body").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const sp=[...splitKeys()];
   if(t.dataset.spup!==undefined){const i=+t.dataset.spup;if(i>0){[sp[i-1],sp[i]]=[sp[i],sp[i-1]];await saveSplit(sp)}return}
   if(t.dataset.spdn!==undefined){const i=+t.dataset.spdn;if(i<sp.length-1){[sp[i+1],sp[i]]=[sp[i],sp[i+1]];await saveSplit(sp)}return}
   if(t.dataset.sprm!==undefined){if(sp.length<2){$("sp-msg").textContent="Keep at least one session in the split.";return}sp.splice(+t.dataset.sprm,1);await saveSplit(sp);return}
@@ -3362,10 +3370,11 @@ function bodySVG(mf){const C=g=>mf[g]?fatColor(mf[g].f):"var(--surface-2)";
   const back=sil(B,'<path d="M100 62 L72 76 L68 140 L74 196 L100 196Z"/>')+head+mus(B);
   return `<div class="bodymap"><svg viewBox="30 8 140 392" role="img" aria-label="Front of body, muscles coloured by recovery">${front}</svg><svg viewBox="30 8 140 392" role="img" aria-label="Back of body, muscles coloured by recovery">${back}</svg></div>
   <div class="bmlegend"><span><i style="background:${fatColor(1)}"></i>Just trained</span><span><i style="background:${fatColor(.6)}"></i>Fatigued</span><span><i style="background:${fatColor(.3)}"></i>Recovering</span><span><i style="background:${fatColor(0)}"></i>Rested</span></div>`}
-function renderReady(){const el=$("ready-card");if(!el)return;const f=fatigue(),mf=muscleFatigue();
+function renderReady(){const el=$("ready-body");if(!el)return;const f=fatigue(),mf=muscleFatigue();
   const ago=d=>{if(!d)return "Not yet";const n=Math.round((pd(TODAY)-pd(d))/864e5);return n===0?"Today":n===1?"Yesterday":n+"d ago"};
   const shown=MGROUPS.filter(g=>mTarget(g)>0||mf[g].last).sort((a,b)=>mf[b].f-mf[a].f||((mf[b].last||"")<(mf[a].last||"")?-1:1));
-  el.innerHTML=`<div class="row between"><h2>Readiness</h2><span class="pill ${f.lv[1]}">Fatigue: ${f.lv[0]}</span></div><p class="note">${f.lv[2]} ${f.why.length?"Because: "+f.why.map(esc).join("; ")+".":"Nothing is flagging right now."} This is a guide only; go by how you feel too.</p>
+  $("ready-pill").className="pill "+f.lv[1];$("ready-pill").textContent="Fatigue: "+f.lv[0];
+  el.innerHTML=`${injBanner()}<p class="note">${f.lv[2]} ${f.why.length?"Because: "+f.why.map(esc).join("; ")+".":"Nothing is flagging right now."} This is a guide only; go by how you feel too.</p>
   ${deloadHTML()}
   ${bodySVG(mf)}
   <div class="mlist">${shown.map(g=>`<div class="mrow"><i style="background:${fatColor(mf[g].f)}"></i><b>${esc(g)}</b><span class="note">${mf[g].st}</span><span class="note mono">${ago(mf[g].last)}</span></div>`).join("")}</div>
@@ -3504,12 +3513,77 @@ async function tgSaveProtein(){const g=window.TGD;if(!g)return;const P=planDoc()
   $("tg-msg").textContent="Saved. Protein portions (chicken, mince, skyr, whey) were trimmed towards your protein target, and carbs were then fitted to your calories. Check the table to see each day."}
 document.addEventListener("click",e=>{if(e.target.closest("#tg-fitp"))tgSaveProtein()});
 
+/* ================= barcode on Today: log a packaged food ================= */
+let XS=null;
+function xsRender(){const el=$("xs-out");if(!el)return;if(!XS){el.innerHTML="";return}if(XS.msg&&!XS.p100){el.innerHTML=`<p class="note">${esc(XS.msg)}</p>`;return}
+  const per=XS.basis==="serv"?XS.serv:XS.p100,q=parseFloat(String(XS.amt).replace(",","."))||0,f=XS.basis==="serv"?q:q/100,v=per.map(x=>Math.round((+x||0)*f));
+  el.innerHTML=`<p class="note"><b>${esc(XS.name)}</b>${XS.miss?` · <span class="skip">${esc(XS.miss)}</span>`:""}</p>
+  ${XS.serv?`<div class="row"><button type="button" class="chip" data-xsb="g" aria-pressed="${XS.basis!=="serv"}">By weight (${XS.u})</button><button type="button" class="chip" data-xsb="serv" aria-pressed="${XS.basis==="serv"}">Servings${XS.servLabel?" ("+esc(XS.servLabel)+")":""}</button></div>`:""}
+  <label class="field" for="xs-amt">${XS.basis==="serv"?"How many servings":"How much did you have ("+XS.u+")"}<input id="xs-amt" inputmode="decimal" value="${esc(String(XS.amt))}"></label>
+  <p class="mono">${v[0]} kcal · ${v[1]}P · ${v[2]}C · ${v[3]}F</p><p class="note">Filled in below. Check it, then tap Add.</p>`;
+  $("x-name").value=XS.name;$("x-kcal").value=v[0];$("x-p").value=v[1];$("x-c").value=v[2];$("x-f").value=v[3]}
+async function xsLookup(code){code=String(code||"").replace(/\D/g,"");if(code.length<8){XS={msg:"Type the full barcode number (8 to 13 digits)."};return xsRender()}
+  XS={msg:"Looking it up…"};xsRender();
+  try{const pr=await offLookup(code);if(!pr){XS={msg:"Not in the food database. Type it in below from the pack."};return xsRender()}
+    const n=pr.nutriments||{},num_=x=>x==null||isNaN(+x)?null:+x;let k=num_(n["energy-kcal_100g"]);if(k==null&&n.energy_100g!=null)k=+n.energy_100g/4.184;
+    const p100=[k,num_(n.proteins_100g),num_(n.carbohydrates_100g),num_(n.fat_100g)],miss=["calories","protein","carbs","fat"].filter((_,i)=>p100[i]==null);
+    let sv=[num_(n["energy-kcal_serving"]),num_(n.proteins_serving),num_(n.carbohydrates_serving),num_(n.fat_serving)];const sq=+pr.serving_quantity||0;
+    if(sv[0]==null&&n.energy_serving!=null)sv[0]=+n.energy_serving/4.184;if(sv.some(x=>x==null))sv=sq>0&&!miss.length?p100.map(x=>x*sq/100):null;
+    const u=/\b\d+(\.\d+)?\s*(ml|cl|l)\b/i.test(pr.quantity||"")&&!/\bg\b|kg/i.test(pr.quantity||"")?"ml":"g";
+    XS={name:[(pr.brands||"").split(",")[0].trim(),pr.product_name||""].filter(Boolean).join(" ").slice(0,60)||"Scanned food",p100:p100.map(x=>x||0),serv:sv,servLabel:String(pr.serving_size||"").slice(0,24),u,basis:sv?"serv":"g",amt:sv?1:100,miss:miss.length?"Missing "+miss.join(", ")+", so check the pack":""};xsRender()}
+  catch(e){XS={msg:navigator.onLine===false?"No internet right now. Type it in below.":"Couldn't reach the food database. Try again, or type it in below."};xsRender()}}
+document.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;
+  if(t.id==="xs-scan"){scanOpen(c=>{$("xs-code").value=c;xsLookup(c)});return}
+  if(t.id==="xs-look"){xsLookup($("xs-code").value);return}
+  if(t.dataset.xsb&&XS){XS.basis=t.dataset.xsb;XS.amt=XS.basis==="serv"?1:100;xsRender()}});
+document.addEventListener("input",e=>{if(e.target.id==="xs-amt"&&XS){XS.amt=e.target.value;const pos=e.target.selectionStart;xsRender();const a=$("xs-amt");if(a){a.focus();try{a.setSelectionRange(pos,pos)}catch(err){}}}});
+
+/* ================= injury log ================= */
+D.injuries=null;let INJ_OPEN=null;
+const injList=()=>(D.injuries&&D.injuries.list)||[];
+async function saveInj(list){D.injuries={list};if(db){try{await db.doc("prefs/injuries").set({list})}catch(e){}}renderInjuries();if(!W)renderStart();else renderLive()}
+function injLatest(j){const l=(j.log||[]).slice().sort((a,b)=>a.date<b.date?-1:1);return l[l.length-1]||null}
+function painSpark(j){const l=(j.log||[]).slice().sort((a,b)=>a.date<b.date?-1:1).slice(-14);if(l.length<2)return "";const W_=120,H=28;
+  const pts=l.map((x,i)=>`${(i/(l.length-1)*W_).toFixed(1)},${(H-3-(x.pain/10)*(H-6)).toFixed(1)}`).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${W_} ${H}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--weak)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`}
+function renderInjuries(){const el=$("inj-body");if(!el)return;const list=injList(),act=list.filter(j=>j.status!=="healed"),old=list.filter(j=>j.status==="healed");
+  $("inj-pill").textContent=act.length?act.length+" active":"";
+  el.innerHTML=`<p class="note">A quick log for niggles and injuries. Rate the pain each day and note what made it better or worse. Your training note shows at the top of every workout while it's active. If it isn't improving after a couple of weeks, or it's getting worse, get it looked at by a GP or physio.</p>
+  ${act.map(j=>{const l=injLatest(j),today=(j.log||[]).find(x=>x.date===TODAY);return `<div class="inj">
+    <div class="row between"><b>${esc(j.name)}</b><span class="note">since ${nice(j.start)}</span></div>
+    <div class="row between"><span class="note">${l?`Latest: <b>${l.pain}/10</b> on ${nice(l.date)}${l.note?" · "+esc(l.note):""}`:"No entries yet"}</span>${painSpark(j)}</div>
+    ${j.train?`<p class="note">Training note: ${esc(j.train)}</p>`:""}
+    ${INJ_OPEN===j.id?`<div class="ed"><div class="note">Pain today (0 = none, 10 = worst)</div><div class="row painrow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="chip" data-ipain="${n}" aria-pressed="${today&&today.pain===n}">${n}</button>`).join("")}</div>
+      <input id="inj-note" maxlength="120" placeholder="What helped or hurt? e.g. sore after pulldowns" value="${esc(today&&today.note||"")}">
+      <input id="inj-train" maxlength="120" placeholder="Training note, e.g. use straps, neutral grip, no pressing" value="${esc(j.train||"")}">
+      <div class="row"><button class="btn small primary" type="button" data-isave="${j.id}">Save</button><button class="btn small ghost" type="button" data-iclose="1">Close</button><button class="x" type="button" data-iheal="${j.id}">Mark as healed</button></div></div>`
+      :`<div class="row"><button class="btn small" type="button" data-iopen="${j.id}">${today?"Update today":"Log today"}</button>${(j.log||[]).length?`<details class="ilog"><summary class="note">History (${j.log.length})</summary><ul class="plist">${j.log.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>`<li><span>${nice(x.date)} · ${x.pain}/10${x.note?" · "+esc(x.note):""}</span></li>`).join("")}</ul></details>`:""}</div>`}
+  </div>`}).join("")}
+  <details class="fold sub" id="inj-add"><summary class="note">+ Add an injury</summary><div class="ed"><input id="inj-name" maxlength="40" placeholder="e.g. Left wrist"><input id="inj-tnote" maxlength="120" placeholder="Training note (optional), e.g. use straps"><input type="date" id="inj-start" value="${TODAY}"><button class="btn small primary" type="button" id="inj-addbtn">Add</button></div></details>
+  ${old.length?`<details class="fold sub"><summary class="note">Healed (${old.length})</summary><ul class="plist">${old.map(j=>`<li><span>${esc(j.name)} · ${nice(j.start)} – ${j.healed?nice(j.healed):"?"}</span><button class="x" type="button" data-ireopen="${j.id}">Re-open</button></li>`).join("")}</ul></details>`:""}`}
+let INJ_PAIN=null;
+document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t||!t.closest("#inj-card"))return;const list=injList().map(j=>({...j,log:[...(j.log||[])]}));
+  if(t.dataset.iopen){INJ_OPEN=t.dataset.iopen;const j=list.find(x=>x.id===INJ_OPEN),td=(j.log||[]).find(x=>x.date===TODAY);INJ_PAIN=td?td.pain:null;renderInjuries();return}
+  if(t.dataset.iclose){INJ_OPEN=null;renderInjuries();return}
+  if(t.dataset.ipain!==undefined){INJ_PAIN=+t.dataset.ipain;document.querySelectorAll("[data-ipain]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.ipain===INJ_PAIN)));return}
+  if(t.dataset.isave){const j=list.find(x=>x.id===t.dataset.isave);j.train=$("inj-train").value.trim();const note=$("inj-note").value.trim();
+    if(INJ_PAIN!=null){j.log=j.log.filter(x=>x.date!==TODAY);j.log.push({date:TODAY,pain:INJ_PAIN,note})}INJ_OPEN=null;await saveInj(list);return}
+  if(t.dataset.iheal){const j=list.find(x=>x.id===t.dataset.iheal);j.status="healed";j.healed=TODAY;INJ_OPEN=null;await saveInj(list);return}
+  if(t.dataset.ireopen){const j=list.find(x=>x.id===t.dataset.ireopen);j.status="active";delete j.healed;await saveInj(list);return}
+  if(t.id==="inj-addbtn"){const n=$("inj-name").value.trim();if(!n){$("inj-name").focus();return}list.push({id:"i"+Date.now().toString(36),name:n,start:$("inj-start").value||TODAY,status:"active",train:$("inj-tnote").value.trim(),log:[]});await saveInj(list)}});
+function injBanner(){const act=injList().filter(j=>j.status!=="healed");if(!act.length)return "";
+  return `<div class="injbar">${act.map(j=>{const l=injLatest(j);return `<p><b>${esc(j.name)}</b>${l?` · ${l.pain}/10 on ${nice(l.date)}`:""}${j.train?` · ${esc(j.train)}`:""}</p>`}).join("")}</div>`}
+
+/* ================= Gym: collapsible sections, remembered ================= */
+function setupFolds(){L.folds=L.folds||{};document.querySelectorAll("details[data-fold]").forEach(d=>{const k=d.dataset.fold;if(L.folds[k]!=null)d.open=!!L.folds[k];
+  d.addEventListener("toggle",()=>{L.folds[k]=d.open;saveL()})})}
+
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
 if(L.live&&L.live.exercises){W=L.live;startTick()}
 if(L.shop&&L.shop.start)D.shop=L.shop;
-renderPlans();renderRota();renderShop();renderPrep();renderAll();renderLive();show(L.tab||"today");
+renderPlans();renderRota();renderShop();renderPrep();renderAll();renderLive();show(L.tab||"today");setupFolds();
 const keepPlace=()=>{L.place={y:Math.round(window.scrollY),t:Date.now()};saveL()};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")keepPlace()});window.addEventListener("pagehide",keepPlace);
 if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAnimationFrame(()=>window.scrollTo(0,y));setTimeout(()=>{if(window.scrollY<5)window.scrollTo(0,y)},400)}
@@ -3537,6 +3611,7 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
   db.doc("prefs/deload").onSnapshot(s=>{const d=s.exists?s.data():null;D.deload=d&&d.start?d:null;if(!W)renderStart()},()=>{});
   db.doc("prefs/rest").onSnapshot(s=>{D.rest=(s.exists&&s.data().map)||{}},()=>{});
   db.doc("prefs/supersets").onSnapshot(s=>{D.ssmap=(s.exists&&s.data().map)||{}},()=>{});
+  db.doc("prefs/injuries").onSnapshot(s=>{D.injuries=s.exists?s.data():null;renderInjuries();if(!W)renderStart()},()=>{});
   db.doc("prefs/swaps").onSnapshot(s=>{D.exswaps=(s.exists&&s.data().map)||{};if(W)renderLive()},()=>{});
   db.collection("runs").onSnapshot(q=>{D.runs=q.docs.map(x=>({...x.data(),_id:x.id}));renderRun();renderDay()},()=>{});
   db.doc("prefs/runplan").onSnapshot(s=>{D.runplan=s.exists?s.data():null;applyRunPlan();renderRun();renderDayAll()},()=>{});
