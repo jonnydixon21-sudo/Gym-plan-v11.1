@@ -73,7 +73,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button:disabled{opacity:.5;cursor:not-allowed}
 .view{display:grid;gap:16px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .between{justify-content:space-between}
 
 /* tabs */
@@ -402,6 +402,10 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+.fw-inner,.fw-keep{display:grid;gap:14px;min-width:0}
+.opts{gap:8px}#rota-shift{row-gap:8px}
+.mbox .mhint{margin:0;font-size:.8rem}.msel{display:flex;align-items:center;gap:8px}.msel select{font:inherit;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink)}.rbox label.note,.mbox label.note{display:grid;gap:4px}
+.edbtns button.rm.wide{min-width:84px;font-size:.85rem}
 .wkt{width:100%;table-layout:fixed;font-size:.82rem}.wkt td,.wkt th{padding:6px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wkt th:first-child,.wkt td:first-child{width:27%}.wkt small{display:block}.wkt .wkd td{font-weight:700;border-top:1.5px solid var(--line)}.wkt .wka td{color:var(--muted);font-size:.85rem}.wkt small{color:var(--muted);font-size:.75em}
 .wt-ok{color:var(--good)}.wt-near{color:#c98a1b}.wt-off{color:#d9534f}
 .edbtns button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
@@ -766,9 +770,8 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
     </div>
     <details class="card fold" id="inj-card" data-fold="inj"><summary><h2>Injuries</h2><span class="pill bad" id="inj-pill"></span></summary><div id="inj-body"></div></details>
     <div class="card" id="waist-card">
-      <h2>Waist</h2>
-      <div class="chart" id="ch-waist"></div>
-      <p class="note">Measure round your belly button, relaxed, first thing in the morning, once a week (add it in "How the week felt" below). On a lean bulk it should hold or creep up slowly.</p>
+      <h2>Measurements</h2>
+      <div id="meas-body"></div>
     </div>
     <div class="card">
       <div class="row between"><h2>Basics</h2><span class="mono" id="habit-score"></span></div>
@@ -786,7 +789,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
       <div class="form">
         <label class="field" for="c-date">Date<input id="c-date" type="date"></label>
         <label class="field" for="c-weight" hidden>Weight (kg)<input id="c-weight" type="number" step="0.1" inputmode="decimal"></label>
-        <label class="field" for="c-waist">Waist (cm)<input id="c-waist" type="number" step="0.1" min="40" max="200" inputmode="decimal" placeholder="e.g. 84.5"></label>
+        <label class="field" for="c-waist" hidden>Waist (cm)<input id="c-waist" type="number" step="0.1" min="40" max="200" inputmode="decimal" placeholder="e.g. 84.5"></label>
         <label class="field" for="c-energy">Energy<select id="c-energy"><option value="">–</option><option value="1">1 · Poor</option><option value="2">2</option><option value="3">3 · OK</option><option value="4">4</option><option value="5">5 · Great</option></select></label>
         <label class="field" for="c-hunger">Hunger (5 = not hungry)<select id="c-hunger"><option value="">–</option><option value="1">1 · Poor</option><option value="2">2</option><option value="3">3 · OK</option><option value="4">4</option><option value="5">5 · Great</option></select></label>
         <label class="field" for="c-sleep">Sleep<select id="c-sleep"><option value="">–</option><option value="1">1 · Poor</option><option value="2">2</option><option value="3">3 · OK</option><option value="4">4</option><option value="5">5 · Great</option></select></label>
@@ -874,7 +877,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 
     <div class="view" id="food-shop" hidden>
       <div style="display:grid;gap:10px">
-        <div class="row between"><h2 id="shop-title">Shop</h2><button class="btn small" id="shop-new">Start a new shop</button></div>
+        <div class="row between"><h2 id="shop-title">Shopping list</h2><button class="btn small" id="shop-new">Start a new shop</button></div>
         <p class="note" id="shop-sub">Tap the days you're shopping for. The list adds up everything your meals need on those days, with how much to buy.</p>
         <div class="prepdays" id="shop-days"></div>
         <div class="row"><button class="btn small" id="shop-all" type="button">All 8 days</button><button class="btn small ghost" id="shop-none" type="button">Clear days</button></div>
@@ -962,7 +965,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
       <ul class="plist" id="run-next"></ul>
     </div>
     <div class="card"><h2>Run history</h2><div id="run-list"></div></div>
-    <details class="card fold"><summary><h2>Run days</h2></summary><div id="run-days"></div></details>
+    <details class="card fold"><summary><h2>Plan your runs</h2></summary><div id="run-days"></div></details>
   </section>
 
   <!-- SETTINGS -->
@@ -2066,13 +2069,13 @@ function renderProgress(){try{renderWeek();renderInjuries();renderGoals()}catch(
     (()=>{if(avg.length<2)return stat("28-day trend","–","Needs more weigh-ins");const a=avg[avg.length-1],o=[...avg].reverse().find(p=>p.date<=addDays(a.date,-28))||avg[0],dd=Math.round((pd(a.date)-pd(o.date))/864e5);
       return stat("28-day trend",(a.y-o.y>=0?"+":"")+f1(a.y-o.y)+"kg",dd>=28?"change in your 7-day average":`over ${dd} days so far`)})(),
     stat("Weekly rate",rate==null?"–":(rate>0?"+":"")+f1(rate)+"kg"+(pct!=null?` <small>(${pct>=0?"+":""}${(Math.round(pct*100)/100).toFixed(2)}%)</small>`:""),`<span class="pill ${rp[1]}">${rp[0]}</span> target 0.1–0.25% a week${curW?` (${(curW*0.001).toFixed(2)}–${(curW*0.0025).toFixed(2)}kg)`:""}`),
-    (()=>{const ws=D.checkins.filter(c=>num(c.waist)!=null).sort((a,b)=>a.date<b.date?-1:1);if(!ws.length)return stat("Waist","–","Add it in your weekly check-in");const l=ws[ws.length-1],f=ws[0];return stat("Waist",f1(num(l.waist))+"cm",ws.length>1?`${num(l.waist)-num(f.waist)>=0?"+":""}${f1(num(l.waist)-num(f.waist))}cm since ${nice(f.date)}`:nice(l.date))})(),
+    (()=>{const ws=measOf("Waist");if(!ws.length)return stat("Waist","–","Add it under Measurements");const l=ws[ws.length-1],f=ws[0];return stat("Waist",f1(l.y)+"cm",ws.length>1?`${l.y-f.y>=0?"+":""}${f1(l.y-f.y)}cm since ${nice(f.date)}`:nice(l.date))})(),
     goalStat(avg,rate),
     stat("Progress photos",lastP?nice(lastP):"None yet",lastP?(dueIn>0?`Next set due in ${dueIn} day${dueIn>1?"s":""}`:"New set due now"):"Take your first set this week"),
   ].join("");
   const tgt=[];if(pts.length){const s0=SETUP.startDate||pts[0].date,w0=SETUP.startWeight||pts[0].y,end=addDays(pts[pts.length-1].date,7);for(let d=pts[0].date<s0?pts[0].date:s0,g=0;d<=end&&g<800;d=addDays(d,1),g++){if(d<pts[0].date)continue;const wk=(pd(d)-pd(s0))/864e5/7;tgt.push({date:d,y:w0*(1+0.00175*wk)})}}
   lineChart($("ch-weight"),pts,avg,{unit:"kg",band:true,target:tgt});
-  {const ws=D.checkins.filter(c=>num(c.waist)!=null).map(c=>({date:c.date,y:num(c.waist)})).sort((a,b)=>a.date<b.date?-1:1);if($("ch-waist"))lineChart($("ch-waist"),ws,ws,{unit:"cm",single:true})}
+  renderMeas();
 
   const rows=[...D.checkins].sort((a,b)=>a.date<b.date?1:-1);
   $("hist").innerHTML=rows.length?`<table><thead><tr><th>Date</th><th class="n">Weight</th><th class="n">Energy</th><th class="n">Hunger</th><th class="n">Sleep</th><th class="n">Stress</th><th>Notes</th><th></th></tr></thead><tbody>${rows.map(c=>`<tr><td>${niceLong(c.date)}</td><td class="n">${c.weight!=null?f1(num(c.weight)):""}</td>${["energy","hunger","sleep","stress"].map(k=>`<td class="n">${c[k]??""}</td>`).join("")}<td>${esc(c.note||"")}${(c.photos||[]).length?` <span class="pill good">${c.photos.length} photo${c.photos.length>1?"s":""}</span>`:""}</td><td><button class="x" data-edit="${c.date}">Edit</button></td></tr>`).join("")}</tbody></table>`:`<div class="empty">No weigh-ins yet. Log your weight on the Today tab each morning.</div>`;
@@ -2082,7 +2085,7 @@ $("hist").addEventListener("click",e=>{const d=e.target.dataset.edit;if(!d)retur
 $("c-date").addEventListener("change",()=>{const c=D.checkins.find(x=>x.date===$("c-date").value)||{};["weight","waist","energy","hunger","sleep","stress"].forEach(k=>$("c-"+k).value=c[k]??"");$("c-note").value=c.note||""});
 $("c-save").addEventListener("click",async()=>{
   const date=$("c-date").value||TODAY,p={};
-  ["waist","energy","hunger","sleep","stress"].forEach(k=>p[k]=num($("c-"+k).value));
+  ["energy","hunger","sleep","stress"].forEach(k=>p[k]=num($("c-"+k).value));
   p.note=$("c-note").value.trim();
   if(Object.values(p).every(v=>v==null||v===""))return flash("c-toast","Fill in at least one number");
   await saveCheckin(date,p);flash("c-toast","Saved "+nice(date));
@@ -2090,7 +2093,7 @@ $("c-save").addEventListener("click",async()=>{
 
 /* ---------- chart ---------- */
 function lineChart(el,dots,line,opt){
-  if(!dots.length){el.innerHTML=`<div class="empty">${opt.unit==="kg"?"Your weight trend appears here after a couple of weigh-ins.":opt.unit==="cm"?"Add two waist measurements to see the trend.":"No sessions for this lift yet."}</div>`;return}
+  if(!dots.length){el.innerHTML=`<div class="empty">${opt.unit==="kg"?"Your weight trend appears here after a couple of weigh-ins.":opt.unit==="cm"?"Add two measurements to see the trend.":"No sessions for this lift yet."}</div>`;return}
   const W=640,H=230,m={l:44,r:16,t:14,b:28};
   const tg=opt.target||[];const xs=[...dots,...line].map(p=>pd(p.date).getTime()),ys=[...dots,...line,...tg].map(p=>p.y);
   let x0=Math.min(...xs),x1=Math.max(...xs);if(x1-x0<6*864e5){x0-=3*864e5;x1+=3*864e5}
@@ -2631,7 +2634,7 @@ function renderShop(){
     if(s0.days.length&&s0.days.every(d=>d<TODAY)){newShop(true);return}}
   const win=shopWindow(),{o,all,part,nT,nR,ds}=totals(),sel=new Set(ds);
   $("shop-days").innerHTML=win.map((d,i)=>{const inf=dayInfo(d),on=sel.has(d);return `<label class="pday${on?" on":""}${inf.ot?" ot":""}"><input type="checkbox" data-sday="${d}" ${on?"checked":""}><b>${i===0?"Today":WD(d)}</b><small>${nice(d)}</small><span>${esc(inf.label.replace(" · after nights",""))}</span></label>`}).join("");
-  $("shop-title").textContent=ds.length?`Shop for ${ds.length} day${ds.length>1?"s":""}`:"Shop";
+  $("shop-title").textContent=ds.length?`Shopping list for ${ds.length} day${ds.length>1?"s":""}`:"Shopping list";
   $("weekmeta").innerHTML=ds.length?`<b>${ds.map(d=>WD(d)+" "+pd(d).getDate()).join(", ")}</b> · ${nT} training · ${nR} rest`:"No days picked yet.";
   const never=new Set(sh.never||[]),bought=sh.bought||{};
   let html="",left=0,got=[];
@@ -2778,8 +2781,8 @@ $("view-progress").appendChild($("view-photos"));$("view-photos").hidden=false;
 const NAV={today:[["today","view-today","Today"]],
   training:[["gym","view-gym","Gym"],["run","view-run","Run"],["library","view-library","Exercises"]],
   progress:[["body","view-progress","Body"],["lifts","view-lifts","Lifts"],["photos","view-photos","Photos"],["coach","view-coach","Coach"]],
-  nutrition:[["meals","food-meals","Meals"],["prep","food-prep","Meal prep"],["shop","food-shop","Shop"],["targets","pane-targets","Targets"]],
-  schedule:[["shifts","food-shifts","Rota"],["days","food-days","Day plans"],["rundays","pane-rundays","Run days"]],
+  nutrition:[["meals","food-meals","Meals"],["prep","food-prep","Meal prep"],["shop","food-shop","Shopping list"],["targets","pane-targets","Targets"]],
+  schedule:[["shifts","food-shifts","Rota"],["days","food-days","Plan your days"],["rundays","pane-rundays","Plan your runs"]],
   settings:[["settings","view-settings","Settings"]]};
 const LEGACY={gym:["training","gym"],run:["training","run"],library:["training","library"],lifts:["progress","lifts"],photos:["progress","photos"],coach:["progress","coach"],body:["progress","body"],food:["schedule","shifts"],
   shifts:["schedule","shifts"],days:["schedule","days"],rundays:["schedule","rundays"],meals:["nutrition","meals"],prep:["nutrition","prep"],shop:["nutrition","shop"],targets:["nutrition","targets"]};
@@ -2800,7 +2803,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="12 Nov 2026";
+const APP_VERSION="12 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -2984,14 +2987,14 @@ function renderDays(){const el=$("days-ed");if(!el)return;
   if(!PED||(!PED.dirty&&(PED.rows.length!==SCHED[PED.slot][PED.type].rows.length||JSON.stringify(PED.rows.map(r=>r[1]))!==JSON.stringify(SCHED[PED.slot][PED.type].rows.map(r=>r[1])))))pedLoad(PED?PED.slot:"day",PED?PED.type:"T");
   renderTargets();
   const d=PED,tot=pedTotals(),tg=PLAN[d.type];
-  el.innerHTML=`<h2>Day plans</h2><p class="note">The plan for each kind of day: what you eat, when, and when you train. Pick a day, then change times, meals and notes. Use the arrows to move a row, or hold an arrow to pick it up and drag it. The rota decides which plan each date uses.</p>
+  el.innerHTML=`<h2>Plan your days</h2><p class="note">The plan for each kind of day: what you eat, when, and when you train. Pick a day, then change times, meals and notes. Use the arrows to move a row, or hold an arrow to pick it up and drag it. The rota decides which plan each date uses.</p>
   <div class="row" id="pe-slots">${SLOTS.map(([s,n])=>`<button class="chip" data-pes="${s}" aria-pressed="${s===d.slot}">${n}</button>`).join("")}</div>
   <div class="row" id="pe-type"><button class="chip" data-pet="T" aria-pressed="${d.type==="T"}">Training day</button><button class="chip" data-pet="R" aria-pressed="${d.type==="R"}">Rest day</button></div>
   <div class="ed"><label class="note">Summary<input id="pe-sum" value="${esc(d.sum)}" maxlength="80"></label>
   <label class="note">Note<textarea id="pe-note" rows="3" maxlength="400">${esc(d.note)}</textarea></label>
   <label class="note">Wake up<input id="pe-wake" type="time" value="${esc(d.wake)}"></label>
   <ol>${d.rows.map((r,i)=>{const k=rowKind(r[1]);return `<li class="edcol k-${k}"><div class="edrow pr"><input type="time" data-pt="${i}" value="${esc(r[0])}" aria-label="Time"><select data-pk="${i}" aria-label="Type"><option value="meal" ${k==="meal"?"selected":""}>Meal</option><option value="train" ${k==="train"?"selected":""}>Gym session</option><option value="run" ${k==="run"?"selected":""}>Run</option><option value="work" ${k==="work"?"selected":""}>Work</option><option value="info" ${k==="info"?"selected":""}>Note</option></select></div>
-  ${k==="meal"?`<div class="row" style="flex-wrap:nowrap"><select data-pm="${i}" aria-label="Meal">${mealOptsHtml(r[1])}</select><button class="btn small" data-pfood="${i}">Foods</button></div>`:k==="train"?`<p class="note">Your gym session for that day.</p>`:k==="run"?`<div class="g2"><input data-px="${i}" value="${esc(r[2]||"")}" placeholder="e.g. Easy 5K" maxlength="40" aria-label="Run name"><select data-prk="${i}" aria-label="Run type"><option value="easy" ${r[3]!=="speed"?"selected":""}>Easy</option><option value="speed" ${r[3]==="speed"?"selected":""}>Speed</option></select></div><p class="note">Shows on Today and in your Run tab on these days. A run set in Run days for that rota day takes priority.</p>`:`<input data-px="${i}" value="${esc(r[2])}" placeholder="${k==="work"?"Day shift until 7pm":"What to do"}" maxlength="80">`}
+  ${k==="meal"?`<div class="row" style="flex-wrap:nowrap"><select data-pm="${i}" aria-label="Meal">${mealOptsHtml(r[1])}</select><button class="btn small" data-pfood="${i}">Foods</button></div>`:k==="train"?`<p class="note">Your gym session for that day.</p>`:k==="run"?`<div class="g2"><input data-px="${i}" value="${esc(r[2]||"")}" placeholder="e.g. Easy 5K" maxlength="40" aria-label="Run name"><select data-prk="${i}" aria-label="Run type"><option value="easy" ${r[3]!=="speed"?"selected":""}>Easy</option><option value="speed" ${r[3]==="speed"?"selected":""}>Speed</option></select></div><p class="note">Shows on Today and in your Run tab on these days. A run set in Plan your runs for that rota day takes priority.</p>`:`<input data-px="${i}" value="${esc(r[2])}" placeholder="${k==="work"?"Day shift until 7pm":"What to do"}" maxlength="80">`}
   <div class="edbtns"><button data-pup="${i}" aria-label="Move up">↑</button><button data-pdn="${i}" aria-label="Move down">↓</button><button class="rm" data-prm="${i}" aria-label="Remove">−</button></div></li>`}).join("")}</ol>
   <button class="btn" id="pe-add">+ Add to this day</button>
   <p class="note">Things after midnight (like 01:00 on a night shift) go at the end of the list.</p>
@@ -3032,11 +3035,30 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-medi
   if(e.target.closest("#nmeal-new")){const id="x"+Date.now().toString(36),P=planDoc();P.meals={...P.meals,[id]:{m:"New meal",items:[["chicken",150]]}};D.plan=P;await savePlan();medOpen(id)}});
 
 /* ---------- running ---------- */
+/* run plan as boxes: day of the cycle, time, type, note */
+const RTYPES=[["easy","Easy run"],["long","Long run"],["speed","Speed (intervals)"],["tempo","Tempo"]];
+const rtLabel=t=>({easy:"Easy run",long:"Long run",speed:"Speed run",tempo:"Tempo run"})[t]||"Run";
+const rtKind=t=>t==="speed"||t==="tempo"?"speed":"easy";
+const guessType=(label,kind)=>/long/i.test(label||"")?"long":/tempo|threshold/i.test(label||"")&&!/interval/i.test(label||"")?"tempo":kind==="speed"||/speed|interval/i.test(label||"")?"speed":"easy";
+const noteFromLabel=l=>String(l||"").replace(/^\s*(easy|long|speed|tempo)( run)?\s*[,:·\-–]?\s*/i,"").trim();
+function nextOcc(j){const L_=PATTERN.length,n=Math.round((pd(TODAY)-pd(CYCLE_START))/864e5),i=((n%L_)+L_)%L_;return addDays(TODAY,((j-i)%L_+L_)%L_)}
+function runListFromPattern(){return PATTERN.map((p,i)=>p.run?{day:i,at:p.runAt||"16:30",type:p.runType||guessType(p.run,p.runKind),note:p.runNote!=null?p.runNote:noteFromLabel(p.run)}:null).filter(Boolean)}
+function runDaysHTML(){const N=PATTERN.length,dl=(p,j)=>`Day ${j+1} · ${p.label.replace(" · after nights"," (after nights)")} · next ${WD(nextOcc(j))} ${nice(nextOcc(j))}`;
+  return `<p class="note">One box per run in your ${N}-day cycle. Pick the day, time, type and add a note. Use + to add a run and − to remove one. A Run row in Plan your days, or "Just for this day" on the Rota, can still add an extra run.</p>
+  <div class="ed"><ol>${RPD.list.map((r,i)=>`<li class="edcol k-run rbox"><div class="row between"><b>Run ${i+1}</b><span class="note">${esc(rtLabel(r.type))}</span></div>
+    <label class="note">Day<select data-rbd="${i}" aria-label="Day of the cycle">${PATTERN.map((p,j)=>`<option value="${j}" ${j===r.day?"selected":""}>${esc(dl(p,j))}</option>`).join("")}</select></label>
+    <div class="g2"><label class="note">Time<input type="time" data-rbt="${i}" value="${esc(r.at)}"></label><label class="note">Type<select data-rbk="${i}">${RTYPES.map(([v,n])=>`<option value="${v}" ${v===r.type?"selected":""}>${n}</option>`).join("")}</select></label></div>
+    <label class="note">Note<input data-rbn="${i}" value="${esc(r.note||"")}" maxlength="40" placeholder="e.g. 10K+, 6 × 400m, keep it chatty"></label>
+    <div class="edbtns"><button class="rm" type="button" data-rbrm="${i}" aria-label="Remove run">−</button></div></li>`).join("")}</ol>
+  <div class="row"><button class="btn" type="button" id="rb-add">+ Add a run</button><span class="note">${RPD.list.length} run${RPD.list.length===1?"":"s"} every ${N} days</span></div>
+  <div class="row"><button class="btn primary" type="button" id="rp-save">Save run plan</button><button class="btn ghost small" type="button" id="rp-reset">Reset to original</button></div><p class="note" id="rp-msg"></p></div>`}
+
 D.runs=[];D.runplan=null;
 const RUN_BASE=rotaFrom(defaultRota()).map((p,i)=>({...p,...[{},{},{run:"Easy run",runAt:"09:30"},{},{},{},{run:"Long run, 10K+"},{run:"Speed run: intervals or tempo"}][i]})).map(p=>p.run?{kind:/speed|interval|tempo|threshold/i.test(p.run)?"speed":"easy",label:p.run,at:p.runAt||"16:30"}:{kind:"none",label:"",at:"16:30"});
-function applyRunPlan(){const rp=D.runplan&&D.runplan.days;
-  PATTERN.forEach((p,i)=>{const s=(rp&&rp[i])||(isDefaultRota()?RUN_BASE[i]:null);
-    if(s&&s.kind!=="none"){p.run=s.label||(s.kind==="speed"?"Speed run":"Easy run");p.runAt=s.at||"16:30";p.runKind=s.kind}else{delete p.run;delete p.runAt;delete p.runKind}})}
+function applyRunPlan(){const rp=D.runplan;let per=null;
+  if(rp&&Array.isArray(rp.list)){per=PATTERN.map(()=>null);rp.list.forEach(r=>{if(r&&r.day>=0&&r.day<PATTERN.length)per[r.day]={kind:rtKind(r.type),label:rtLabel(r.type)+(r.note?" · "+r.note:""),at:r.at||"16:30",type:r.type,note:r.note||""}})}
+  PATTERN.forEach((p,i)=>{const s=per?per[i]:((rp&&rp.days&&rp.days[i])||(isDefaultRota()?RUN_BASE[i]:null));
+    if(s&&s.kind!=="none"){p.run=s.label||(s.kind==="speed"?"Speed run":"Easy run");p.runAt=s.at||"16:30";p.runKind=s.kind;p.runType=s.type||guessType(p.run,s.kind);p.runNote=s.note!=null?s.note:null}else{delete p.run;delete p.runAt;delete p.runKind;delete p.runType;delete p.runNote}})}
 const fmtDur=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${pad2(m)}:${pad2(x)}`:`${m}:${pad2(x)}`};
 const parseDur=t=>{t=String(t||"").trim().replace(",",".");if(!t)return null;
   if(/^\d+:\d{1,2}(:\d{1,2})?$/.test(t)){const p=t.split(":").map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1]}
@@ -3086,28 +3108,34 @@ $("runov").addEventListener("click",async e=>{if(!RUNF)return;const t=e.target.c
 /* run tab */
 let RPD=null;
 const slotLbl=s=>(SLOTS.find(x=>x[0]===s)||[])[1]||s;
-function rpdLoad(){RPD={dirty:false,days:PATTERN.map(p=>p.run?{kind:p.runKind||"easy",label:p.run,at:p.runAt||"16:30"}:{kind:"none",label:"",at:"16:30"})}}
+function rpdLoad(){RPD={dirty:false,list:runListFromPattern()}}
 function renderRun(){if(!$("run-stats"))return;
   const runs=[...D.runs].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0));
   const wk=mondayOf(TODAY),inWk=runs.filter(r=>r.date>=wk&&r.date<=addDays(wk,6)),km=a=>a.reduce((s,r)=>s+r.km,0),l4=runs.filter(r=>r.date>=addDays(TODAY,-27)&&r.date<=TODAY);
   const easy=runs.filter(r=>r.kind!=="speed").slice(0,5),ep=easy.length?easy.reduce((s,r)=>s+r.secs/r.km,0)/easy.length:null,longest=runs.reduce((m,r)=>r.km>(m?m.km:0)?r:m,null);
   $("run-stats").innerHTML=[stat("This week",f1(km(inWk))+" km",`${inWk.length} run${inWk.length===1?"":"s"}`),stat("Last 4 weeks",f1(km(l4)/4)+" km",`average a week · ${l4.length} runs`),stat("Easy pace",ep?fmtDur(ep)+"/km":"–",easy.length?`last ${easy.length} easy run${easy.length>1?"s":""}`:"Log an easy run"),stat("Longest run",longest?f1(longest.km)+" km":"–",longest?nice(longest.date):"")].join("");
   const next=[];for(let i=0;i<14;i++){const d=addDays(TODAY,i),inf=dayInfo(d);if(inf.run)next.push({d,inf,done:D.runs.some(r=>r.date===d)})}
-  $("run-next").innerHTML=next.length?next.map(({d,inf,done})=>`<li><span><b>${d===TODAY?"Today":niceLong(d)}</b> · ${esc(inf.run)}<small class="note" style="display:block">${inf.runKind==="speed"?"Speed":"Easy"} · ${inf.runAt||"16:30"}${done?" · done":""}</small></span>${done?`<span class="pill good">Done</span>`:`<button class="btn small" data-runlog="${d}" data-k="${inf.runKind||"easy"}">Log</button>`}</li>`).join(""):`<li class="note">No runs on your plan. Set them under Run days below.</li>`;
+  $("run-next").innerHTML=next.length?next.map(({d,inf,done})=>`<li><span><b>${d===TODAY?"Today":niceLong(d)}</b> · ${esc(inf.run)}<small class="note" style="display:block">${inf.runKind==="speed"?"Speed":"Easy"} · ${inf.runAt||"16:30"}${done?" · done":""}</small></span>${done?`<span class="pill good">Done</span>`:`<button class="btn small" data-runlog="${d}" data-k="${inf.runKind||"easy"}">Log</button>`}</li>`).join(""):`<li class="note">No runs on your plan. Set them under Plan your runs.</li>`;
   $("run-list").innerHTML=runs.length?runs.map(r=>`<div class="runrow"><div><b>${niceLong(r.date)}</b> · ${runTitle(r)}<small class="note" style="display:block">${esc(runLine(r))}${r.note?" · "+esc(r.note):""}</small></div><div class="row" style="flex-wrap:nowrap"><button class="x" data-runedit="${r._id}">Edit</button><button class="x" data-rundel="${r._id}">Delete</button></div></div>`).join(""):`<div class="empty">No runs yet. Tap Log a run after your next one.</div>`;
   if(!RPD||!RPD.dirty)rpdLoad();
-  $("run-days").innerHTML=`<p class="note">Your main run settings: which days of your ${PATTERN.length}-day cycle have a run, and what kind. Everything else follows this. Two ways to override it: a Run row in Day plans (adds a run to every day using that plan, if this list has none for that day), or "Just for this day" on Next 8 days (one date only).</p><div class="ed"><ol>${RPD.days.map((s,i)=>`<li class="edcol"><b>Day ${i+1} · ${esc(slotLbl(PATTERN[i].slot))}</b><div class="edrow pr"><input type="time" data-rpt="${i}" value="${esc(s.at)}" aria-label="Time"><select data-rpk="${i}" aria-label="Run type"><option value="none" ${s.kind==="none"?"selected":""}>No run</option><option value="easy" ${s.kind==="easy"?"selected":""}>Easy run</option><option value="speed" ${s.kind==="speed"?"selected":""}>Speed run</option></select></div><input data-rpl="${i}" value="${esc(s.label)}" placeholder="Label, like Long run, 10K+" maxlength="40"></li>`).join("")}</ol><div class="row"><button class="btn primary" id="rp-save">Save run days</button><button class="btn ghost small" id="rp-reset">Reset to original</button></div><p class="note" id="rp-msg"></p></div>`}
+  $("run-days").innerHTML=runDaysHTML();}
 document.addEventListener("input",e=>{if(!(e.target.closest&&e.target.closest("#view-run,#pane-rundays")))return;const t=e.target;if(!RPD)return;
-  if(t.dataset.rpt!==undefined){RPD.days[+t.dataset.rpt].at=t.value;RPD.dirty=true}
-  if(t.dataset.rpl!==undefined){RPD.days[+t.dataset.rpl].label=t.value;RPD.dirty=true}});
-document.addEventListener("change",e=>{if(!(e.target.closest&&e.target.closest("#view-run,#pane-rundays")))return;const t=e.target;if(t.dataset.rpk!==undefined){const s=RPD.days[+t.dataset.rpk];s.kind=t.value;if(t.value==="none")s.label="";RPD.dirty=true;renderRun()}});
+  if(t.dataset.rbn!==undefined){RPD.list[+t.dataset.rbn].note=t.value;RPD.dirty=true}
+  if(t.dataset.rbt!==undefined){RPD.list[+t.dataset.rbt].at=t.value;RPD.dirty=true}});
+document.addEventListener("change",e=>{if(!(e.target.closest&&e.target.closest("#view-run,#pane-rundays")))return;const t=e.target;if(!RPD)return;
+  if(t.dataset.rbd!==undefined){RPD.list[+t.dataset.rbd].day=+t.value;RPD.dirty=true;renderRun()}
+  if(t.dataset.rbk!==undefined){RPD.list[+t.dataset.rbk].type=t.value;RPD.dirty=true;renderRun()}
+  if(t.dataset.rbt!==undefined){RPD.list[+t.dataset.rbt].at=t.value;RPD.dirty=true}});
 document.addEventListener("click",async e=>{if(!(e.target.closest&&e.target.closest("#view-run,#pane-rundays")))return;const t=e.target.closest("button");if(!t)return;
   if(t.id==="run-add"){runOpen({date:TODAY});return}
   if(t.dataset.runlog){runOpen({date:t.dataset.runlog,kind:t.dataset.k});return}
   if(t.dataset.runedit){const r=D.runs.find(x=>x._id===t.dataset.runedit);if(r)runOpen({...r,id:r._id});return}
   if(t.dataset.rundel){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again";return}if(db){try{await db.doc("runs/"+t.dataset.rundel).delete()}catch(err){}}return}
-  if(t.id==="rp-save"){if(RPD.days.some(s=>!/^\d\d:\d\d$/.test(s.at))){$("rp-msg").textContent="Every day needs a time.";return}
-    D.runplan={days:RPD.days.map(s=>({...s}))};RPD.dirty=false;applyRunPlan();if(db){try{await db.doc("prefs/runplan").set(D.runplan)}catch(err){}}renderRun();renderDayAll();$("rp-msg").textContent="Saved.";return}
+  if(t.id==="rb-add"){const used=new Set(RPD.list.map(r=>r.day));let day=[...Array(PATTERN.length).keys()].find(j=>!used.has(j));if(day==null)day=0;RPD.list.push({day,at:"16:30",type:"easy",note:""});RPD.dirty=true;renderRun();return}
+  if(t.dataset.rbrm!==undefined){RPD.list.splice(+t.dataset.rbrm,1);RPD.dirty=true;renderRun();return}
+  if(t.id==="rp-save"){if(RPD.list.some(s=>!/^\d\d:\d\d$/.test(s.at||""))){$("rp-msg").textContent="Every run needs a time.";return}
+    const seen={};for(const r of RPD.list){if(seen[r.day]){$("rp-msg").textContent=`Two runs are on Day ${r.day+1}. Keep one per day, or put the second in the note.`;return}seen[r.day]=1}
+    D.runplan={list:[...RPD.list].sort((a,b)=>a.day-b.day).map(r=>({day:r.day,at:r.at,type:r.type,note:(r.note||"").trim()}))};RPD.dirty=false;applyRunPlan();if(db){try{await db.doc("prefs/runplan").set(D.runplan)}catch(err){}}renderRun();renderDayAll();$("rp-msg").textContent="Saved. Your Today plan and Rota now use these runs.";return}
   if(t.id==="rp-reset"){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to reset";return}D.runplan=null;RPD=null;applyRunPlan();if(db){try{await db.doc("prefs/runplan").delete()}catch(err){}}renderRun();renderDayAll();return}});
 /* Today: did I train? */
 let TL={gym:false};
@@ -3387,7 +3415,11 @@ async function saveGoals(list){D.goals={list};if(db){try{await db.doc("prefs/goa
 function weightNow(){const pts=D.checkins.filter(c=>num(c.weight)!=null).map(c=>({date:c.date,y:num(c.weight)})).sort((a,b)=>a.date<b.date?-1:1),avg=rolling(pts);if(!avg.length)return {cur:null,rate:null};
   const a=avg[avg.length-1],old=[...avg].reverse().find(p=>p.date<=addDays(a.date,-7))||avg[0],dd=(pd(a.date)-pd(old.date))/864e5;return {cur:a.y,rate:dd>=4?(a.y-old.y)/dd*7:null}}
 function liftBest(name){const h=liftHistory()[norm(name)];if(!h||!h.ss.length)return null;const b=h.ss.reduce((m,s)=>s.perf>m.perf?s:m,h.ss[0]);return {e1:b.perf,set:b.top,date:b.date,bw:b.bw}}
-function measVals(g){const v=[...(g.log||[])];if(norm(g.name)==="waist")D.checkins.filter(c=>num(c.waist)!=null).forEach(c=>{if(!v.some(x=>x.date===c.date))v.push({date:c.date,v:num(c.waist)})});return v.sort((a,b)=>a.date<b.date?-1:1)}
+function measVals(g){const v=[],al={arms:"biceps",thighs:"thigh",calves:"calf"},nm=norm(g.name),key=al[nm]||nm;
+  const site=measSites().find(s=>norm(s)===nm)||measSites().find(s=>norm(s).startsWith(key));
+  if(site)measOf(site).forEach(m=>{if(!v.some(x=>x.date===m.date))v.push({date:m.date,v:m.y})});
+  (g.log||[]).forEach(x=>{if(!v.some(y=>y.date===x.date))v.push(x)});
+  if(nm==="waist")D.checkins.filter(c=>num(c.waist)!=null).forEach(c=>{if(!v.some(x=>x.date===c.date))v.push({date:c.date,v:num(c.waist)})});return v.sort((a,b)=>a.date<b.date?-1:1)}
 function goalView(g){const bar=(p,cls)=>`<div class="gbar"><div class="gfill ${cls||""}" style="width:${Math.max(0,Math.min(100,p*100))}%"></div></div>`;let head="",body="",p=0;
   if(g.type==="weight"){const w=weightNow(),cur=w.cur,dir=g.mode==="cut"?-1:g.mode==="bulk"?1:0;head=`${g.mode==="cut"?"Cut":g.mode==="bulk"?"Bulk":"Maintain"} to ${g.target}kg${g.by?" by "+nice(g.by):""}`;
     if(cur==null)body="Log a few weigh-ins to see progress.";
@@ -3407,7 +3439,7 @@ function goalForm(){const d=GOAL_NEW,ch=(k,v,n)=>`<button type="button" class="c
   return `<div class="goal ed"><div class="row">${ch("type","weight","Weight")}${ch("type","lift","Exercise")}${ch("type","measure","Body measurement")}</div>
   ${d.type==="weight"?`<div class="row">${ch("mode","bulk","Bulk")}${ch("mode","cut","Cut")}${ch("mode","maintain","Maintain")}</div><div class="g2"><label class="note">Target weight (kg)<input id="gf-kg" data-gfv="gf-kg" value="${esc(d['gf-kg']??"")}" inputmode="decimal" placeholder="93"></label><label class="note">By (optional)<input id="gf-by" data-gfv="gf-by" value="${esc(d['gf-by']??"")}" type="date"></label></div>`:""}
   ${d.type==="lift"?`<label class="note">Exercise<input id="gf-ex" data-gfv="gf-ex" value="${esc(d['gf-ex']??"")}" list="gf-exl" placeholder="e.g. Hack squat"><datalist id="gf-exl">${exOpts}</datalist></label><div class="g2"><label class="note">Target weight (kg)<input id="gf-kg" data-gfv="gf-kg" value="${esc(d['gf-kg']??"")}" inputmode="decimal" placeholder="120"></label><label class="note">For reps<input id="gf-reps" data-gfv="gf-reps" value="${esc(d['gf-reps']??"8")}" inputmode="numeric"></label></div>`:""}
-  ${d.type==="measure"?`<div class="g2"><label class="note">Measurement<select id="gf-name" data-gfv="gf-name">${["Waist","Chest","Arms","Shoulders","Thighs","Calves","Neck","Hips"].map(n=>`<option ${d["gf-name"]===n?"selected":""}>${n}</option>`).join("")}</select></label><label class="note">Or your own<input id="gf-own" data-gfv="gf-own" value="${esc(d['gf-own']??"")}" placeholder="e.g. Forearm"></label></div><div class="row">${ch("dir","up","Increase")}${ch("dir","down","Decrease")}</div><div class="g2"><label class="note">Target (cm)<input id="gf-tg" data-gfv="gf-tg" value="${esc(d['gf-tg']??"")}" inputmode="decimal"></label><label class="note">Now (cm, optional)<input id="gf-now" data-gfv="gf-now" value="${esc(d['gf-now']??"")}" inputmode="decimal"></label></div>`:""}
+  ${d.type==="measure"?`<div class="g2"><label class="note">Measurement<select id="gf-name" data-gfv="gf-name">${MSITES.map(x=>x[0]).map(n=>`<option ${d["gf-name"]===n?"selected":""}>${n}</option>`).join("")}</select></label><label class="note">Or your own<input id="gf-own" data-gfv="gf-own" value="${esc(d['gf-own']??"")}" placeholder="e.g. Forearm"></label></div><div class="row">${ch("dir","up","Increase")}${ch("dir","down","Decrease")}</div><div class="g2"><label class="note">Target (cm)<input id="gf-tg" data-gfv="gf-tg" value="${esc(d['gf-tg']??"")}" inputmode="decimal"></label><label class="note">Now (cm, optional)<input id="gf-now" data-gfv="gf-now" value="${esc(d['gf-now']??"")}" inputmode="decimal"></label></div>`:""}
   <div class="row"><button class="btn small primary" type="button" id="gf-save">Add goal</button><button class="btn small ghost" type="button" id="gf-cancel">Cancel</button></div><p class="note" id="gf-err" style="color:#d9534f"></p></div>`}
 function renderGoals(){const el=$("goals-body");if(!el)return;const l=goalList();$("goals-pill").textContent=l.length?String(l.length):"";
   el.innerHTML=`${l.length?l.map(goalView).join(""):`<p class="note">No goals yet. Add one for your weight, a lift or a body measurement.</p>`}
@@ -3419,7 +3451,9 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(t.dataset.gf){const [k,v]=t.dataset.gf.split(":");GOAL_NEW[k]=v;renderGoals();return}
   if(t.dataset.grm){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Remove?";t.classList.add("sure");return}await saveGoals(goalList().filter(g=>g.id!==t.dataset.grm));return}
   if(t.dataset.glog){GOAL_LOG=t.dataset.glog;renderGoals();$("gl-v").focus();return}
-  if(t.dataset.glsave){const v=n($("gl-v").value);if(!(v>0))return;const list=goalList().map(g=>g.id===t.dataset.glsave?{...g,log:[...(g.log||[]).filter(x=>x.date!==$("gl-d").value),{date:$("gl-d").value||TODAY,v}]}:g);GOAL_LOG=null;await saveGoals(list);return}
+  if(t.dataset.glsave){const v=n($("gl-v").value);if(!(v>0))return;const g0=goalList().find(g=>g.id===t.dataset.glsave);GOAL_LOG=null;
+    if(g0&&db){const nm=norm(g0.name),al={arms:"biceps",thighs:"thigh",calves:"calf"},site=measSites().find(s=>norm(s)===nm)||measSites().find(s=>norm(s).startsWith(al[nm]||nm))||g0.name;
+      try{await db.doc("measures/m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)).set({date:$("gl-d").value||TODAY,site,cm:v,note:"",created:Date.now()})}catch(err){}}renderGoals&&renderGoals();return}
   if(t.id==="gf-save"){const d=GOAL_NEW,err=m=>{$("gf-err").textContent=m},id="g"+Date.now().toString(36);let g=null;
     if(d.type==="weight"){const kg=n($("gf-kg").value);if(!(kg>30&&kg<300))return err("Enter a target weight in kg.");if(weightGoal())return err("You already have a weight goal. Remove it first.");g={id,type:"weight",mode:d.mode,target:kg,by:$("gf-by").value||null,startKg:weightNow().cur}}
     if(d.type==="lift"){const ex=$("gf-ex").value.trim(),kg=n($("gf-kg").value),r=parseInt($("gf-reps").value);if(!ex)return err("Pick an exercise.");if(!(kg>0)||!(r>0))return err("Enter the weight and reps you're aiming for.");const b=liftBest(ex);g={id,type:"lift",ex,kg,reps:r,startE1:b?b.e1:null}}
@@ -3743,13 +3777,13 @@ function foldWrap(el,key,title,open,keep){if(!el||el.dataset.wrapped)return;el.d
   d.innerHTML=`<summary><h2>${title}</h2></summary>`;el.parentNode.insertBefore(d,el);d.appendChild(el);el.classList.remove("card");el.classList.add(keep?"fw-keep":"fw-inner");return d}
 function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return null;const x=el.querySelector(sel);return x?x.closest(".card"):null};
   foldWrap(card("view-today","#log-save"),"log","Log");
-  foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Waist");foldWrap(card("view-progress","#habits"),"basics","Basics");foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
+  foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");foldWrap(card("view-progress","#habits"),"basics","Basics");foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
   foldWrap($("lift-dash"),"liftdash","Lift progression");foldWrap($("vol-card"),"volume","Volume by muscle");foldWrap($("effort-card"),"effort","Effort and recovery");
   foldWrap(card("view-photos","#compare"),"compare","Compare photos");foldWrap($("p-upload-card"),"upload","Add progress photos");
   foldWrap(card("view-coach","#review"),"review","Weekly review");
   foldWrap(card("view-run","#run-next"),"runnext","Next runs");foldWrap(card("view-run","#run-list"),"runhist","Run history");
   foldWrap(card("view-library","#lib-list"),"library","Exercise library",true);
-  foldWrap($("rota-card"),"rotacard","Day details",true,true);foldWrap($("days-ed"),"dayplans","Day plans",true);
+  foldWrap($("rota-card"),"rotacard","Day details",true,true);foldWrap($("days-ed"),"dayplans","Plan your days",true);
   const st=$("view-settings");if(st)[...st.children].filter(c=>c.classList.contains("card")&&c.tagName==="DIV").forEach((c,i)=>{const h=c.querySelector("h2");foldWrap(c,"set"+i,h?h.textContent:"Settings")});
   document.querySelectorAll("details.card.fold:not([data-fold])").forEach((d,i)=>{d.dataset.fold=d.id||("f"+i)});
   const rd=$("run-days")&&$("run-days").closest("details");if(rd){rd.classList.add("fold");rd.open=L.folds&&L.folds[rd.dataset.fold]!=null?!!L.folds[rd.dataset.fold]:true}}
@@ -3777,17 +3811,17 @@ function monthHTML(){const base=pd(TODAY);base.setDate(1);base.setMonth(base.get
 const PRESETS=[["My rota: 2 days, 2 nights, 4 off",()=>defaultRota()],["4 days, 4 off",()=>({start:TODAY,days:[..."DDDDOOOO"].map(c=>({type:c==="D"?"day":"off",train:"T"}))})],
   ["4 nights, 4 off",()=>({start:TODAY,days:[..."NNNNOOOO"].map((c,i)=>({type:c==="N"?"night":"off",train:c==="N"&&i>0?"R":"T"}))})],["Mon–Fri days, weekends off",()=>({start:mondayOf(TODAY),days:[..."DDDDDOO"].map(c=>({type:c==="D"?"day":"off",train:"T"}))})]];
 function customHTML(){const d=RP_DRAFT||(RP_DRAFT=JSON.parse(JSON.stringify(currentRota())));
-  return `<p class="note">Build any repeating shift pattern. Each day is a day shift, a night shift or a day off, and a training or rest day. Your meals, timings and meal prep come from the matching Day plans, so anyone on different shifts can set their own. Use the arrows to reorder days, or hold an arrow and drag.</p>
-  <div class="row">${PRESETS.map((p,i)=>`<button type="button" class="chip" data-rpre="${i}">${esc(p[0])}</button>`).join("")}</div>
-  <label class="field" for="rp-start">Day 1 of the pattern falls on<input type="date" id="rp-start" value="${esc(d.start)}"></label>
+  return `<p class="note">Build any repeating shift pattern. Each day is a day shift, a night shift or a day off, and a training or rest day. Your meals, timings and meal prep come from the matching Plan your days, so anyone on different shifts can set their own. Use the arrows to reorder days, or hold an arrow and drag.</p>
+  <div class="row">${PRESETS.map((p,i)=>`<button type="button" class="chip" data-cpre="${i}">${esc(p[0])}</button>`).join("")}</div>
+  <label class="field" for="cp-start">Day 1 of the pattern falls on<input type="date" id="cp-start" value="${esc(d.start)}"></label>
   <div class="ed"><ol>${d.days.map((x,i)=>`<li class="edcol rpd k-${x.type}"><div class="row between"><b>Day ${i+1}</b><span class="note">${WD(addDays(d.start,i))} ${nice(addDays(d.start,i))}</span></div>
-    <div class="row">${[["day","Day shift"],["night","Night shift"],["off","Day off"]].map(([v,n])=>`<button type="button" class="chip" data-rpt="${i}:${v}" aria-pressed="${x.type===v}">${n}</button>`).join("")}</div>
-    <div class="row">${[["T","Training"],["R","Rest"]].map(([v,n])=>`<button type="button" class="chip" data-rptr="${i}:${v}" aria-pressed="${x.train===v}">${n}</button>`).join("")}</div>
-    <div class="edbtns"><button type="button" data-rpup="${i}" aria-label="Move up">↑</button><button type="button" data-rpdn="${i}" aria-label="Move down">↓</button><button class="rm" type="button" data-rprm="${i}" aria-label="Remove" ${d.days.length<2?"disabled":""}>−</button></div></li>`).join("")}</ol>
-  <button class="btn" type="button" id="rp-add">+ Add a day</button></div>
+    <div class="row">${[["day","Day shift"],["night","Night shift"],["off","Day off"]].map(([v,n])=>`<button type="button" class="chip" data-cpt="${i}:${v}" aria-pressed="${x.type===v}">${n}</button>`).join("")}</div>
+    <div class="row">${[["T","Training"],["R","Rest"]].map(([v,n])=>`<button type="button" class="chip" data-cptr="${i}:${v}" aria-pressed="${x.train===v}">${n}</button>`).join("")}</div>
+    <div class="edbtns"><button type="button" data-cpup="${i}" aria-label="Move up">↑</button><button type="button" data-cpdn="${i}" aria-label="Move down">↓</button><button class="rm" type="button" data-cprm="${i}" aria-label="Remove" ${d.days.length<2?"disabled":""}>−</button></div></li>`).join("")}</ol>
+  <button class="btn" type="button" id="cp-add">+ Add a day</button></div>
   <p class="note"><b>${esc(rotaSummary(d))}</b>, ${d.days.length}-day cycle.</p>
-  <div class="row"><button class="btn primary" type="button" id="rp-save">Save pattern</button><button class="btn ghost" type="button" id="rp-cancel">Undo changes</button></div>
-  <p class="note" id="rp-msg"></p><p class="note">After changing it, check Run days (they follow the days of the cycle) and your Day plans.</p>`}
+  <div class="row"><button class="btn primary" type="button" id="cp-save">Save pattern</button><button class="btn ghost" type="button" id="cp-cancel">Undo changes</button></div>
+  <p class="note" id="cp-msg"></p><p class="note">After changing it, check Plan your runs (they follow the days of the cycle) and your Plan your days.</p>`}
 function renderRotaViews(){const v=rotaView();document.querySelectorAll("[data-rv]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.rv===v)));
   $("rota-intro").textContent=v==="personal"?`Your ${PATTERN.length}-day cycle (${rotaSummary()}), starting today. Tap a day to plan it.`:`Your rota: ${rotaSummary()}.`;
   const n=$("rota").children.length,cols=v==="personal"?(n<=4?n:n<=14?Math.ceil(n/2):7):7;$("rota").style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;$("rota").classList.toggle("wide",cols<=5);
@@ -3802,17 +3836,17 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(t.dataset.wk){ROTA_WK=t.dataset.wk==="0"?0:ROTA_WK+(+t.dataset.wk);renderRota();return}
   if(t.dataset.mo){ROTA_MO+= +t.dataset.mo;renderRotaViews();return}
   const d=RP_DRAFT;if(!d)return;const upd=()=>{$("rota-custom").innerHTML=customHTML()};
-  if(t.dataset.rpre!=null){RP_DRAFT=JSON.parse(JSON.stringify(PRESETS[+t.dataset.rpre][1]()));upd();return}
-  if(t.dataset.rpt){const [i,v]=t.dataset.rpt.split(":");d.days[+i].type=v;upd();return}
-  if(t.dataset.rptr){const [i,v]=t.dataset.rptr.split(":");d.days[+i].train=v;upd();return}
-  if(t.dataset.rprm!=null){d.days.splice(+t.dataset.rprm,1);upd();return}
-  if(t.dataset.rpup!=null){const i=+t.dataset.rpup;if(i>0){[d.days[i-1],d.days[i]]=[d.days[i],d.days[i-1]];upd()}return}
-  if(t.dataset.rpdn!=null){const i=+t.dataset.rpdn;if(i<d.days.length-1){[d.days[i+1],d.days[i]]=[d.days[i],d.days[i+1]];upd()}return}
-  if(t.id==="rp-add"){d.days.push({type:"off",train:"T"});upd();return}
-  if(t.id==="rp-cancel"){RP_DRAFT=null;upd();return}
-  if(t.id==="rp-save"){if(!/^\d{4}-\d\d-\d\d$/.test(d.start)){$("rp-msg").textContent="Pick the date day 1 falls on.";return}if(d.days.length>28){$("rp-msg").textContent="Keep it to 28 days or fewer.";return}
+  if(t.dataset.cpre!=null){RP_DRAFT=JSON.parse(JSON.stringify(PRESETS[+t.dataset.cpre][1]()));upd();return}
+  if(t.dataset.cpt){const [i,v]=t.dataset.cpt.split(":");d.days[+i].type=v;upd();return}
+  if(t.dataset.cptr){const [i,v]=t.dataset.cptr.split(":");d.days[+i].train=v;upd();return}
+  if(t.dataset.cprm!=null){d.days.splice(+t.dataset.cprm,1);upd();return}
+  if(t.dataset.cpup!=null){const i=+t.dataset.cpup;if(i>0){[d.days[i-1],d.days[i]]=[d.days[i],d.days[i-1]];upd()}return}
+  if(t.dataset.cpdn!=null){const i=+t.dataset.cpdn;if(i<d.days.length-1){[d.days[i+1],d.days[i]]=[d.days[i],d.days[i+1]];upd()}return}
+  if(t.id==="cp-add"){d.days.push({type:"off",train:"T"});upd();return}
+  if(t.id==="cp-cancel"){RP_DRAFT=null;upd();return}
+  if(t.id==="cp-save"){if(!/^\d{4}-\d\d-\d\d$/.test(d.start)){$("cp-msg").textContent="Pick the date day 1 falls on.";return}if(d.days.length>28){$("cp-msg").textContent="Keep it to 28 days or fewer.";return}
     await saveRota(JSON.parse(JSON.stringify(d)));L.rotaView="personal";saveL();ROTA_SEL=TODAY;renderRota();$("rota-intro").textContent="Saved. "+$("rota-intro").textContent;$("food-shifts").scrollIntoView({block:"start"})}});
-document.addEventListener("change",e=>{if(e.target.id==="rp-start"&&RP_DRAFT){RP_DRAFT.start=e.target.value;$("rota-custom").innerHTML=customHTML()}});
+document.addEventListener("change",e=>{if(e.target.id==="cp-start"&&RP_DRAFT){RP_DRAFT.start=e.target.value;$("rota-custom").innerHTML=customHTML()}});
 
 /* ---------- Hold an ↑/↓ arrow to lift a row, then drag it up or down ---------- */
 (function(){
@@ -3851,6 +3885,43 @@ document.addEventListener("change",e=>{if(e.target.id==="rp-start"&&RP_DRAFT){RP
   window.__dragMove=applyMove;
 })();
 
+/* ---------- Measurements (Progress → Body) ---------- */
+const MSITES=[["Neck","Round the middle of your neck, just below the Adam's apple."],["Shoulders","Round the widest point of your shoulders, arms relaxed by your sides."],["Chest","Round the fullest part of your chest, under the armpits, after a normal breath out."],
+  ["Biceps (left)","Arm flexed, round the peak of the biceps."],["Biceps (right)","Arm flexed, round the peak of the biceps."],["Forearm (left)","Round the thickest part, arm straight and relaxed."],["Forearm (right)","Round the thickest part, arm straight and relaxed."],["Wrist","Just above the wrist bone."],
+  ["Waist","Round your belly button, relaxed, after a normal breath out."],["Abdomen","Round the widest part of your stomach."],["Hips","Round the widest part of your glutes, feet together."],
+  ["Thigh (left)","Round the thickest part, just below the glutes, standing."],["Thigh (right)","Round the thickest part, just below the glutes, standing."],["Calf (left)","Round the widest part, standing with your weight even."],["Calf (right)","Round the widest part, standing with your weight even."]];
+D.measures=[];let MEAS_SITE=null,MEAS_ALL=false,MEAS_LOADED=false,CK_LOADED=false,MIGRATING=false;
+const measSites=()=>{const s=MSITES.map(x=>x[0]);D.measures.forEach(m=>{if(m.site&&!s.includes(m.site))s.push(m.site)});return s};
+const measHint=site=>(MSITES.find(x=>x[0]===site)||[])[1]||"";
+const measOf=site=>D.measures.filter(m=>m.site===site&&num(m.cm)!=null).map(m=>({date:m.date,y:num(m.cm)})).sort((a,b)=>a.date<b.date?-1:1);
+function renderMeas(){const el=$("meas-body");if(!el)return;
+  const logged=measSites().filter(s=>measOf(s).length);if(!MEAS_SITE||!logged.includes(MEAS_SITE))MEAS_SITE=logged.includes("Waist")?"Waist":logged[0]||null;
+  const list=[...D.measures].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0)),shown=MEAS_ALL?list:list.slice(0,8);
+  let head=`<p class="note">Tap + to add a measurement, pick where you measured, and add a note if you like. Measure first thing in the morning, relaxed, with the tape snug but not digging in.</p>`;
+  if(MEAS_SITE){const v=measOf(MEAS_SITE),l=v[v.length-1],f=v[0];
+    head+=`<div class="row between"><label class="note msel">Show<select id="ms-site">${logged.map(s=>`<option ${s===MEAS_SITE?"selected":""}>${esc(s)}</option>`).join("")}</select></label><span class="mono">${f1(l.y)} cm${v.length>1?` · ${l.y-f.y>=0?"+":""}${f1(l.y-f.y)} since ${nice(f.date)}`:""}</span></div><div class="chart" id="ch-meas"></div>`}
+  el.innerHTML=head+`<div class="ed"><ol>${shown.map(m=>`<li class="edcol mbox" data-mid="${esc(m._id)}">
+    <div class="g2"><label class="note">Date<input type="date" data-mf="date" value="${esc(m.date||TODAY)}"></label><label class="note">Measurement<select data-mf="site">${measSites().map(s=>`<option ${s===m.site?"selected":""}>${esc(s)}</option>`).join("")}</select></label></div>
+    <div class="g2"><label class="note">cm<input data-mf="cm" inputmode="decimal" value="${m.cm!=null?esc(m.cm):""}" placeholder="e.g. 84.5"></label><label class="note">Notes<input data-mf="note" value="${esc(m.note||"")}" maxlength="80" placeholder="Optional"></label></div>
+    <p class="note mhint">${esc(measHint(m.site))}</p>
+    <div class="edbtns"><button class="rm" type="button" data-msrm="${esc(m._id)}" aria-label="Remove measurement">−</button></div></li>`).join("")}</ol>
+    <div class="row"><button class="btn" type="button" id="ms-add">+ Add a measurement</button>${list.length>8?`<button class="x" type="button" id="ms-more">${MEAS_ALL?"Show fewer":"Show all "+list.length}</button>`:""}</div></div>`;
+  if(MEAS_SITE&&$("ch-meas")){const v=measOf(MEAS_SITE);lineChart($("ch-meas"),v,v,{unit:"cm",single:true})}}
+async function migrateWaist(){if(!MEAS_LOADED||!CK_LOADED||MIGRATING||!db)return;const old=D.checkins.filter(c=>num(c.waist)!=null);if(!old.length)return;MIGRATING=true;
+  try{for(const c of old){const id="w-"+c.date;if(!D.measures.some(m=>m._id===id))await db.doc("measures/"+id).set({date:c.date,site:"Waist",cm:num(c.waist),note:"",created:Date.now()});await saveCheckin(c.date,{waist:null})}}catch(e){console.warn(e)}MIGRATING=false}
+document.addEventListener("change",async e=>{const t=e.target;if(!t.closest||!t.closest("#meas-body"))return;
+  if(t.id==="ms-site"){MEAS_SITE=t.value;renderMeas();return}
+  const f=t.dataset.mf,li=t.closest("[data-mid]");if(!f||!li)return;const m=D.measures.find(x=>x._id===li.dataset.mid);if(!m)return;
+  let v=t.value;if(f==="cm"){v=String(v).trim()===""?null:num(String(v).replace(",","."));if(v!=null&&!(v>=5&&v<=300)){t.setCustomValidity("Enter a measurement in cm");t.reportValidity&&t.reportValidity();return}t.setCustomValidity("")}
+  if(f==="date"&&!/^\d{4}-\d\d-\d\d$/.test(v))return;if(f==="note")v=String(v).trim().slice(0,80);
+  const {_id,...rest}=m;if(db){try{await db.doc("measures/"+_id).set({...rest,[f]:v})}catch(err){}}});
+document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest("button");if(!t||!t.closest("#meas-body"))return;
+  if(t.id==="ms-more"){MEAS_ALL=!MEAS_ALL;renderMeas();return}
+  if(t.id==="ms-add"){const today=new Set(D.measures.filter(m=>m.date===TODAY).map(m=>m.site)),site=!today.has("Waist")?"Waist":(MSITES.map(x=>x[0]).find(s=>!today.has(s))||"Waist");
+    const id="m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);if(db){try{await db.doc("measures/"+id).set({date:TODAY,site,cm:null,note:"",created:Date.now()})}catch(err){}}
+    setTimeout(()=>{const i=document.querySelector(`[data-mid="${id}"] [data-mf="cm"]`);if(i)i.focus()},60);return}
+  if(t.dataset.msrm){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again";t.classList.add("wide");return}if(db){try{await db.doc("measures/"+t.dataset.msrm).delete()}catch(err){}}return}});
+
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
@@ -3869,7 +3940,8 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
   if(!db)$("nodb").hidden=false;
   renderPlans();renderAll();
   if(!db)return;
-  db.collection("checkins").onSnapshot(q=>{D.checkins=q.docs.map(x=>({...x.data(),date:x.data().date||x.id}));renderAll()},()=>{});
+  db.collection("checkins").onSnapshot(q=>{D.checkins=q.docs.map(x=>({...x.data(),date:x.data().date||x.id}));CK_LOADED=true;renderAll();migrateWaist()},()=>{});
+  db.collection("measures").onSnapshot(q=>{D.measures=q.docs.map(x=>({...x.data(),_id:x.id}));MEAS_LOADED=true;try{renderMeas();renderProgress()}catch(e){}migrateWaist()},()=>{});
   db.collection("workouts").onSnapshot(q=>{D.workouts=q.docs.map(x=>({...x.data(),_id:x.id}));renderAnalytics();try{renderWeek();renderGoals()}catch(e){}renderToday();renderGym();renderRecs();if(W)renderLive();else renderStart()},()=>{});
   db.doc("live/session").onSnapshot(s=>{if(W||!s.exists)return;try{const w=JSON.parse(s.data().session);if(w&&w.exercises){W=w;startTick();renderLive()}}catch(e){}},()=>{});
   db.collection("habits").onSnapshot(q=>{const h={};q.docs.forEach(x=>h[x.id]=x.data());D.habits=h;renderToday();renderWater();renderRecs()},()=>{});
