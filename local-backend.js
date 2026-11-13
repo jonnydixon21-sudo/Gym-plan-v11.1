@@ -121,6 +121,17 @@
     }
   };
   window.__blobUrl = function (id) { return urls.get(id) || ""; };
+  window.__wipeAll = function () {
+    return ready.then(function () {
+      return new Promise(function (resolve, reject) {
+        if (!idb) { docs.clear(); return resolve(); }
+        var t = idb.transaction([DOCS, BLOBS], "readwrite");
+        t.objectStore(DOCS).clear(); t.objectStore(BLOBS).clear();
+        t.oncomplete = function () { docs.clear(); resolve(); };
+        t.onerror = t.onabort = function () { reject(t.error || new Error("couldn't clear")); };
+      });
+    });
+  };
 
   var ready = openIdb().then(function (d) {
     idb = d;

@@ -402,6 +402,7 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+#wipe-btn.danger{border-color:#d9534f;color:#d9534f}
 #sv-body{display:grid;gap:10px}.svlist{display:grid;gap:10px}.svrow{display:grid;gap:4px}
 .svbar{position:relative;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}.svbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ink);opacity:.7}
 .svbar i.good{background:var(--good);opacity:1}.svbar i.warn{background:#d9a03a;opacity:1}.svbar i.bad{background:#d9534f;opacity:1}
@@ -1047,6 +1048,9 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
       <p class="note">CSV files that open in Excel, Numbers or Google Sheets.</p>
       <div class="row"><button class="btn small" type="button" data-csv="workouts">Workouts</button><button class="btn small" type="button" data-csv="weight">Weight and check-ins</button><button class="btn small" type="button" data-csv="measures">Measurements</button><button class="btn small" type="button" data-csv="runs">Runs</button><button class="btn small" type="button" data-csv="food">Daily food and activity</button></div>
       <p class="note" id="csv-msg" aria-live="polite"></p>
+      <h3>Start again</h3>
+      <p class="note">Deletes everything this app has saved on this device (workouts, weights, meals, settings) and starts from the beginning. Make a backup first if you might want any of it.</p>
+      <div class="row"><button class="btn ghost small" type="button" id="wipe-btn">Delete everything on this device</button></div>
     </div>
     <div class="card">
       <h2>Night-shift helpers</h2>
@@ -1316,7 +1320,7 @@ function flash(el,msg,ms=2200){$(el).textContent=msg;clearTimeout(flash[el]);fla
 const KEY="gym-plan-v1";
 let L={ticked:{},have:{},calc:null,tab:"today",lift:null,over:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&typeof s==="object"){delete s.week;L={...L,...s}}}catch(e){}
-const saveL=()=>{try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}};
+const saveL=()=>{if(window.__wiping)return;try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}};
 
 /* ---------- shared data ---------- */
 let db=null, assets=null, sample=null;
@@ -2866,7 +2870,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="13 Nov 2026 (c)";
+const APP_VERSION="13 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -4281,6 +4285,12 @@ function renderSplitVol(){const el=$("sv-body");if(!el)return;$("splitvol-card")
   <p class="note">To spread volume out, move or swap exercises with the cog on each session in Start a workout.</p>`}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-svm]");if(!b)return;SV_MODE=b.dataset.svm;renderSplitVol()});
 
+document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest("#wipe-btn");if(!t)return;
+  if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to delete everything";t.classList.add("danger");return}
+  if(!confirm("Delete everything this app has saved on this device? This can't be undone."))return;
+  t.disabled=true;t.textContent="Deleting…";window.__wiping=true;try{if(window.__wipeAll)await window.__wipeAll();localStorage.removeItem(KEY)}catch(err){window.__wiping=false;t.textContent="Couldn't delete: "+(err&&err.message||err);return}
+  try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(err){}
+  location.reload()});
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
