@@ -402,10 +402,16 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+#sv-body{display:grid;gap:10px}.svlist{display:grid;gap:10px}.svrow{display:grid;gap:4px}
+.svbar{position:relative;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}.svbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ink);opacity:.7}
+.svbar i.good{background:var(--good);opacity:1}.svbar i.warn{background:#d9a03a;opacity:1}.svbar i.bad{background:#d9534f;opacity:1}
+.svbar em{position:absolute;top:0;bottom:0;border-left:2px solid var(--ink);border-right:2px solid var(--ink);opacity:.35}
+.svfrom{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted)}.svfrom b{color:var(--ink)}.svfrom i{font-style:normal;font-size:.72rem;opacity:.8}
 #pf-body{display:grid;gap:12px}#pf-body label.note,.setup label.note{display:grid;gap:4px}#pf-body input,.setup input:not([type=checkbox]){font:inherit;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%;min-width:0}
 .warnline{color:#c98a1b}
 .setup{position:fixed;inset:0;z-index:90;background:var(--bg);overflow:auto;padding:max(24px,env(safe-area-inset-top)) 16px 40px;display:flex;justify-content:center;align-items:flex-start}
 .setup-card{width:100%;max-width:520px;background:var(--surface);border-radius:18px;padding:20px;display:grid;gap:16px;margin-top:4vh}.setup-card h2{margin:0;font-size:1.5rem}
+.supv{display:grid;gap:8px}.supv>div{background:var(--surface-2);border-radius:10px;padding:8px 10px;display:grid;gap:2px}.supv .note{font-size:.8rem}
 .sudots{display:flex;gap:6px}.sudots i{flex:1;height:4px;border-radius:2px;background:var(--line)}.sudots i.on{background:var(--ink)}
 body.setup-open{overflow:hidden}
 .wu{background:var(--surface-2);border-radius:10px;padding:8px 12px;display:grid;gap:4px}.wu ol{margin:0;padding-left:20px;display:grid;gap:2px;color:var(--muted)}.wu p{margin:0}
@@ -837,6 +843,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
       <p class="note">Tap a workout to see what's in it before you start. The cog edits it.</p>
     </details>
     <details class="card fold" id="split-card" data-fold="split"><summary><h2>Split</h2><span class="note" id="split-next"></span></summary><div id="split-body"></div></details>
+    <details class="card fold" id="splitvol-card" data-fold="splitvol"><summary><h2>Sets per muscle</h2><span class="note" id="sv-sum"></span></summary><div id="sv-body"></div></details>
 
     <div class="view" id="w-live" hidden></div>
 
@@ -1405,7 +1412,7 @@ const WHEY_FROM="2000-01-01",ITEM_FROM={},ITEM_UNTIL={};
 function itemActive(id,i,d){const k=id+"_"+i;let x=d;if(!x){try{x=VIEW}catch(e){x=TODAY}}if(ITEM_UNTIL[k]&&x>=ITEM_UNTIL[k])return false;if(ITEM_FROM[k]&&x<ITEM_FROM[k])return false;return true}
 const carbItem=(k,v)=>!!(F[k]&&F[k].u==="g"&&(F[k].a!=="Veg"||k==="pot")&&v&&v[0]>0&&v[2]*4/v[0]>0.6);
 function carbShift(d){const t=dayType(d),fx=flexAdj(d)-flexOf(d),tg=TG(t).c-PLAN[t].c;return {g:Math.round(tg+fx/4),flex:Math.round(fx/4),tg}}
-const NO_SCALE={n_oo:1,oor:1};            /* overnight oats never change */
+const NO_SCALE={n_oo:1,oor:1,g_pre:1,g_post:1};            /* overnight oats never change */
 const MIN_AMT={basmati:50,cor:40,bread:50,oats:40,rice:40,pasta:50,sweet:100,pot:100,rasp:50,blue:50,melon:100,pine:50,honey:10,jam:20};
 function dayScale(d){if(!d||d<SCALE_FROM||typeof dayInfo!=="function")return null;const cs=carbShift(d);if(!cs.g)return null;
   const ids=rowsFor(dayInfo(d)).map(r=>r[1]).filter(id=>MEALS[id]&&!effAlt(d,id)&&!NO_SCALE[id]);
@@ -1737,11 +1744,11 @@ Flex days: any day in flexDays (or marked flexDay) is a planned flex day he bank
 
 function tplOf(title){const base=TEMPLATES.find(x=>x.title===title);if(!base)return null;const o=D.program&&D.program.days&&D.program.days[base.key];return o?{title,key:base.key,ex:o}:base}
 function applyNames(){const P=D.program||{},n=P.names||{},cu=P.custom||{};
-  for(let i=TEMPLATES.length-1;i>=0;i--)if(TEMPLATES[i].custom)TEMPLATES.splice(i,1);
+  TEMPLATES.length=0;(P.replace?[]:BASE_TPL).forEach(t=>TEMPLATES.push(t));
   Object.keys(cu).forEach(k=>TEMPLATES.push({key:k,title:cu[k].title||"New workout",ex:[],custom:true}));
   TEMPLATES.forEach(t=>{t.title=n[t.key]||(t.custom?(cu[t.key].title||"New workout"):t.key)});
   const sp=splitKeys();ORDER.length=0;sp.forEach(k=>ORDER.push(TEMPLATES.find(t=>t.key===k).title))}
-function splitKeys(){const P=D.program||{},has=k=>TEMPLATES.some(t=>t.key===k);let sp=(P.split&&P.split.length?P.split:BASE_SPLIT).filter(has);if(!sp.length)sp=BASE_SPLIT.filter(has);return sp}
+function splitKeys(){const P=D.program||{},has=k=>TEMPLATES.some(t=>t.key===k);let sp=(P.split&&P.split.length?P.split:BASE_SPLIT).filter(has);if(!sp.length)sp=BASE_SPLIT.filter(has);if(!sp.length)sp=TEMPLATES.map(t=>t.key);return sp}
 function programForPrompt(){return ORDER.map(n=>{const t=tplOf(n);return {day:n,exercises:t.ex.map(e=>({name:swapFor(e.name)||e.name,sets:e.groups.map(([s,r])=>s+"x"+r).join(" + ")}))}})}
 async function getProgramSuggestions(){if(!sample)return;$("prog-sugs").innerHTML=`<p class="note">Going through your week…</p>`;
   const S=liftSeries(),lifts=Object.values(S).filter(s=>s.pts.length).map(s=>({lift:s.name,sessions:s.pts.length,last3:s.pts.slice(-3).map(p=>p.set.kg?`${p.set.kg}x${p.set.reps}`:`${p.set.reps} reps`)}));
@@ -1780,7 +1787,7 @@ document.addEventListener("click",async e=>{const t=e.target;if(!t.dataset)retur
   if(t.dataset.papply){const src=t.dataset.src,list=src==="r"?((D.research||{}).changes||[]):((D.progSugs||{}).items||[]),c=list.find(x=>x.id===t.dataset.papply);if(!c)return;const ok=await applyProg(c);if(!ok){t.textContent="Couldn't find that exercise";return}markSug(c.id,"applied",src);renderStart();renderRecs()}
   if(t.dataset.pdismiss)markSug(t.dataset.pdismiss,"dismissed",t.dataset.src);
   if(t.dataset.adone)markSug(t.dataset.adone,"done",t.dataset.src,"advice");
-  if(t.id==="prog-reset"){if(t.dataset.confirm!=="1"){t.dataset.confirm="1";t.textContent="Tap again to reset all days";return}D.program={days:{},log:[],names:{}};applyNames();if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}renderProgSugs();renderStart()}});
+  if(t.id==="prog-reset"){if(t.dataset.confirm!=="1"){t.dataset.confirm="1";t.textContent="Tap again to reset all days";return}D.program=(D.program&&D.program.base&&splitProgram(D.program.base.id,D.program.base.n))||{days:{},log:[],names:{}};applyNames();if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}renderProgSugs();renderStart()}});
 
 /* ---------- targets (coach's numbers + carb adjustments) ---------- */
 /* ---------- flex days (match day / night out): bank calories from the 3 days before ---------- */
@@ -2309,6 +2316,7 @@ $("sessions").addEventListener("click",async e=>{const id=e.target.dataset.del;i
 /* Jonny's 8-day training plan (from his PDF). Each exercise: name, groups [[sets,"reps"]], note (form cues). */
 const TEMPLATES=[{"title": "Upper", "ex": [{"name": "Neutral-grip lat pulldown", "groups": [[2, "6-10"]], "note": ""}, {"name": "Chest-supported row", "groups": [[2, "6-10"]], "note": ""}, {"name": "Single-arm cable lat row", "groups": [[2, "8-12"]], "note": ""}, {"name": "Incline machine chest press", "groups": [[2, "8-12"]], "note": ""}, {"name": "Cable lateral raise", "groups": [[3, "10-15"]], "note": ""}, {"name": "Reverse pec deck", "groups": [[2, "10-15"]], "note": ""}, {"name": "Cable triceps pushdown", "groups": [[2, "8-12"]], "note": ""}, {"name": "Overhead cable triceps extension", "groups": [[1, "10-15"]], "note": ""}, {"name": "Hammer curl", "groups": [[2, "8-12"]], "note": ""}]}, {"title": "Legs A", "ex": [{"name": "Adductor machine", "groups": [[2, "8-12"]], "note": "Adductors first."}, {"name": "Primal leg extension", "groups": [[2, "8-12"]], "note": ""}, {"name": "Hack squat", "groups": [[2, "6-8"]], "note": ""}, {"name": "Single-leg press", "groups": [[2, "8-10"]], "note": "Reps are per leg."}, {"name": "Lying leg curl", "groups": [[2, "8-12"]], "note": ""}, {"name": "45-degree hyperextension", "groups": [[2, "10-15"]], "note": "Keep it controlled and moderate. It's supplementary, not a second heavy hinge."}, {"name": "Standing calf raise", "groups": [[2, "8-12"]], "note": "2 to 3 sets."}]}, {"title": "Back", "ex": [{"name": "Chest-supported T-bar row", "groups": [[2, "6-10"]], "note": ""}, {"name": "Wide-grip seated cable row", "groups": [[2, "8-12"]], "note": ""}, {"name": "Machine high row", "groups": [[2, "8-12"]], "note": ""}, {"name": "Dumbbell or machine shrug", "groups": [[2, "8-12"]], "note": ""}, {"name": "Reverse pec deck", "groups": [[2, "10-15"]], "note": ""}]}, {"title": "Legs B", "ex": [{"name": "Adductor machine", "groups": [[2, "8-12"]], "note": ""}, {"name": "Romanian deadlift", "groups": [[1, "6-8"], [1, "8-12"]], "note": "Main hinge. Use a controlled range and stop before your lower-back position changes."}, {"name": "Seated leg curl", "groups": [[2, "8-12"]], "note": ""}, {"name": "Lying leg curl", "groups": [[2, "8-12"]], "note": ""}, {"name": "Smith machine reverse lunge", "groups": [[2, "8-10"]], "note": "Reps are per leg."}, {"name": "Seated calf raise", "groups": [[2, "8-12"]], "note": ""}]}, {"title": "Chest & Back", "ex": [{"name": "Incline Smith machine press", "groups": [[2, "6-10"]], "note": ""}, {"name": "Flat machine chest press", "groups": [[2, "8-12"]], "note": ""}, {"name": "Pec deck", "groups": [[2, "10-15"]], "note": ""}, {"name": "Cable fly", "groups": [[1, "10-15"]], "note": ""}, {"name": "Single-arm cable lat row", "groups": [[2, "8-12"]], "note": ""}, {"name": "Close-grip lat pulldown", "groups": [[2, "8-12"]], "note": ""}, {"name": "Machine pullover", "groups": [[2, "10-15"]], "note": ""}]}, {"title": "Shoulders & Arms", "ex": [{"name": "Seated machine shoulder press", "groups": [[2, "6-10"]], "note": ""}, {"name": "Cable lateral raise", "groups": [[3, "10-15"]], "note": ""}, {"name": "Cable triceps pushdown", "groups": [[2, "8-12"]], "note": ""}, {"name": "Overhead cable triceps extension", "groups": [[2, "10-15"]], "note": ""}, {"name": "Hammer curl", "groups": [[2, "8-12"]], "note": ""}, {"name": "Neutral-grip cable curl", "groups": [[2, "10-12"]], "note": ""}]}, {"title": "Legs C", "ex": [{"name": "Box jumps", "groups": [[3, "3-5"]], "note": "Do these first while fresh: crisp, explosive reps with full recovery."}, {"name": "Copenhagen lunges", "groups": [[2, "6-10"]], "note": "Reps are per side. Start with an easier range or a short-lever version if needed."}, {"name": "Leg press", "groups": [[2, "10-12"]], "note": ""}, {"name": "Seated leg curl", "groups": [[2, "10-12"]], "note": ""}, {"name": "Bulgarian split squat", "groups": [[2, "8-10"]], "note": "Reps are per leg."}, {"name": "Standing calf raise", "groups": [[2, "10-15"]], "note": ""}]}];
 TEMPLATES.forEach(t=>t.key=t.title);
+const BASE_TPL=TEMPLATES.slice();
 const ORDER=TEMPLATES.map(t=>t.title),BASE_SPLIT=TEMPLATES.map(t=>t.key);
 /* Full coach cues from the sheet (the originals above were shortened) */
 const FULL_CUES={};
@@ -2428,7 +2436,7 @@ function previewHTML(title){
   <div class="row"><button class="btn primary" id="pv-start">Start workout</button><button class="btn ghost" id="pv-back">Back</button></div>
   <p class="note">You can swap any exercise once you start.</p></div>`;
 }
-function renderSplit(){const el=$("split-body");if(!el)return;$("split-card").hidden=!!W;const sp=splitKeys(),ni=(()=>{const t=TEMPLATES.find(x=>x.title===nextPlanned());const k=t?sp.indexOf(t.key):-1;return k<0?nextIndex():k})(),tt=k=>(TEMPLATES.find(t=>t.key===k)||{}).title||k;
+function renderSplit(){try{renderSplitVol()}catch(e){console.warn(e)}const el=$("split-body");if(!el)return;$("split-card").hidden=!!W;const sp=splitKeys(),ni=(()=>{const t=TEMPLATES.find(x=>x.title===nextPlanned());const k=t?sp.indexOf(t.key):-1;return k<0?nextIndex():k})(),tt=k=>(TEMPLATES.find(t=>t.key===k)||{}).title||k;
   {const nx=TEMPLATES.find(x=>x.key===sp[ni]);$("split-next").textContent=nx?"Next: "+nx.title:""}
   el.innerHTML=`<p class="note">The order your sessions run in. After the last one it starts again from the top. Rest days don't use one up: the next session waits for your next training day. You can add a session more than once.</p>
   <div class="ed"><ol>${sp.map((k,i)=>`<li class="edcol"><div class="row between"><b>${i+1}. ${esc(tt(k))}</b>${i===ni?'<span class="pill good">Next</span>':""}</div><div class="edbtns"><button data-spup="${i}" aria-label="Move up">↑</button><button data-spdn="${i}" aria-label="Move down">↓</button><button class="rm" data-sprm="${i}" aria-label="Remove from split">−</button></div></li>`).join("")}</ol>
@@ -2482,7 +2490,7 @@ $("w-tpls").addEventListener("click",async e=>{if(W)return;
     if(t.id==="ed-add"){D_.ex.push({name:"",sets:"2x8-12",note:""});D_.err="";renderStart();const ins=$("w-tpls").querySelectorAll(".ed-n");if(ins.length)ins[ins.length-1].focus();return}
     if(t.id==="ed-save"){await editSave();return}
     if(t.id==="ed-reset"){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to reset";return}
-      const prog=D.program||{},days={...(prog.days||{})},names={...(prog.names||{})};delete days[D_.key];delete names[D_.key];const cu={...(prog.custom||{})};let sp=prog.split||null;if(cu[D_.key]){delete cu[D_.key];if(sp)sp=sp.filter(k=>k!==D_.key)}D.program={...prog,days,names,custom:cu,split:sp};applyNames();EDIT=null;
+      const prog=D.program||{},days={...(prog.days||{})},names={...(prog.names||{})};delete days[D_.key];delete names[D_.key];const cu={...(prog.custom||{})};let sp=prog.split||null;const bp=prog.base&&D_.key.startsWith("s_")&&splitProgram(prog.base.id,prog.base.n);if(bp&&bp.days[D_.key]){days[D_.key]=bp.days[D_.key];cu[D_.key]=bp.custom[D_.key]}else if(cu[D_.key]){delete cu[D_.key];if(sp)sp=sp.filter(k=>k!==D_.key)}D.program={...prog,days,names,custom:cu,split:sp};applyNames();EDIT=null;
       if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}renderStart();renderProgSugs();return}
     if(t.dataset.edrm!==undefined){D_.ex.splice(+t.dataset.edrm,1);renderStart();return}
     if(t.dataset.edup!==undefined){const i=+t.dataset.edup;if(i>0){[D_.ex[i-1],D_.ex[i]]=[D_.ex[i],D_.ex[i-1]];renderStart()}return}
@@ -2858,7 +2866,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="13 Nov 2026";
+const APP_VERSION="13 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -4022,7 +4030,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
     if(!out.length){$("dt-msg").textContent="Keep at least one target.";return}await saveDaily(out)}});
 
 /* ---------- backup reminder on Today ---------- */
-function renderBkRem(){const el=$("bk-rem");if(!el)return;const has=D.checkins.length||D.workouts.length||Object.keys(D.food).length||(D.runs||[]).length;
+function renderBkRem(){const el=$("bk-rem");if(!el)return;const old=addDays(TODAY,-3),has=D.checkins.some(c=>c.date<=old)||D.workouts.some(w=>w.date<=old)||Object.keys(D.food).some(d=>d<=old)||(D.runs||[]).some(r=>r.date<=old);
   const ago=L.lastBackup?Math.round((pd(TODAY)-pd(L.lastBackup))/864e5):null,due=has&&(ago==null||ago>=7)&&!(L.bkSnooze&&L.bkSnooze>TODAY);
   el.hidden=!due||VIEW!==TODAY;if(el.hidden)return;
   el.innerHTML=`<div><b>Back up your data</b><p class="note">${ago==null?"You haven't made a backup yet.":`Your last backup was ${ago} days ago.`} Everything is saved only on this phone, so a backup is your safety net if it's lost or reset.</p></div>
@@ -4133,12 +4141,12 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
     $("pf-msg").textContent="Saved. Reloading…";setTimeout(()=>location.reload(),400)}});
 /* ---------- first-run setup ---------- */
 var SU=null;
-function suDefaults(){const w=SETUP.units&&SETUP.units.w||"kg";return {step:0,name:SETUP.name||"",w,l:SETUP.units&&SETUP.units.l||(w==="lb"?"in":"cm"),mode:SETUP.mode||"bulk",weight:SETUP.startWeight??"",goal:SETUP.goalWeight??"",start:TODAY,rota:null,day1:TODAY,kcal:"",protein:"",fit:true}}
+function suDefaults(){const w=SETUP.units&&SETUP.units.w||"kg";return {split:null,sessions:"3",meals:"starter",step:0,name:SETUP.name||"",w,l:SETUP.units&&SETUP.units.l||(w==="lb"?"in":"cm"),mode:SETUP.mode||"bulk",weight:SETUP.startWeight??"",goal:SETUP.goalWeight??"",start:TODAY,rota:null,day1:TODAY,kcal:"",protein:"",fit:true}}
 function suSuggest(){const s=SU,wt=parseFloat(String(s.weight).replace(",","."));if(!(wt>0))return null;const kg=s.w==="lb"?wt/2.20462:wt,maint=kg*32,k=Math.round((maint+(s.mode==="bulk"?250:s.mode==="cut"?-450:0))/10)*10;
   return {kcal:k,protein:Math.round(kg*(s.mode==="cut"?2.2:2.0)/5)*5}}
 const SU_ROTAS=[["224","2 days, 2 nights, 4 off"],["4d4o","4 days, 4 off"],["4n4o","4 nights, 4 off"],["mf","Mon–Fri days, weekends off"],["none","No shifts: every day the same"]];
 function suRota(k){const P=k==="224"?defaultRota():k==="4d4o"?PRESETS[1][1]():k==="4n4o"?PRESETS[2][1]():k==="mf"?PRESETS[3][1]():{start:TODAY,days:[{type:"off",train:"T"}]};return {...P,start:k==="mf"?mondayOf(SU.day1||TODAY):(SU.day1||TODAY)}}
-function openSetup(again){SU=suDefaults();if(again){SU.again=true;SU.fit=false;SU.rota="keep"}let el=$("setup");if(!el){el=document.createElement("div");el.id="setup";el.className="setup";el.setAttribute("data-nounit","");document.body.appendChild(el)}renderSetup()}
+function openSetup(again){SU=suDefaults();if(again){SU.again=true;SU.fit=false;SU.rota="keep";SU.split="keep";SU.meals="keep"}let el=$("setup");if(!el){el=document.createElement("div");el.id="setup";el.className="setup";el.setAttribute("data-nounit","");document.body.appendChild(el)}renderSetup()}
 function renderSetup(){const el=$("setup");if(!el||!SU)return;const s=SU,ch=(k,v,n)=>`<button type="button" class="chip" data-suc="${k}:${v}" aria-pressed="${s[k]===v}">${n}</button>`,sg=suSuggest();
   const steps=[
     `<h2>Welcome</h2><p class="note">A few quick questions and your plan is ready. You can change all of this later in Settings and Schedule.</p>
@@ -4148,13 +4156,17 @@ function renderSetup(){const el=$("setup");if(!el||!SU)return;const s=SU,ch=(k,v
     `<h2>Your goal</h2><div class="row">${ch("mode","bulk","Build muscle (bulk)")}${ch("mode","cut","Lose fat (cut)")}${ch("mode","maintain","Maintain")}</div>
      <div class="g2"><label class="note">Weight now (${s.w})<input id="su-weight" data-suf="weight" inputmode="decimal" value="${esc(s.weight)}"></label><label class="note">Goal weight (${s.w})${s.mode==="maintain"?" (optional)":""}<input id="su-goal" data-suf="goal" inputmode="decimal" value="${esc(s.goal)}"></label></div>
      <p class="note">${s.mode==="bulk"?"The app aims for a slow gain of 0.1–0.25% of your body weight a week.":s.mode==="cut"?"The app aims for a loss of 0.5–1% of your body weight a week.":"The app keeps you within about 0.1% a week either way."}</p>`,
+    `<h2>Your gym split</h2><p class="note">Your sessions run in this order on your training days. Every exercise, set and rep range can be changed later in Training → Gym (the cog on each session).</p>
+     <div class="row">${s.again?ch("split","keep","Keep my current split"):""}${SPLIT_LIB.map(x=>ch("split",x.id,x.name)).join("")}${ch("split","custom","Custom")}</div>
+     ${s.split==="custom"?`<div><span class="note">How many different sessions?</span><div class="row">${["2","3","4","5","6"].map(n=>ch("sessions",n,n)).join("")}</div><p class="note">You'll get empty sessions (Workout A, B…) to fill with your own exercises.</p></div>`:""}
+     ${(()=>{const x=SPLIT_LIB.find(y=>y.id===s.split);return x?`<p class="note">${x.desc}</p><div class="supv">${x.days.map(d=>`<div><b>${esc(d.title)}</b><span class="note">${d.ex.map(e=>esc(e.name)+" "+e.groups[0][0]+"×"+e.groups[0][1]).join(" · ")}</span></div>`).join("")}</div>`:""})()}`,
     `<h2>Your work pattern</h2><p class="note">Meals, training days and timings follow this. Pick the closest one; you can build your own under Schedule → Custom pattern.</p>
      <div class="row">${s.again?ch("rota","keep","Keep my current pattern"):""}${SU_ROTAS.map(([k,n])=>ch("rota",k,n)).join("")}</div>
      ${s.rota&&s.rota!=="none"&&s.rota!=="mf"&&s.rota!=="keep"?`<label class="note">Day 1 of the pattern (your first ${s.rota==="4n4o"?"night":"day"} shift) falls on<input type="date" id="su-day1" data-suf="day1" value="${esc(s.day1)}"></label>`:""}`,
     `<h2>Calories and protein</h2><p class="note">${sg?`A starting point for you: about ${sg.kcal.toLocaleString("en-GB")} kcal and ${sg.protein}g protein a day. Adjust it if you know your numbers; the app suggests changes once it sees your weight trend.`:"Enter a daily target."}</p>
      <div class="g2"><label class="note">Calories a day<input id="su-kcal" data-suf="kcal" inputmode="numeric" value="${esc(s.kcal||(sg?sg.kcal:""))}"></label><label class="note">Protein a day (g)<input id="su-protein" data-suf="protein" inputmode="numeric" value="${esc(s.protein||(sg?sg.protein:""))}"></label></div>
-     <label class="chkline"><input type="checkbox" id="su-fit" ${s.fit?"checked":""}> Scale the starter meal plan to these calories</label>
-     <p class="note">The starter meals are a full example plan you can edit or replace under Nutrition.</p>`];
+     <div><span class="note">Meals</span><div class="row">${ch("meals","starter","Simple starter meals")}${s.again?ch("meals","keep","Keep my current meals"):""}</div></div>
+     ${s.meals==="starter"?`<p class="note">Everyday meals (oats, chicken and rice, yoghurt bowls, mince pasta, steak and potatoes, a shake after training) with portions sized to your calories. Edit, swap or replace any of them under Nutrition.</p>`:`<label class="chkline"><input type="checkbox" id="su-fit" ${s.fit?"checked":""}> Scale my current meals to these calories</label>`}`];
   el.innerHTML=`<div class="setup-card"><div class="row between"><span class="note">Step ${s.step+1} of ${steps.length}</span>${s.again?`<button class="x" type="button" id="su-close">Close</button>`:""}</div>
     <div class="sudots">${steps.map((_,i)=>`<i class="${i<=s.step?"on":""}"></i>`).join("")}</div>${steps[s.step]}
     <p class="note" id="su-err" style="color:#d9534f"></p>
@@ -4170,20 +4182,104 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
   if(s.step===0&&!s.name.trim())return err("Add your name.");
   if(s.step===1){const w=n(s.weight),g=n(s.goal);if(!(w>lo&&w<hi))return err(`Enter your weight in ${s.w}.`);if(s.mode!=="maintain"&&!(g>lo&&g<hi))return err(`Enter your goal weight in ${s.w}.`);
     if(s.mode==="bulk"&&g<=w)return err("For a bulk, the goal should be above your weight now.");if(s.mode==="cut"&&g>=w)return err("For a cut, the goal should be below your weight now.")}
-  if(s.step===2&&!s.rota)return err("Pick the closest pattern.");
-  if(s.step<3){s.step++;renderSetup();return}
+  if(s.step===2&&!s.split)return err("Pick a split, or Custom to build your own.");
+  if(s.step===3&&!s.rota)return err("Pick the closest pattern.");
+  if(s.step<4){s.step++;renderSetup();return}
   const sg=suSuggest()||{},kcal=Math.round(n(s.kcal||sg.kcal)),pr=Math.round(n(s.protein||sg.protein));if(!(kcal>=1200&&kcal<=7000))return err("Calories should be between 1,200 and 7,000.");if(!(pr>=40&&pr<=400))return err("Check your protein target.");
   t.disabled=true;t.textContent="Setting up…";
   try{const w=n(s.weight),g=n(s.goal);
     if(s.again&&(s.w!==unitW()||s.l!==unitL()))await convertUnits(unitW(),s.w,unitL(),s.l);
-    L.profile={name:s.name.trim(),mode:s.mode,startDate:s.again?(SETUP.startDate||TODAY):TODAY,startWeight:w,goalWeight:g>0?g:null,units:{w:s.w,l:s.l}};saveL();
-    if(!s.again&&db&&!D.checkins.some(c=>c.date===TODAY))await db.doc("checkins/"+TODAY).set({date:TODAY,weight:w,photos:[]});
+    L.profile={name:s.name.trim(),mode:s.mode,startDate:s.again?(SETUP.startDate||TODAY):iso(new Date()),startWeight:w,goalWeight:g>0?g:null,units:{w:s.w,l:s.l}};saveL();
+    const cal=iso(new Date());if(!s.again&&db&&!D.checkins.some(c=>c.date===cal))await db.doc("checkins/"+cal).set({date:cal,weight:w,photos:[]});
     if(s.rota!=="keep")await saveRota(suRota(s.rota));
-    const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-pr*4-f*9)/4)),T={kcal,p:pr,c,f};
-    const P=planDoc();P.targets={T,R:{...T}};D.plan=P;applyPlan();if(s.fit){const meals={...P.meals};["T","R"].forEach(x=>fitCarbs(meals,x,kcal));P.meals=meals;D.plan=P}await savePlan();
+    if(s.split&&s.split!=="keep"){const prog=splitProgram(s.split,s.sessions);D.program=prog;applyNames();if(db)await db.doc("prefs/program").set(prog)}
+    if(s.meals==="starter"){starterPlan(kcal,pr);await savePlan()}
+    else{const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-pr*4-f*9)/4)),T={kcal,p:pr,c,f};
+      const P=planDoc();P.targets={T,R:{...T}};D.plan=P;applyPlan();if(s.fit){const meals={...P.meals};["T","R"].forEach(x=>fitCarbs(meals,x,kcal));P.meals=meals;D.plan=P}await savePlan()}
     if(db&&s.mode!=="maintain"&&g>0){const wg={id:"gw",type:"weight",mode:s.mode,target:g,startKg:w,by:null};const others=D.goals&&Array.isArray(D.goals.list)?D.goals.list.filter(x=>x.type!=="weight"):[];await db.doc("prefs/goals").set({list:[wg,...others]})}
   }catch(ex){console.warn(ex)}
   setTimeout(()=>location.reload(),300)});
+
+/* ---------- ready-made gym splits (used by the setup screen) ---------- */
+const E=(name,sets,reps,note)=>({name,groups:[[sets,reps]],note:note||""});
+const SPLIT_LIB=[
+  {id:"ppl",name:"Push, pull, legs",desc:"3 sessions on rotation. Each muscle gets hit about twice every 6 training days.",days:[
+    {title:"Push",ex:[E("Barbell bench press",3,"6-8"),E("Incline dumbbell press",3,"8-10"),E("Seated dumbbell shoulder press",3,"8-10"),E("Cable lateral raise",3,"12-15"),E("Cable triceps pushdown",3,"10-12"),E("Overhead cable triceps extension",2,"10-12")]},
+    {title:"Pull",ex:[E("Lat pulldown",3,"8-10"),E("Barbell row",3,"6-8"),E("Seated cable row",3,"8-12"),E("Face pull",3,"12-15"),E("Dumbbell curl",3,"10-12"),E("Hammer curl",2,"10-12")]},
+    {title:"Legs",ex:[E("Back squat",3,"6-8"),E("Romanian deadlift",3,"8-10"),E("Leg press",3,"10-12"),E("Lying leg curl",3,"10-12"),E("Leg extension",2,"12-15"),E("Standing calf raise",3,"10-15")]}]},
+  {id:"cbsal",name:"Chest & back, shoulders & arms, legs",desc:"3 sessions on rotation, with upper body split by muscle.",days:[
+    {title:"Chest & back",ex:[E("Barbell bench press",3,"6-8"),E("Lat pulldown",3,"8-10"),E("Incline dumbbell press",3,"8-10"),E("Chest-supported row",3,"8-10"),E("Cable fly",2,"12-15"),E("Seated cable row",2,"10-12")]},
+    {title:"Shoulders & arms",ex:[E("Seated dumbbell shoulder press",3,"8-10"),E("Cable lateral raise",3,"12-15"),E("Reverse pec deck",3,"12-15"),E("EZ-bar curl",3,"8-12"),E("Cable triceps pushdown",3,"10-12"),E("Hammer curl",2,"10-12"),E("Overhead cable triceps extension",2,"10-12")]},
+    {title:"Legs",ex:[E("Back squat",3,"6-8"),E("Romanian deadlift",3,"8-10"),E("Leg press",3,"10-12"),E("Lying leg curl",3,"10-12"),E("Leg extension",2,"12-15"),E("Standing calf raise",3,"10-15")]}]},
+  {id:"ul",name:"Upper / lower",desc:"4 sessions: two upper and two lower, alternating.",days:[
+    {title:"Upper A",ex:[E("Barbell bench press",3,"6-8"),E("Barbell row",3,"6-8"),E("Seated dumbbell shoulder press",2,"8-10"),E("Lat pulldown",3,"8-10"),E("Cable lateral raise",2,"12-15"),E("Dumbbell curl",2,"10-12"),E("Cable triceps pushdown",2,"10-12")]},
+    {title:"Lower A",ex:[E("Back squat",3,"6-8"),E("Romanian deadlift",3,"8-10"),E("Leg press",2,"10-12"),E("Seated leg curl",3,"10-12"),E("Standing calf raise",3,"10-15"),E("Cable crunch",2,"12-15")]},
+    {title:"Upper B",ex:[E("Incline dumbbell press",3,"8-10"),E("Chest-supported row",3,"8-10"),E("Machine shoulder press",2,"8-10"),E("Neutral-grip lat pulldown",3,"8-12"),E("Reverse pec deck",2,"12-15"),E("Hammer curl",2,"10-12"),E("Overhead cable triceps extension",2,"10-12")]},
+    {title:"Lower B",ex:[E("Hack squat",3,"8-10"),E("Hip thrust",3,"8-10"),E("Bulgarian split squat",2,"8-10","Reps are per leg."),E("Lying leg curl",3,"10-12"),E("Seated calf raise",3,"12-15"),E("Hanging leg raise",2,"10-15")]}]},
+  {id:"fb",name:"Full body",desc:"2 sessions, A and B, alternating. Good for 2 to 4 training days a week.",days:[
+    {title:"Full body A",ex:[E("Back squat",3,"6-8"),E("Barbell bench press",3,"6-8"),E("Lat pulldown",3,"8-10"),E("Romanian deadlift",2,"8-10"),E("Cable lateral raise",2,"12-15"),E("Dumbbell curl",2,"10-12")]},
+    {title:"Full body B",ex:[E("Leg press",3,"10-12"),E("Incline dumbbell press",3,"8-10"),E("Seated cable row",3,"8-12"),E("Lying leg curl",2,"10-12"),E("Seated dumbbell shoulder press",2,"8-10"),E("Cable triceps pushdown",2,"10-12")]}]}];
+function splitProgram(id,n){let days;if(id==="custom")days=[...Array(Math.max(1,Math.min(7,+n||3)))].map((_,i)=>({title:"Workout "+String.fromCharCode(65+i),ex:[]}));
+  else{const s=SPLIT_LIB.find(x=>x.id===id);if(!s)return null;days=s.days}
+  const custom={},dd={},split=[];days.forEach((d,i)=>{const k="s_"+id+"_"+i;custom[k]={title:d.title};dd[k]=d.ex.map(e=>({name:e.name,groups:e.groups.map(g=>[...g]),note:e.note||FULL_CUES[e.name]||""}));split.push(k)});
+  return {replace:true,base:{id,n:+n||null},custom,days:dd,split,names:{},log:[]}}
+/* ---------- simple starter meal plan, fitted to the calories in setup ---------- */
+const STARTER={oats:["Oats, whey and berries",[["oats",70],["whey",30],["berries",100],["honey",10],["almondmilk",200]]],
+  chrice:["Chicken, rice and veg",[["chicken",160],["basmati",80],["broc",100],["oil",5]]],
+  yog:["Greek yoghurt, berries and oats",[["yog",250],["berries",100],["oats",30],["honey",10]]],
+  pasta:["Beef mince pasta",[["mince",150],["pasta",90],["tom",150],["cheese",20]]],
+  wraps:["Chicken wraps",[["chicken",150],["wrap",2],["pep",100],["cheese",20]]],
+  steak:["Steak, potatoes and veg",[["steak",200],["pot",300],["broc",100],["butter",5]]],
+  eggs:["Eggs on toast",[["eggs",3],["bread",80],["butter",5]]],
+  pre:["Bagel thin, banana and jam",[["bagel",1],["banana",1],["jam",15]]],
+  post:["Protein shake and banana",[["whey",35],["banana",1],["almondmilk",300]]]};
+const STARTER_DINNER={day:"pasta",n1:"wraps",n2:"steak",off1:"pasta",off:"steak"};
+function starterPlan(kcal,protein){const P=planDoc(),meals={},sched={},del=new Set(P.deleted||[]);
+  Object.keys(MEALS).filter(id=>!id.startsWith("g_")).forEach(id=>del.add(id));
+  meals.g_pre={m:STARTER.pre[0],items:dcl(STARTER.pre[1])};meals.g_post={m:STARTER.post[0],items:dcl(STARTER.post[1])};NO_SCALE.g_pre=1;NO_SCALE.g_post=1;
+  SLOTS.forEach(([s])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const ti=sc.rows.findIndex(r=>r[1]==="train");
+    const isMeal=r=>MEALS[r[1]]&&MEALS[r[1]].kind!=="drink";const mains=sc.rows.filter((r,i)=>isMeal(r)&&!(MEALS[r[1]].kind==="snack"&&ti>=0));const n=mains.length;
+    const dn=t==="R"?"pasta":STARTER_DINNER[s],roles=n<=3?["oats","chrice",dn]:n===4?["oats","chrice","yog",dn]:["oats","chrice","yog",dn,"eggs"];let k=0;
+    const rows=sc.rows.map((r,i)=>{if(r[1]==="train"||!MEALS[r[1]])return dcl(r);if(MEALS[r[1]].kind==="drink")return null;
+      if(MEALS[r[1]].kind==="snack"&&ti>=0)return [r[0],i<ti?"g_pre":"g_post"];
+      const role=roles[Math.min(k,roles.length-1)],id=t==="R"?`g_R_${role}`:`g_${s}_T_${k}`;k++;if(!meals[id])meals[id]={m:STARTER[role][0],items:dcl(STARTER[role][1])};return [r[0],id]}).filter(Boolean);
+    sched[s+":"+t]={rows,sum:sc.sum,note:"",wake:WAKE[s][t]}}));
+  const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-protein*4-f*9)/4)),T={kcal,p:protein,c,f};
+  P.meals=meals;P.sched=sched;P.deleted=[...del];P.targets={T,R:{...T}};D.plan=P;applyPlan();
+  const m2={...P.meals};["T","R"].forEach(t=>fitCarbs(m2,t,kcal));P.meals=m2;D.plan=P;applyPlan();
+  const m3={...P.meals};["T","R"].forEach(t=>fitProtein(m3,t,protein));P.meals=m3;D.plan=P;return P}
+
+/* ---------- sets per muscle across the split (Training → Gym) ---------- */
+const GEN_OF={"Back":"Back","Traps":"Back","Chest":"Chest","Side/rear delts":"Shoulders","Front delts":"Shoulders","Biceps":"Biceps","Triceps":"Triceps","Quads":"Quads","Hamstrings":"Hamstrings","Glutes":"Glutes","Calves":"Calves","Adductors":"Adductors","Core":"Core"};
+const GEN_ORDER=["Chest","Back","Shoulders","Biceps","Triceps","Quads","Hamstrings","Glutes","Calves","Adductors","Core"];
+var SV_MODE=null;
+function svTally(titles){const m={},unk=new Set();const add=(g,title,d,i)=>{const x=m[g]=m[g]||{d:0,i:0,by:{}};x.d+=d;x.i+=i;const b=x.by[title]=x.by[title]||{d:0,i:0};b.d+=d;b.i+=i};
+  titles.forEach(title=>{const t=tplOf(title);(t?t.ex:[]).forEach(e=>{const name=swapFor(e.name)||e.name,n=(e.groups||[]).reduce((a,g)=>a+(+g[0]||0),0),inf=exInfo(name);if(!n)return;if(!inf){unk.add(name);return}
+    const pg=GEN_OF[inf.p]||inf.p;add(pg,title,n,0);const seen=new Set([pg]);
+    (inf.s||[]).forEach(sg=>{const g=GEN_OF[sg]||sg;if(seen.has(g))return;seen.add(g);const w=exW(inf,sg);if(w>0)add(g,title,0,n*w)})})});return {m,unk:[...unk]}}
+function splitVolume(){const sess=ORDER.map(title=>{const t=tplOf(title);return {title,ex:t?t.ex:[]}}),A=svTally(ORDER);
+  const tCycle=PATTERN.filter(p=>p.def==="T").length,perWeek=PATTERN.length?7*tCycle/PATTERN.length:0,N=sess.length||1;
+  const next=[...Array(7)].map((_,i)=>addDays(TODAY,i)).map(d=>dayInfo(d).type==="T"?plannedWorkout(d):null).filter(Boolean);
+  return {sess,m:A.m,unk:A.unk,perWeek,N,factor:perWeek/N,next,mn:svTally(next).m}}
+const genRange=g=>{let lo=0,hi=0;Object.entries(GEN_OF).forEach(([k,v])=>{if(v===g){const r=mRange(k);lo+=r.min;hi+=r.max}});return {min:lo,max:hi}};
+const r1=v=>Math.round(v*2)/2;
+function renderSplitVol(){const el=$("sv-body");if(!el)return;$("splitvol-card").hidden=!!W;const V=splitVolume(),mode=SV_MODE||"week";
+  const M=mode==="next"?V.mn:V.m,sc=mode==="week"?V.factor:1,val=g=>{const x=M[g]||{d:0,i:0};return (x.d+x.i)*sc};
+  const groups=GEN_ORDER.filter(g=>V.m[g]||V.mn[g]),mx=Math.max(1,...groups.map(g=>Math.max(val(g),mode!=="split"?genRange(g).max:0)));
+  const st=g=>{if(mode==="split")return "";const r=genRange(g),v=val(g);if(!r.max)return "";return v<r.min*0.75?"bad":v<r.min?"warn":v>r.max*1.25?"bad":v>r.max?"warn":"good"};
+  const sTot=V.sess.map(s=>({t:s.title,n:s.ex.reduce((a,e)=>a+(e.groups||[]).reduce((b,g)=>b+(+g[0]||0),0),0)}));
+  $("sv-sum").textContent=`${V.N} session${V.N===1?"":"s"}`;
+  el.innerHTML=`<p class="note">Working sets for each muscle in your split. Main muscle = full sets; muscles that help (like biceps on a row) count as part sets, using your indirect setting in Progress → Volume.</p>
+  <div class="row" role="group" aria-label="Show sets">${[["week","Per 7 days (average)"],["split","Whole split"],["next","Next 7 days"]].map(([k,n])=>`<button type="button" class="chip" data-svm="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
+  <p class="note">${mode==="week"?`You train ${f1(V.perWeek)} days in every 7 (${PATTERN.filter(p=>p.def==="T").length} of your ${PATTERN.length}-day cycle) and your split has ${V.N} sessions, so one full split takes about ${f1(V.N/Math.max(0.1,V.perWeek)*7)} days. Coloured bars compare with your weekly targets.`:mode==="next"?`Your next 7 days: ${V.next.length?V.next.map(esc).join(", "):"no training days"}.`:`Every session in the split once: ${sTot.map(x=>`${esc(x.t)} ${x.n}`).join(" · ")} sets.`}</p>
+  <div class="svlist">${groups.map(g=>{const v=val(g),r=genRange(g),x=M[g]||{d:0,i:0,by:{}},s=st(g);
+    const from=Object.entries(x.by).sort((a,b)=>(b[1].d+b[1].i)-(a[1].d+a[1].i)).map(([t,b])=>`<span>${esc(t)} <b>${r1((b.d+b.i)*sc)}</b>${b.i&&!b.d?" <i>part</i>":""}</span>`).join("");
+    return `<div class="svrow"><div class="row between"><b>${g}</b><span class="mono">${r1(v)} sets${mode!=="split"&&r.max?` <small class="note">target ${r.min}–${r.max}</small>`:""}</span></div>
+    <div class="svbar"><i class="${s}" style="width:${Math.min(100,v/mx*100)}%"></i>${mode!=="split"&&r.max?`<em style="left:${r.min/mx*100}%;width:${(r.max-r.min)/mx*100}%"></em>`:""}</div>
+    <div class="svfrom">${from||`<span class="note">${mode==="next"?"Not trained in the next 7 days":"Not in your split"}</span>`}</div></div>`}).join("")}</div>
+  ${V.unk.length?`<p class="note">Not counted (muscle unknown): ${V.unk.map(esc).join(", ")}. Set their muscles in Training → Exercises.</p>`:""}
+  <p class="note">To spread volume out, move or swap exercises with the cog on each session in Start a workout.</p>`}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-svm]");if(!b)return;SV_MODE=b.dataset.svm;renderSplitVol()});
 
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
