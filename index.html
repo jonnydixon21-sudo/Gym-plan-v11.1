@@ -402,6 +402,15 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+.sfamt{display:flex;align-items:center;gap:6px}.sfamt input{min-width:0;flex:1}
+#io-card{--io-e:#2a78d6;--io-b:#eb6834}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #io-card{--io-e:#3987e5;--io-b:#d95926}}
+:root[data-theme="dark"] #io-card{--io-e:#3987e5;--io-b:#d95926}
+.iochart{width:100%;height:auto;display:block;overflow:visible}.iochart .ioe{fill:var(--io-e)}.iochart .iob{fill:var(--io-b)}
+.iochart .iogrid{stroke:var(--line);stroke-width:1}.iochart .ioax{fill:var(--muted);font-size:9px;font-family:var(--f-mono)}
+.iochart .iog{cursor:pointer}.iochart .iog.on rect{fill:var(--ink);fill-opacity:.06}
+.iolegend{display:flex;gap:14px;font-size:.82rem;color:var(--muted)}.iolegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.iolegend i.ioe{background:var(--io-e)}.iolegend i.iob{background:var(--io-b)}
+.iotip{font-size:.85rem;display:flex;flex-wrap:wrap;gap:2px 8px;min-height:1.4em}
 #wipe-btn.danger{border-color:#d9534f;color:#d9534f}
 #sv-body{display:grid;gap:10px}.svlist{display:grid;gap:10px}.svrow{display:grid;gap:4px}
 .svbar{position:relative;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}.svbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ink);opacity:.7}
@@ -769,16 +778,17 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
     <div class="card flexcard" id="flex-card" hidden></div>
 
     <div class="card">
-      <div class="row between"><h2>Log</h2><span class="note mono" id="act-sum"></span></div>
+      <div class="row between"><h2>Daily log</h2><span class="note mono" id="act-sum"></span></div>
       <div class="logrow">
         <label class="field" for="q-weight">Weight (kg)<input id="q-weight" type="number" step="0.1" min="40" max="200" inputmode="decimal" placeholder="94.2"></label>
         <label class="field" for="a-steps">Steps<input id="a-steps" type="number" min="0" step="100" inputmode="numeric" placeholder="10450"></label>
         <div class="field"><span>Sleep</span><div class="hm"><input id="sl-h" type="number" min="0" max="16" step="1" inputmode="numeric" placeholder="7" aria-label="Sleep hours"><span>h</span><input id="sl-m" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="30" aria-label="Sleep minutes"><span>m</span></div></div>
         <label class="field" for="a-cmin">Cardio (min)<input id="a-cmin" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
+        <label class="field" for="a-burn">Calories burned<input id="a-burn" type="number" min="0" step="10" inputmode="numeric" placeholder="e.g. 2900"></label>
       </div>
       <div class="row"><button class="btn primary" id="log-save">Save</button><button class="btn small" id="a-stair" hidden>+ 15 min stair master</button><span class="toast" id="a-toast" aria-live="polite"></span></div>
       <p class="note" id="a-note"></p>
-      <p class="note">Weight first thing in the morning. Sleep is the sleep you woke up from today (after a night shift, your daytime sleep).</p>
+      <p class="note">Weight first thing in the morning. Sleep is the sleep you woke up from today (after a night shift, your daytime sleep). Calories burned is the day's total from your watch or fitness app (resting plus active).</p>
       <div hidden><button id="q-save"></button><button id="a-save"></button><button id="sl-save"></button><span id="q-toast"></span><span id="sl-toast"></span><span id="sl-sum"></span><div id="sl-bar"><div id="sl-fill"></div></div><div class="stats" id="today-stats"></div></div>
     </div>
 
@@ -800,6 +810,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
   <!-- PROGRESS -->
   <section class="view" id="view-progress" hidden>
     <div class="card" id="week-card"></div>
+    <div class="card" id="io-card"></div>
     <div class="stats" id="prog-stats"></div>
     <details class="card fold" id="goals-card" data-fold="goals"><summary><h2>Goals</h2><span class="pill" id="goals-pill"></span></summary><div id="goals-body"></div></details>
     <div class="card">
@@ -976,8 +987,8 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
           <details class="fold sub" id="once-run"><summary class="note">Add or change a run</summary>
             <div class="form"><label class="field" for="on-kind">Type<select id="on-kind"><option value="easy">Easy</option><option value="speed">Speed</option></select></label><label class="field" for="on-at">Time<input type="time" id="on-at" value="17:00"></label><label class="field" for="on-label">Name (optional)<input id="on-label" type="text" maxlength="40" placeholder="e.g. Easy 5K"></label></div>
             <div class="row"><button class="btn small primary" id="on-save" type="button">Save run for this day</button></div></details>
-          <details class="fold sub" id="once-add"><summary class="note">Add a meal or note</summary>
-            <div class="form"><label class="field" for="oa-type">What<select id="oa-type"><option value="meal">Meal</option><option value="info">Note</option></select></label><label class="field" for="oa-meal" id="oa-meal-f">Meal<select id="oa-meal"></select></label><label class="field" for="oa-txt" id="oa-txt-f" hidden>Note<input id="oa-txt" type="text" maxlength="60" placeholder="e.g. Physio appointment"></label><label class="field" for="oa-at">Time<input type="time" id="oa-at" value="12:00"></label></div>
+          <details class="fold sub" id="once-add"><summary class="note">Add a meal, food or note</summary>
+            <div class="form"><label class="field" for="oa-type">What<select id="oa-type"><option value="meal">Meal</option><option value="food">Single food</option><option value="info">Note</option></select></label><label class="field" for="oa-food" id="oa-food-f" hidden>Food<select id="oa-food"></select></label><label class="field" for="oa-amt" id="oa-amt-f" hidden>Amount<input id="oa-amt" inputmode="decimal" placeholder="1"></label><label class="field" for="oa-meal" id="oa-meal-f">Meal<select id="oa-meal"></select></label><label class="field" for="oa-txt" id="oa-txt-f" hidden>Note<input id="oa-txt" type="text" maxlength="60" placeholder="e.g. Physio appointment"></label><label class="field" for="oa-at">Time<input type="time" id="oa-at" value="12:00"></label></div>
             <div class="row"><button class="btn small primary" id="oa-save" type="button">Add to this day</button></div></details>
           <details class="fold sub" id="once-skip"><summary class="note">Skip a meal this day</summary>
             <div class="form"><label class="field" for="os-row">Meal<select id="os-row"></select></label></div>
@@ -1307,6 +1318,7 @@ const TODAY=(()=>{const now=new Date(),cal=iso(now),h=now.getHours();const y=new
   const slot=d=>{let o=null;try{o=((JSON.parse(localStorage.getItem("gym-plan-v1")||"{}")||{}).shifts||{})[d]}catch(e){}if(o==="night")return "n1";if(o)return o;const n=Math.round((pd(d)-pd(CYCLE_START))/864e5);return PATTERN[((n%PATTERN.length)+PATTERN.length)%PATTERN.length].slot};
   if(h<4)return yd;if(h<7&&(slot(yd)==="n1"||slot(yd)==="n2"))return yd;return cal})();
 const addDays=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return iso(d)};
+function logicalToday(){const now=new Date(),cal=iso(now),h=now.getHours(),yd=addDays(cal,-1);if(h<4)return yd;const ys=rawSlot(yd);if(h<7&&(ys==="n1"||ys==="n2"))return yd;return cal}
 const nice=s=>pd(s).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 const niceLong=s=>pd(s).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
 const num=v=>{const n=parseFloat(v);return Number.isFinite(n)?n:null};
@@ -1468,7 +1480,7 @@ const habitGood=n=>HABITS.length?n>=Math.max(1,Math.ceil(HABITS.length*0.75)):fa
 function renderToday(){
   const h=new Date().getHours();
   $("hello").textContent=(h<12?"Morning":h<18?"Afternoon":"Evening")+(SETUP.name?", "+SETUP.name:"");
-  const days=Math.floor((pd(TODAY)-pd(START.date))/864e5)+1;
+  const days=Math.max(1,Math.floor((pd(TODAY)-pd(START.date))/864e5)+1);
   const cal=iso(new Date());$("hello-sub").textContent=`${SETUP.name||SETUP.startDate?`Day ${days} of your ${PACE().word} · `:""}${niceLong(cal)}`;
   renderDay();renderActivity();renderWater();renderSupps();renderSleep();renderBkRem();
   const todayC=D.checkins.find(c=>c.date===VIEW);
@@ -1507,12 +1519,12 @@ const CARDIO_DAYS=[];
 function renderActivity(){
   const h=D.habits[VIEW]||{};
   if(document.activeElement!==$("a-steps"))$("a-steps").value=h.stepsN??"";
-  if(document.activeElement!==$("a-cmin"))$("a-cmin").value=h.cardioMin??"";
+  if(document.activeElement!==$("a-cmin"))$("a-cmin").value=h.cardioMin??"";if(document.activeElement!==$("a-burn"))$("a-burn").value=h.burned??"";
   const wk=[...Array(7)].map((_,i)=>addDays(TODAY,-i-1)).filter(inPlan).map(d=>D.habits[d]).filter(x=>x&&num(x.stepsN)!=null);
   $("act-sum").textContent=wk.length?`7-day avg ${Math.round(wk.reduce((a,x)=>a+num(x.stepsN),0)/wk.length).toLocaleString()} steps`:"";
   const tw=D.workouts.find(w=>w.date===TODAY),title=tw?tw.title:(W?W.title:(dayType(TODAY)==="T"?nextTemplate():""));
   $("a-note").textContent=title&&CARDIO_DAYS.includes(norm(title))?`${title} day: 15 min stair master on level 6 after training.`:"";
-  ["a-steps","a-cmin","a-save","a-stair","log-save","q-weight"].forEach(id=>$(id).disabled=!db);
+  ["a-steps","a-cmin","a-burn","a-save","a-stair","log-save","q-weight"].forEach(id=>$(id).disabled=!db);
 }
 async function saveActivity(patch){
   if(!db)return;const cur={...(D.habits[VIEW]||{}),...patch,date:VIEW};
@@ -1521,11 +1533,11 @@ async function saveActivity(patch){
   try{await db.doc("habits/"+VIEW).set(cur);flash("a-toast","Saved")}catch(e){flash("a-toast","Couldn't save")}
 }
 $("log-save").addEventListener("click",async()=>{if(!db)return flash("a-toast","Saving isn't available here");
-  const w=num($("q-weight").value),st=num($("a-steps").value),cm=num($("a-cmin").value),hh=num($("sl-h").value),mm=num($("sl-m").value);
-  if(w!=null&&(w<40||w>200))return flash("a-toast","Check the weight");
+  const w=num($("q-weight").value),st=num($("a-steps").value),cm=num($("a-cmin").value),hh=num($("sl-h").value),mm=num($("sl-m").value),bu=num($("a-burn").value);
+  if(w!=null&&(unitW()==="lb"?(w<88||w>440):(w<40||w>200)))return flash("a-toast","Check the weight");if(bu!=null&&(bu<500||bu>10000))return flash("a-toast","Calories burned should be the day's total, 500 to 10,000");
   const h={...(D.habits[VIEW]||{}),date:VIEW},was=JSON.stringify(h);
   if(st!=null){h.stepsN=Math.round(st);h.steps=h.stepsN>=10000}
-  if(cm!=null)h.cardioMin=Math.round(cm);
+  if(cm!=null)h.cardioMin=Math.round(cm);if(bu!=null)h.burned=Math.round(bu);
   if(hh!=null||mm){h.sleepH=Math.round(((hh||0)+Math.min(59,mm||0)/60)*100)/100;delete h.sleepBed;delete h.sleepWake}
   if(w==null&&JSON.stringify(h)===was)return flash("a-toast","Fill in at least one");
   try{const cur=D.checkins.find(c=>c.date===VIEW);if(w!=null&&!(cur&&num(cur.weight)===w))await saveCheckin(VIEW,{weight:w});
@@ -2747,7 +2759,7 @@ function altList(id){const a=Object.entries(D.alts).filter(([,x])=>x.for===id);
   if(!a.length)return "";
   return `<div class="altlist"><span class="note">Alternatives</span>${a.map(([aid,x])=>`<div class="altrow"><div><b>${esc(x.name)}</b>${x.desc?`<small>${esc(x.desc)}</small>`:""}<span class="mono">${x.p}P · ${x.c}C · ${x.f}F · ${x.kcal} kcal</span></div><button class="x" data-delalt="${aid}" type="button">Delete</button></div>`).join("")}</div>`}
 const mealCard=m=>`<article class="meal${m.kind?" snack":""}" id="meal-${m.id}"><header><strong>${m.m}</strong>${m.tag?`<em>${m.tag}</em>`:""}<button class="cogm" data-medit="${m.id}" aria-label="Edit foods in ${m.m}" title="Edit foods and amounts">${COG}</button></header><p class="note usedin">${usedLabel(m.id)}</p><ul>${m.items.filter(([k],i)=>!isRemoved(k)&&itemActive(m.id,i,TODAY)).map(([k,a,l])=>`<li><span>${F[k].n}</span><span class="mono">${l||fmt(a,F[k].u)}</span></li>`).join("")}</ul>${altList(m.id)}${swaps[m.id]?`<div class="swap">${swaps[m.id]}</div>`:""}<footer><span>${macT(mealMac(m.id))}</span>${m.kind==="drink"?"":`<button class="btn small" data-swap="${m.id}" ${sample?"":"hidden"}>Swap</button>`}</footer></article>`;
-function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=`<div class="plan">${[...PLAN.T.meals,...PLAN.R.meals].map((m,i)=>[catRank(m.id),i,m]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>mealCard(x[2])).join("")}</div>`}
+function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=`<div class="plan">${[...PLAN.T.meals,...PLAN.R.meals].filter(m=>!m.solo).map((m,i)=>[catRank(m.id),i,m]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>mealCard(x[2])).join("")}</div>`}
 $("plans").addEventListener("change",async e=>{const id=e.target.dataset.share;if(!id)return;const sh={...sharedMeals()};if(e.target.checked)sh[id]=true;else delete sh[id];D.home={...(D.home||{}),shared:sh};renderShop();renderPrep();renderDay();if(db){try{await db.doc("prefs/home").set(D.home)}catch(err){}}});
 $("plans").addEventListener("change",async e=>{const id=e.target.dataset.herdef;if(!id)return;const po={...((D.home||{}).portion||{}),[id]:+e.target.value};D.home={...(D.home||{}),portion:po};renderShop();renderPrep();renderDay();renderRota();if(db){try{await db.doc("prefs/home").set(D.home)}catch(err){}}});
 $("plans").addEventListener("click",async e=>{
@@ -2870,7 +2882,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="13 Nov 2026 (d)";
+const APP_VERSION="14 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -2935,7 +2947,7 @@ function applyPlan(){const P=D.plan||{};
   Object.entries(P.foods||{}).forEach(([k,v])=>{F[k]={n:v.n,a:v.a||"Cupboard",u:v.u,p:1,pl:"each"};FM[k]={kcal:v.nut[0],p:v.nut[1],c:v.nut[2],f:v.nut[3],def:v.def||100}});
   Object.keys(MEALS).forEach(k=>delete MEALS[k]);[...PLAN.T.meals,...PLAN.R.meals].forEach(m=>MEALS[m.id]=m);
   Object.entries(P.meals||{}).forEach(([id,d])=>{let m=MEALS[id];if(!m){m={id,m:d.m,items:[],t:""};PLAN.T.meals.push(m);MEALS[id]=m}
-    m.m=d.m;m.items=dcl(d.items).filter(it=>F[it[0]]);syncMeal(m)});
+    m.m=d.m;m.solo=!!d.solo;m.items=dcl(d.items).filter(it=>F[it[0]]);syncMeal(m)});
   SLOTS.forEach(([s])=>["T","R"].forEach(t=>{if(BASE.SCHED[s]&&BASE.SCHED[s][t]){SCHED[s][t]=dcl(BASE.SCHED[s][t]);WAKE[s][t]=BASE.WAKE[s][t]}}));
   Object.entries(P.sched||{}).forEach(([key,d])=>{const [s,t]=key.split(":");if(!SCHED[s]||!SCHED[s][t])return;SCHED[s][t].rows=dcl(d.rows);SCHED[s][t].sum=d.sum;SCHED[s][t].note=d.note;if(d.wake)WAKE[s][t]=d.wake});
   const del=new Set(P.deleted||[]);
@@ -3010,7 +3022,7 @@ $("med").addEventListener("click",async e=>{if(!MED)return;const t=e.target.clos
 let PED=null;
 function pedLoad(slot,type){const s=SCHED[slot][type];PED={slot,type,sum:s.sum||"",note:s.note||"",wake:WAKE[slot][type],rows:dcl(s.rows).map(r=>r[1]==="run"?[r[0],"run",r[2]||"",r[3]||"easy"]:[r[0],r[1],r[2]||""]),dirty:false}}
 const rowKind=id=>["work","info","train","run"].includes(id)?id:"meal";
-function mealOptsHtml(sel){const ids=Object.keys(MEALS).sort((a,b)=>(usedIn[a]||"zz").localeCompare(usedIn[b]||"zz")||MEALS[a].m.localeCompare(MEALS[b].m));
+function mealOptsHtml(sel){const ids=Object.keys(MEALS).filter(id=>!MEALS[id].solo||id===sel).sort((a,b)=>(usedIn[a]||"zz").localeCompare(usedIn[b]||"zz")||MEALS[a].m.localeCompare(MEALS[b].m));
   return ids.map(id=>`<option value="${id}" ${id===sel?"selected":""}>${esc(MEALS[id].m)} · ${mealMac(id).kcal} kcal${usedIn[id]?" · "+usedIn[id]:""}</option>`).join("")+`<option value="__new">+ New meal…</option>`}
 function pedTotals(){const t={kcal:0,p:0,c:0,f:0};PED.rows.forEach(r=>{if(MEALS[r[1]]){const m=mealMac(r[1]);t.kcal+=m.kcal;t.p+=m.p;t.c+=m.c;t.f+=m.f}});return t}
 function renderTargets(){const el=$("tg-card");if(!el)return;
@@ -3060,11 +3072,11 @@ function renderDays(){const el=$("days-ed");if(!el)return;
   <div class="ed"><label class="note">Summary<input id="pe-sum" value="${esc(d.sum)}" maxlength="80"></label>
   <label class="note">Note<textarea id="pe-note" rows="3" maxlength="400">${esc(d.note)}</textarea></label>
   <label class="note">Wake up<input id="pe-wake" type="time" value="${esc(d.wake)}"></label>
-  <ol>${d.rows.map((r,i)=>{const k=rowKind(r[1]);return `<li class="edcol k-${k}"><div class="edrow pr"><input type="time" data-pt="${i}" value="${esc(r[0])}" aria-label="Time"><select data-pk="${i}" aria-label="Type"><option value="meal" ${k==="meal"?"selected":""}>Meal</option><option value="train" ${k==="train"?"selected":""}>Gym session</option><option value="run" ${k==="run"?"selected":""}>Run</option><option value="work" ${k==="work"?"selected":""}>Work</option><option value="info" ${k==="info"?"selected":""}>Note</option></select></div>
-  ${k==="meal"?`<div class="row" style="flex-wrap:nowrap"><select data-pm="${i}" aria-label="Meal">${mealOptsHtml(r[1])}</select><button class="btn small" data-pfood="${i}">Foods</button></div>`:k==="train"?`<p class="note">Your gym session for that day.</p>`:k==="run"?`<div class="g2"><input data-px="${i}" value="${esc(r[2]||"")}" placeholder="e.g. Easy 5K" maxlength="40" aria-label="Run name"><select data-prk="${i}" aria-label="Run type"><option value="easy" ${r[3]!=="speed"?"selected":""}>Easy</option><option value="speed" ${r[3]==="speed"?"selected":""}>Speed</option></select></div><p class="note">Shows on Today and in your Run tab on these days. A run set in Plan your runs for that rota day takes priority.</p>`:`<input data-px="${i}" value="${esc(r[2])}" placeholder="${k==="work"?"Day shift until 7pm":"What to do"}" maxlength="80">`}
+  <ol>${d.rows.map((r,i)=>{const k=MEALS[r[1]]&&MEALS[r[1]].solo?"food":rowKind(r[1]);return `<li class="edcol k-${k==="food"?"meal":k}"><div class="edrow pr"><input type="time" data-pt="${i}" value="${esc(r[0])}" aria-label="Time"><select data-pk="${i}" aria-label="Type"><option value="meal" ${k==="meal"?"selected":""}>Meal</option><option value="food" ${k==="food"?"selected":""}>Single food</option><option value="train" ${k==="train"?"selected":""}>Gym session</option><option value="run" ${k==="run"?"selected":""}>Run</option><option value="work" ${k==="work"?"selected":""}>Work</option><option value="info" ${k==="info"?"selected":""}>Note</option></select></div>
+  ${k==="food"?soloRow(i,r[1]):k==="meal"?`<div class="row" style="flex-wrap:nowrap"><select data-pm="${i}" aria-label="Meal">${mealOptsHtml(r[1])}</select><button class="btn small" data-pfood="${i}">Foods</button></div>`:k==="train"?`<p class="note">Your gym session for that day.</p>`:k==="run"?`<div class="g2"><input data-px="${i}" value="${esc(r[2]||"")}" placeholder="e.g. Easy 5K" maxlength="40" aria-label="Run name"><select data-prk="${i}" aria-label="Run type"><option value="easy" ${r[3]!=="speed"?"selected":""}>Easy</option><option value="speed" ${r[3]==="speed"?"selected":""}>Speed</option></select></div><p class="note">Shows on Today and in your Run tab on these days. A run set in Plan your runs for that rota day takes priority.</p>`:`<input data-px="${i}" value="${esc(r[2])}" placeholder="${k==="work"?"Day shift until 7pm":"What to do"}" maxlength="80">`}
   <div class="edbtns"><button data-pup="${i}" aria-label="Move up">↑</button><button data-pdn="${i}" aria-label="Move down">↓</button><button class="rm" data-prm="${i}" aria-label="Remove">−</button></div></li>`}).join("")}</ol>
   <button class="btn" id="pe-add">+ Add to this day</button>
-  <p class="note">Things after midnight (like 01:00 on a night shift) go at the end of the list.</p>
+  <p class="note">When you save, everything goes into time order from when you wake up, so things after midnight on a night shift land at the end.</p>
   <p class="mono">Meals on this plan: ${nmac(tot)}<br><span class="note">Target: ${tg.kcal} kcal · ${tg.p}P · ${tg.c}C · ${tg.f}F</span></p>
   <p class="note" id="pe-err" style="color:#d9534f"></p>
   <div class="row"><button class="btn primary" id="pe-save">Save this day</button><button class="btn ghost small" id="pe-reset">Reset this day to original</button></div></div>`}
@@ -3079,7 +3091,8 @@ document.addEventListener("input",e=>{if(!(e.target.closest&&e.target.closest("#
   else if(t.dataset.px!==undefined){PED.rows[+t.dataset.px][2]=t.value;PED.dirty=true}});
 document.addEventListener("change",async e=>{if(!(e.target.closest&&e.target.closest("#food-days,#pane-targets")))return;const t=e.target;if(!PED)return;
   if(t.dataset.pk!==undefined){const r=PED.rows[+t.dataset.pk],k=t.value;PED.dirty=true;
-    if(k==="meal"){r[1]=Object.keys(MEALS)[0];r[2]=""}else{r[1]=k;r[2]=k==="work"?"Work":k==="info"?"Note":"";if(k==="run")r[3]="easy";else r.length=3}renderDays()}
+    if(k==="food"){const id=await soloNew();r[1]=id;r.length=2}
+    else if(k==="meal"){r[1]=Object.keys(MEALS).find(id=>!MEALS[id].solo)||Object.keys(MEALS)[0];r.length=2}else{r[1]=k;r[2]=k==="work"?"Work":k==="info"?"Note":"";if(k==="run")r[3]="easy";else r.length=3}renderDays()}
   if(t.dataset.prk!==undefined){PED.rows[+t.dataset.prk][3]=t.value;PED.dirty=true}
   if(t.dataset.pm!==undefined){const i=+t.dataset.pm;PED.dirty=true;
     if(t.value==="__new"){const id="x"+Date.now().toString(36),P=planDoc();P.meals={...P.meals,[id]:{m:"New meal",items:[["chicken",150]]}};D.plan=P;applyPlan();PED.rows[i][1]=id;if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(err){}}renderDays();medOpen(id);return}
@@ -3095,6 +3108,7 @@ document.addEventListener("click",async e=>{if(!(e.target.closest&&e.target.clos
   if(t.dataset.pdn!==undefined){const i=+t.dataset.pdn;if(i<PED.rows.length-1){[PED.rows[i+1],PED.rows[i]]=[PED.rows[i],PED.rows[i+1]];PED.dirty=true;renderDays()}return}
   if(t.id==="pe-add"){const last=PED.rows[PED.rows.length-1];PED.rows.push([last?last[0]:"12:00",Object.keys(MEALS)[0],""]);PED.dirty=true;renderDays();return}
   if(t.id==="pe-save"){const bad=PED.rows.findIndex(r=>!/^\d\d:\d\d$/.test(r[0]));if(bad>=0){$("pe-err").textContent=`Row ${bad+1} needs a time.`;return}if(!/^\d\d:\d\d$/.test(PED.wake)){$("pe-err").textContent="Set a wake-up time.";return}
+    {const mm=t=>{const [h,m]=t.split(":").map(Number);return h*60+m},wk=mm(PED.wake),o=t=>(mm(t)-wk+1440)%1440;PED.rows=PED.rows.map((r,i)=>[r,i]).sort((x,y)=>o(x[0][0])-o(y[0][0])||x[1]-y[1]).map(x=>x[0])}
     const P=planDoc();P.sched={...P.sched,[PED.slot+":"+PED.type]:{sum:PED.sum,note:PED.note,wake:PED.wake,rows:PED.rows.map(r=>r[1]==="run"?[r[0],"run",r[2]||"",r[3]==="speed"?"speed":"easy"]:r[2]&&rowKind(r[1])!=="meal"&&r[1]!=="train"?[r[0],r[1],r[2]]:[r[0],r[1]])}};
     D.plan=P;PED.dirty=false;await savePlan();$("pe-err").textContent="";return}
   if(t.id==="pe-reset"){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to reset";return}const P=planDoc();delete P.sched[PED.slot+":"+PED.type];D.plan=P;PED.dirty=false;await savePlan();pedLoad(PED.slot,PED.type);renderDays();return}});
@@ -3340,12 +3354,15 @@ function renderOnce(inf){const el=$("once-status");if(!el)return;const d=ROTA_SE
   const keep=(sel,html)=>{const v=sel.value;sel.innerHTML=html;if([...sel.options].some(o=>o.value===v))sel.value=v};
   keep($("oa-meal"),Object.values(MEALS).filter(m=>!on.has(m.id)).sort((a,b)=>a.m.localeCompare(b.m)).map(m=>`<option value="${m.id}">${esc(m.m)} · ${mealMac(m.id).kcal} kcal${usedLabel(m.id).startsWith("On")?" · "+usedLabel(m.id).slice(4):""}</option>`).join(""));
   keep($("os-row"),rows.filter(r=>MEALS[r[1]]&&!added.has(r[0]+"|"+r[1])).map(r=>`<option value="${r[0]}|${r[1]}">${r[0]} ${esc(MEALS[r[1]].m)}</option>`).join(""))}
-$("oa-type").addEventListener("change",e=>{const n=e.target.value==="info";$("oa-txt-f").hidden=!n;$("oa-meal-f").hidden=n});
+$("oa-type").addEventListener("change",e=>{const v=e.target.value;$("oa-txt-f").hidden=v!=="info";$("oa-meal-f").hidden=v!=="meal";$("oa-food-f").hidden=v!=="food";$("oa-amt-f").hidden=v!=="food";
+  if(v==="food"){$("oa-food").innerHTML=foodOpts($("oa-food").value||"bagel");const k=$("oa-food").value;$("oa-amt").value=(FM[k]&&FM[k].def)||(F[k]&&F[k].u===""?1:100)}});
+document.addEventListener("change",e=>{if(e.target.id!=="oa-food")return;const k=e.target.value;$("oa-amt").value=(FM[k]&&FM[k].def)||(F[k]&&F[k].u===""?1:100)});
 $("rota-once").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=ROTA_SEL,dd=D.days[d]||{},tm=v=>/^\d\d:\d\d$/.test(v),say=m=>flash("once-msg",m);
   if(t.id==="on-save"){const at=$("on-at").value;if(!tm(at))return say("Set a time for the run");await saveDayDoc(d,{run:{kind:$("on-kind").value,at,label:$("on-label").value.trim()}});$("once-run").open=false;$("on-label").value="";return say("Run saved for "+nice(d))}
   if(t.dataset.once==="runskip"){await saveDayDoc(d,{run:{kind:"none"}});return say("Run skipped for "+nice(d))}
   if(t.dataset.once==="runreset"){await saveDayDoc(d,{run:null});return say("Back to the usual plan")}
   if(t.id==="oa-save"){const at=$("oa-at").value,note=$("oa-type").value==="info";if(!tm(at))return say("Set a time");
+    if($("oa-type").value==="food"){const k=$("oa-food").value,a=parseFloat(String($("oa-amt").value).replace(",","."));if(!F[k]||!(a>0))return say("Pick a food and amount");const id=await soloNew(k,a);await saveDayDoc(d,{add:[...(dd.add||[]),[at,id]]});$("once-add").open=false;return say("Added for "+nice(d))}
     if(note){const x=$("oa-txt").value.trim();if(!x)return say("Type the note");await saveDayDoc(d,{add:[...(dd.add||[]),[at,"info",x]]});$("oa-txt").value=""}
     else{const id=$("oa-meal").value;if(!MEALS[id])return say("Pick a meal");await saveDayDoc(d,{add:[...(dd.add||[]),[at,id]]})}
     $("once-add").open=false;return say("Added for "+nice(d))}
@@ -3751,7 +3768,9 @@ function renderWeek(){const el=$("week-card");if(!el)return;const from=addDays(T
   el.innerHTML=`<div class="row between"><h2>Your week</h2><span class="note">${nice(from)} – ${nice(TODAY)}</span></div>
   <div class="stats">${stat("Weight",wc==null?"–":(wc>=0?"+":"")+f1(wc)+"kg",wc==null?"Needs two weeks of weigh-ins":"7-day average vs the week before")}${stat("Sessions",`${done.length} / ${planned}`,"logged vs planned training days")}
   ${stat("Lifts up",String(up.length),up.length?esc(up.slice(0,3).join(", "))+(up.length>3?" and more":""):"None yet this week")}${stat("Protein",prot.length?Math.round(av(prot))+"g":"–",prot.length?`a day on ${prot.length} logged day${prot.length>1?"s":""} (target ${PLAN.T.p}g)`:"Tick meals on Today to track it")}
-  ${stat("Sleep",sl.length?f1(av(sl))+"h":"–",sl.length?`average over ${sl.length} night${sl.length>1?"s":""}`:"Log sleep on Today")}${stat("Running",f1(km)+" km",`${(D.runs||[]).filter(r=>r.date>=from&&r.date<=TODAY).length} runs`)}</div>`}
+  ${stat("Sleep",sl.length?f1(av(sl))+"h":"–",sl.length?`average over ${sl.length} night${sl.length>1?"s":""}`:"Log sleep on Today")}${stat("Running",f1(km)+" km",`${(D.runs||[]).filter(r=>r.date>=from&&r.date<=TODAY).length} runs`)}
+  ${(()=>{const e=days.map(d=>eatenTotals(d).kcal).filter(v=>v>0),b=days.map(d=>num((D.habits[d]||{}).burned)).filter(v=>v!=null&&v>0),sum=a=>Math.round(a.reduce((x,y)=>x+y,0));
+    return stat("Calories eaten",e.length?sum(e).toLocaleString("en-GB"):"–",e.length?`over ${e.length} day${e.length>1?"s":""} · ${Math.round(sum(e)/e.length).toLocaleString("en-GB")} a day`:"Tick meals on Today")+stat("Calories burned",b.length?sum(b).toLocaleString("en-GB"):"–",b.length?`over ${b.length} day${b.length>1?"s":""} · ${Math.round(sum(b)/b.length).toLocaleString("en-GB")} a day`:"Add it in Daily log")})()}</div>`;renderInOut()}
 
 /* ================= protein fit (Targets) ================= */
 function fitProtein(meals,t,targetP){const done=new Set();
@@ -3853,8 +3872,8 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
 function foldWrap(el,key,title,open,keep){if(!el||el.dataset.wrapped)return;el.dataset.wrapped="1";const d=document.createElement("details");d.className="card fold fw";d.dataset.fold=key;if(open)d.open=true;
   d.innerHTML=`<summary><h2>${title}</h2></summary>`;el.parentNode.insertBefore(d,el);d.appendChild(el);el.classList.remove("card");el.classList.add(keep?"fw-keep":"fw-inner");return d}
 function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return null;const x=el.querySelector(sel);return x?x.closest(".card"):null};
-  foldWrap(card("view-today","#log-save"),"log","Log");
-  foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");{const d=foldWrap($("daily-card"),"basics","Daily targets");if(d){const sc=$("habit-score");sc.classList.add("pill");d.querySelector("summary").appendChild(sc)}}foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
+  foldWrap(card("view-today","#log-save"),"log","Daily log");
+  foldWrap($("io-card"),"inout","Calories in vs out",true);foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");{const d=foldWrap($("daily-card"),"basics","Daily targets");if(d){const sc=$("habit-score");sc.classList.add("pill");d.querySelector("summary").appendChild(sc)}}foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
   foldWrap($("lift-dash"),"liftdash","Lift progression");foldWrap($("pr-card"),"prs","Personal records");foldWrap($("vol-card"),"volume","Volume by muscle");foldWrap($("effort-card"),"effort","Effort and recovery");
   foldWrap(card("view-photos","#compare"),"compare","Compare photos");foldWrap($("p-upload-card"),"upload","Add progress photos");
   foldWrap(card("view-coach","#review"),"review","Weekly review");
@@ -4193,9 +4212,9 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
   t.disabled=true;t.textContent="Setting up…";
   try{const w=n(s.weight),g=n(s.goal);
     if(s.again&&(s.w!==unitW()||s.l!==unitL()))await convertUnits(unitW(),s.w,unitL(),s.l);
-    L.profile={name:s.name.trim(),mode:s.mode,startDate:s.again?(SETUP.startDate||TODAY):iso(new Date()),startWeight:w,goalWeight:g>0?g:null,units:{w:s.w,l:s.l}};saveL();
-    const cal=iso(new Date());if(!s.again&&db&&!D.checkins.some(c=>c.date===cal))await db.doc("checkins/"+cal).set({date:cal,weight:w,photos:[]});
+    L.profile={name:s.name.trim(),mode:s.mode,startDate:s.again?(SETUP.startDate||TODAY):TODAY,startWeight:w,goalWeight:g>0?g:null,units:{w:s.w,l:s.l}};saveL();
     if(s.rota!=="keep")await saveRota(suRota(s.rota));
+    const cal=logicalToday();if(L.profile&&!s.again)L.profile.startDate=cal,saveL();if(!s.again&&db&&!D.checkins.some(c=>c.date===cal))await db.doc("checkins/"+cal).set({date:cal,weight:w,photos:[]});
     if(s.split&&s.split!=="keep"){const prog=splitProgram(s.split,s.sessions);D.program=prog;applyNames();if(db)await db.doc("prefs/program").set(prog)}
     if(s.meals==="starter"){starterPlan(kcal,pr);await savePlan()}
     else{const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-pr*4-f*9)/4)),T={kcal,p:pr,c,f};
@@ -4291,6 +4310,41 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
   t.disabled=true;t.textContent="Deleting…";window.__wiping=true;try{if(window.__wipeAll)await window.__wipeAll();localStorage.removeItem(KEY)}catch(err){window.__wiping=false;t.textContent="Couldn't delete: "+(err&&err.message||err);return}
   try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(err){}
   location.reload()});
+/* ---------- single foods in day plans ---------- */
+async function soloNew(k,a){k=k&&F[k]?k:(F.banana?"banana":Object.keys(F).find(x=>nutOf(x)));const amt=a!=null?a:((FM[k]&&FM[k].def)||(F[k].u===""?1:100));
+  const id="sf"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),P=planDoc();P.meals={...P.meals,[id]:{m:F[k].n,items:[[k,amt]],solo:1}};D.plan=P;await savePlan();return id}
+async function soloSet(id,k,a){const P=planDoc(),cur=P.meals[id]||{items:[[k,a]]};const it=cur.items&&cur.items[0]||[k,a];const nk=k||it[0],na=a!=null?a:(k&&k!==it[0]?((FM[k]&&FM[k].def)||(F[k].u===""?1:100)):it[1]);
+  P.meals={...P.meals,[id]:{m:F[nk].n,items:[[nk,na]],solo:1}};D.plan=P;await savePlan()}
+const soloRow=(i,id)=>{const m=MEALS[id],it=(m&&m.items[0])||["banana",1],u=unitOf(it[0]),mac=mealMac(id);
+  return `<div class="g2"><select data-sfk="${i}" aria-label="Food">${foodOpts(it[0])}</select><label class="sfamt"><input data-sfa="${i}" inputmode="decimal" value="${esc(it[1])}" aria-label="Amount"><span class="note">${u==="each"?"×":esc(u)}</span></label></div><p class="note">${mac.kcal} kcal · ${mac.p}P · ${mac.c}C · ${mac.f}F</p>`};
+document.addEventListener("change",async e=>{const t=e.target;if(!PED||!t.closest||!t.closest("#food-days"))return;
+  if(t.dataset.sfk!=null){const r=PED.rows[+t.dataset.sfk];await soloSet(r[1],t.value,null);renderDays();return}
+  if(t.dataset.sfa!=null){const r=PED.rows[+t.dataset.sfa],v=parseFloat(String(t.value).replace(",","."));if(!(v>0))return;await soloSet(r[1],null,v);renderDays();return}});
+/* ---------- calories in vs out (Progress) ---------- */
+var IO_DAYS=14,IO_TIP=null;
+function ioData(n){const days=[...Array(n)].map((_,i)=>addDays(TODAY,i-n+1));return days.map(d=>{const t=eatenTotals(d),b=num((D.habits[d]||{}).burned);return {d,eat:t.kcal>0?Math.round(t.kcal):null,burn:b!=null&&b>0?Math.round(b):null}})}
+function ioGoal(){const w=weightNow().cur??SETUP.startWeight;if(!w)return null;const kg=unitW()==="lb"?w/2.20462:w,P=PACE(),k=x=>Math.round(kg*x/100*7700/7/10)*10;return {lo:k(P.lo),hi:k(P.hi),mid:k(P.mid),word:P.word}}
+function renderInOut(){const el=$("io-card");if(!el)return;const n=IO_DAYS,data=ioData(n),both=data.filter(x=>x.eat!=null&&x.burn!=null),G=ioGoal(),fmtk=v=>Math.round(v).toLocaleString("en-GB");
+  const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null,ae=avg(data.filter(x=>x.eat!=null).map(x=>x.eat)),ab=avg(data.filter(x=>x.burn!=null).map(x=>x.burn)),bal=avg(both.map(x=>x.eat-x.burn));
+  let verdict="";if(bal!=null&&G){const ok=bal>=G.lo&&bal<=G.hi;verdict=`<span class="pill ${ok?"good":"warn"}">${ok?"On track":bal<G.lo?(G.word==="cut"?"Deficit too big":"Not enough food"):(G.word==="cut"?"Deficit too small":"Eating more than needed")}</span>`}
+  const W_=340,H_=170,pl=34,pr=4,pt=10,pb=22,cw=W_-pl-pr,ch=H_-pt-pb,mx=Math.max(1000,...data.map(x=>Math.max(x.eat||0,x.burn||0))),top=Math.ceil(mx/1000)*1000,y=v=>pt+ch-v/top*ch,gw=cw/n,bw=Math.max(2,Math.min(14,(gw-4)/2-1));
+  const bar=(x,v,cls)=>{if(v==null)return "";const h=Math.max(1,v/top*ch),r=Math.min(4,bw/2,h),y0=pt+ch;return `<path class="${cls}" d="M${x},${y0}V${y0-h+r}Q${x},${y0-h} ${x+r},${y0-h}H${x+bw-r}Q${x+bw},${y0-h} ${x+bw},${y0-h+r}V${y0}Z"/>`};
+  const grid=[0,top/2,top].map(v=>`<line x1="${pl}" x2="${W_-pr}" y1="${y(v)}" y2="${y(v)}" class="iogrid"/><text x="${pl-4}" y="${y(v)+3}" text-anchor="end" class="ioax">${v?(v/1000)+"k":"0"}</text>`).join("");
+  const step=n<=7?1:n<=14?2:7;
+  const bars=data.map((x,i)=>{const cx=pl+i*gw+gw/2,x1=cx-bw-1,x2=cx+1;return `<g class="iog${IO_TIP===i?" on":""}" data-io="${i}">${bar(x1,x.eat,"ioe")}${bar(x2,x.burn,"iob")}<rect x="${pl+i*gw}" y="${pt}" width="${gw}" height="${ch+pb}" fill="transparent"/>${i%step===(n-1)%step?`<text x="${cx}" y="${H_-6}" text-anchor="middle" class="ioax">${n<=7?WD(x.d).slice(0,2):pd(x.d).getDate()}</text>`:""}</g>`}).join("");
+  const tip=IO_TIP!=null&&data[IO_TIP]?(x=>`<div class="iotip"><b>${niceLong(x.d)}</b><span>Eaten ${x.eat!=null?fmtk(x.eat):"–"} · Burned ${x.burn!=null?fmtk(x.burn):"–"}${x.eat!=null&&x.burn!=null?` · <b>${x.eat-x.burn>=0?"+":""}${fmtk(x.eat-x.burn)}</b>`:""}</span></div>`)(data[IO_TIP]):`<div class="iotip note">Tap a day for its numbers.</div>`;
+  el.innerHTML=`<h2>Calories in vs out</h2>
+  <div class="row" role="group" aria-label="Range">${[7,14,28].map(d=>`<button type="button" class="chip" data-ion="${d}" aria-pressed="${n===d}">${d} days</button>`).join("")}</div>
+  <div class="stats">${stat("Eaten",ae!=null?fmtk(ae):"–",ae!=null?"kcal a day (days you ticked meals)":"Tick meals on Today")}${stat("Burned",ab!=null?fmtk(ab):"–",ab!=null?"kcal a day":"Add it in Daily log on Today")}
+  ${stat("Balance",bal!=null?(bal>=0?"+":"")+fmtk(bal):"–",bal!=null?`kcal a day over ${both.length} day${both.length>1?"s":""} ${verdict}`:"Needs a day with both")}${stat("Your target",G?`${G.lo>=0?"+":""}${fmtk(G.lo)} to ${G.hi>=0?"+":""}${fmtk(G.hi)}`:"–",G?`kcal a day for your ${G.word==="plan"?"goal (maintain)":G.word}`:"Set your weight in Settings → Profile")}</div>
+  <div class="iolegend"><span><i class="ioe"></i>Eaten</span><span><i class="iob"></i>Burned</span></div>
+  <svg viewBox="0 0 ${W_} ${H_}" class="iochart" role="img" aria-label="Calories eaten and burned per day for the last ${n} days">${grid}${bars}</svg>${tip}
+  <details class="fold sub"><summary class="note">Show the numbers</summary><div class="tablewrap"><table><thead><tr><th>Day</th><th class="n">Eaten</th><th class="n">Burned</th><th class="n">Balance</th></tr></thead><tbody>${data.slice().reverse().map(x=>`<tr><td>${nice(x.d)}</td><td class="n">${x.eat!=null?fmtk(x.eat):"–"}</td><td class="n">${x.burn!=null?fmtk(x.burn):"–"}</td><td class="n">${x.eat!=null&&x.burn!=null?(x.eat-x.burn>=0?"+":"")+fmtk(x.eat-x.burn):"–"}</td></tr>`).join("")}</tbody></table></div></details>
+  <p class="note">Eaten comes from the meals and extras you tick on Today. Burned is the total from your watch or fitness app (resting plus active), entered in Daily log. About 7,700 kcal is roughly 1kg of body weight, so your weigh-ins are the final judge.</p>`}
+document.addEventListener("click",e=>{const c=e.target.closest&&e.target.closest("[data-ion]");if(c){IO_DAYS=+c.dataset.ion;IO_TIP=null;renderInOut();return}
+  const g=e.target.closest&&e.target.closest("#io-card [data-io]");if(g){IO_TIP=+g.dataset.io===IO_TIP?null:+g.dataset.io;renderInOut()}});
+document.addEventListener("mouseover",e=>{const g=e.target.closest&&e.target.closest("#io-card [data-io]");if(g&&+g.dataset.io!==IO_TIP){IO_TIP=+g.dataset.io;renderInOut()}});
+
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
