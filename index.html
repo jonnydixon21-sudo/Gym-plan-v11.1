@@ -2889,7 +2889,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="14 Nov 2026 (e)";
+const APP_VERSION="14 Nov 2026 (f)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3899,7 +3899,7 @@ document.addEventListener("click",async e=>{if(!e.target.closest("#upd-btn"))ret
 async function hardReload(){try{const ks=window.caches?await caches.keys():[];await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
   /* keep the background helper (unregistering it mid-reload breaks iPhone home-screen apps); just ask it to update, then reload. It always fetches the page fresh. */
   try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg)await Promise.race([reg.update(),new Promise(r=>setTimeout(r,3000))])}catch(e){}
-  setTimeout(()=>location.reload(),150)}
+  setTimeout(()=>location.replace(location.pathname.replace(/[^/]*$/,"")+"index.html?v="+Date.now()),150)}
 async function remoteVersion(){const r=await fetch("index.html?check="+Date.now(),{cache:"no-store"});const t=await r.text(),m=t.match(/const APP_VERSION="([^"]+)"/);return m?m[1]:null}
 let UPD_LAST=0;
 async function autoUpdCheck(force){if(!force&&Date.now()-UPD_LAST<10*60e3)return;UPD_LAST=Date.now();if(!navigator.onLine||location.protocol==="file:")return;
