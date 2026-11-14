@@ -299,6 +299,7 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .alt b{font-family:var(--f-display)}
 .alt .mono{font-size:.76rem;color:var(--muted)}
 .exalts{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.swany{display:grid;gap:4px;margin-top:4px}.swany input{flex:1;min-width:0;font:inherit;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
 .exalt{border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:9px 11px;text-align:left;display:grid;gap:2px}
 .exalt b{font-family:var(--f-display)}
 .exalt span{font-size:.82rem;color:var(--muted)}
@@ -2535,10 +2536,14 @@ function renderLive(){
     const g=groupOf(ex),alts=g?ALTG[g].x.filter(a=>norm(a[0])!==norm(ex.name)):[],orig=ex.from||ex.name;
     const ai=AI_ALTS[ei]||[];
     const panel=SWAP_EX===ei?`<div class="exalts"><b>${g?`Alternatives · ${esc(ALTG[g].m)}`:"Alternatives"}</b>
+      <label class="field" style="flex-direction:row;display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw-always" style="width:20px;height:20px"> Tick first to always use your pick instead of ${esc(orig)}</label>
       ${alts.map(a=>`<button class="exalt" data-pickalt="${ei}" data-name="${esc(a[0])}"><b>${esc(a[0])}</b><span>${esc(a[1])}</span>${a[2]?'<span class="pill good">Easy on the knee</span>':""}</button>`).join("")}
       ${ai.map(a=>`<button class="exalt" data-pickalt="${ei}" data-name="${esc(a.name)}"><b>${esc(a.name)}</b><span>${esc(a.why||"")}</span></button>`).join("")}
+      ${(()=>{const pi=exInfo(ex.name);if(!pi)return "";const done=new Set(D.workouts.flatMap(w=>(w.exercises||[]).map(e=>norm(e.name))));
+        const same=libNames().map(x=>x.n).filter(n=>norm(n)!==norm(ex.name)&&norm(n)!==norm(orig)&&!alts.some(a=>norm(a[0])===norm(n))&&(exInfo(n)||{}).p===pi.p).sort((a,b)=>(done.has(norm(b))-done.has(norm(a)))||a.localeCompare(b)).slice(0,10);
+        return same.length?`<span class="note">Other ${esc((GEN_OF[pi.p]||pi.p).toLowerCase())} exercises</span>${same.map(n=>`<button class="exalt" data-pickalt="${ei}" data-name="${esc(n)}"><b>${esc(n)}</b>${done.has(norm(n))?`<span>You've done this before</span>`:""}</button>`).join("")}`:""})()}
       ${ex.from?`<button class="exalt" data-pickalt="${ei}" data-name="${esc(ex.from)}"><b>${esc(ex.from)}</b><span>Back to the original exercise</span></button>`:""}
-      <label class="field" style="flex-direction:row;display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw-always" style="width:20px;height:20px"> Always use my pick instead of ${esc(orig)}</label>
+      <div class="swany"><label class="note" for="sw-any">Or pick any exercise (type to search, or type a new one)</label><div class="row" style="flex-wrap:nowrap"><input id="sw-any" list="sw-list" placeholder="e.g. Machine chest press" autocomplete="off"><button class="btn small primary" type="button" data-pickany="${ei}">Swap</button></div><datalist id="sw-list">${libNames().map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist></div>
       <div class="row">${sample?`<button class="btn small" id="sw-ai" data-ex="${ei}">Ask Claude for more</button>`:""}<button class="btn small ghost" id="sw-close">Close</button><span class="err" id="sw-err"></span></div></div>`:"";
     return `<div class="wex${ex.ss||(ei>0&&W.exercises[ei-1].ss)?" ssx":""}" data-ex="${ei}"><div class="top"><div><b>${esc(ex.name)}</b><small>${ex.groups.map(([n,r])=>`${n} × ${r}`).join(" then ")}${last?` · last ${nice(last.date)}`:""}${ex.from?` · swapped from ${esc(ex.from)}${swapInfo(ex.from)?` until ${nice(swapInfo(ex.from).until)}`:""}`:""}</small></div><div class="row" style="flex-wrap:nowrap"><button class="btn small" data-swapex="${ei}">Swap</button><button class="x" data-rmex="${ei}">Remove</button></div></div>${panel}
     <div class="extools"><label class="note">Rest <select data-rest="${ei}" aria-label="Rest time for ${esc(ex.name)}">${[45,60,75,90,105,120,150,180,210,240,300].map(v=>`<option value="${v}" ${restOf(ex,ex.sets[0]&&ex.sets[0].target)===v?"selected":""}>${mmss(v)}</option>`).join("")}</select></label>${ei<W.exercises.length-1?`<button type="button" class="chip${ex.ss?"":" ghost"}" data-ss="${ei}" aria-pressed="${!!ex.ss}">${ex.ss?"Superset ✓":"Superset with next"}</button>`:""}${workKg(ex)>0?`<button type="button" class="chip" data-wu="${ei}" aria-pressed="${wuOpen(ei)}">Warm-up</button>`:""}${isBar(ex)?`<button type="button" class="chip" data-plates="${ei}" aria-pressed="${PLATE_EX===ei}">Plates</button>`:""}</div>
@@ -2575,10 +2580,11 @@ $("w-live").addEventListener("click",async e=>{
   if(t.dataset.wdiff){W.diff=W.diff===+t.dataset.wdiff?null:+t.dataset.wdiff;saveLive();renderLive();return}
   if(t.dataset.swapex!=null){const i=+t.dataset.swapex;SWAP_EX=SWAP_EX===i?null:i;renderLive();return}
   if(t.id==="sw-close"){SWAP_EX=null;renderLive();return}
+  if(t.dataset.pickany!=null){const v=($("sw-any").value||"").trim();if(!v){$("sw-any").focus();return}const hit=libNames().find(x=>norm(x.n)===norm(v));t.dataset.pickalt=t.dataset.pickany;t.dataset.name=hit?hit.n:v.charAt(0).toUpperCase()+v.slice(1)}
   if(t.dataset.pickalt!=null){const ex=W.exercises[+t.dataset.pickalt],name=t.dataset.name,orig=ex.from||ex.name,always=$("sw-always")&&$("sw-always").checked;
     const back=norm(name)===norm(orig);const g=groupOf(ex),a=g&&ALTG[g].x.find(x=>norm(x[0])===norm(name));
     const tp=TEMPLATES.flatMap(x=>x.ex).find(x=>norm(x.name)===norm(name));
-    ex.name=name;ex.from=back?undefined:orig;ex.note=back&&tp?tp.note:(a?a[1]:ex.note);
+    ex.name=name;ex.from=back?undefined:orig;ex.note=back&&tp?tp.note:(a?a[1]:(FULL_CUES[name]||(tp&&tp.note)||""));
     if(!ex.from)delete ex.from;
     if(always){const map={...D.exswaps};if(back)delete map[orig];else map[orig]=name;D.exswaps=map;if(db){try{await db.doc("prefs/swaps").set({map})}catch(err){}}}
     SWAP_EX=null;saveLive();renderLive();return}
@@ -2889,7 +2895,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="14 Nov 2026 (h)";
+const APP_VERSION="14 Nov 2026 (i)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
