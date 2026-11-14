@@ -564,6 +564,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 .pv{display:grid;gap:12px}
 .pv-t{font-family:var(--f-display);font-size:1.25rem;font-weight:650;display:block}
 .pv-list{margin:0;padding-left:22px;display:grid;gap:8px}
+.pvmus{display:grid;gap:6px;margin:4px 0 2px}.pvmus .row{gap:6px}.mchip{background:var(--surface-2);border-radius:999px;padding:4px 10px;font-size:.84rem}.mchip b{margin-left:2px}.mtag{font-weight:700;color:var(--ink)}
 .pv-list li{padding:8px 10px;border-radius:10px;background:var(--surface-2)}
 .pv-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .pv-row b{display:block;font-weight:600}
@@ -2447,8 +2448,11 @@ function previewHTML(title){
   const sets=t.ex.reduce((a,e)=>a+targets(e.groups).length,0);
   return `<div class="pv"><div class="row between"><div><b class="pv-t">${esc(t.title)}</b><span class="note">${t.ex.length} exercises · ${sets} sets${last?` · last done ${niceLong(last.date)}`:""}</span></div></div>
   ${wnGet(wnKey(t.title))?`<span class="pvnote"><b>Your note:</b> ${esc(wnGet(wnKey(t.title)))}</span>`:""}
+  ${(()=>{const m={};t.ex.forEach(e=>{const i=exInfo(swapFor(e.name)||e.name);if(!i)return;const g=GEN_OF[i.p]||i.p;m[g]=(m[g]||0)+targets(e.groups).length});const ks=GEN_ORDER.filter(g=>m[g]).concat(Object.keys(m).filter(g=>!GEN_ORDER.includes(g)));
+    return ks.length?`<div class="pvmus" aria-label="Sets per muscle in this workout"><span class="note">Sets per muscle (main muscle only)</span><div class="row">${ks.map(g=>`<span class="mchip">${esc(g)} <b>${m[g]}</b></span>`).join("")}</div></div>`:""})()}
   <ol class="pv-list">${t.ex.map(e=>{const rep=swapFor(e.name),name=rep||e.name,ls=lastSession(name),top=ls&&ls.sets.reduce((m,s)=>!m||e1rm(s.kg,s.reps)>e1rm(m.kg,m.reps)?s:m,null);
-    return `<li><div class="pv-row"><div><b>${esc(name)}</b>${rep?`<small>instead of ${esc(e.name)}</small>`:""}<small>${e.groups.map(([n,r])=>`${n} × ${r}`).join(" then ")}</small>${wnGet("e:"+norm(name))?`<small class="pvnote">${esc(wnGet("e:"+norm(name)))}</small>`:""}</div><span class="mono note">${top?(top.kg?`${top.kg}kg × ${top.reps}`:`${top.reps} reps`):"Not done yet"}</span></div>${e.note&&!rep?`<details><summary>Form cues</summary><p>${esc(e.note)}</p></details>`:""}</li>`}).join("")}</ol>
+    const mi=exInfo(name),mg=mi?(GEN_OF[mi.p]||mi.p):null;
+    return `<li><div class="pv-row"><div><b>${esc(name)}</b>${rep?`<small>instead of ${esc(e.name)}</small>`:""}<small>${e.groups.map(([n,r])=>`${n} × ${r}`).join(" then ")}${mg?` · <span class="mtag">${esc(mg)}</span>`:""}</small>${wnGet("e:"+norm(name))?`<small class="pvnote">${esc(wnGet("e:"+norm(name)))}</small>`:""}</div><span class="mono note">${top?(top.kg?`${top.kg}kg × ${top.reps}`:`${top.reps} reps`):"Not done yet"}</span></div>${e.note&&!rep?`<details><summary>Form cues</summary><p>${esc(e.note)}</p></details>`:""}</li>`}).join("")}</ol>
   <div class="row"><button class="btn primary" id="pv-start">Start workout</button><button class="btn ghost" id="pv-back">Back</button></div>
   <p class="note">You can swap any exercise once you start.</p></div>`;
 }
@@ -2882,7 +2886,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="14 Nov 2026";
+const APP_VERSION="14 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
