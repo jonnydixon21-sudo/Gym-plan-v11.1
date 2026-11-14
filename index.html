@@ -402,6 +402,8 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+.updbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:.92rem}
+.updbar .btn.primary{background:var(--bg);color:var(--ink);border-color:var(--bg)}
 .sfamt{display:flex;align-items:center;gap:6px}.sfamt input{min-width:0;flex:1}
 #io-card{--io-e:#2a78d6;--io-b:#eb6834}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #io-card{--io-e:#3987e5;--io-b:#d95926}}
@@ -699,6 +701,7 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
     <p class="sub" id="hello-sub">Your fat-loss phase, all in one place.</p>
     <span class="brand">My Gym Plan</span>
   </header>
+  <div class="updbar" id="upd-bar" hidden><span id="upd-bar-t">A new version is ready.</span><button class="btn small primary" type="button" id="upd-now">Update now</button></div>
 
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" id="tab-today" aria-selected="true"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 7v12h16V7M8 3v4M16 3v4M8 12h3"/></svg><span class="tl">Today</span></button>
@@ -1084,8 +1087,8 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
     <div class="card">
       <h2>About this copy</h2>
       <p class="note mono" id="app-ver" style="white-space:pre-line"></p>
-      <div class="row"><button class="btn" type="button" id="upd-btn">Check for updates</button><span class="toast" id="upd-msg" aria-live="polite"></span></div>
-      <p class="note">If you've uploaded a new version and don't see it, tap this. Your data isn't affected.</p>
+      <div class="row"><button class="btn" type="button" id="upd-btn">Check for updates</button><button class="btn ghost" type="button" id="reload-btn">Reload app</button><span class="toast" id="upd-msg" aria-live="polite"></span></div>
+      <p class="note">The app checks for new versions each time you open it. "Reload app" is a full refresh, like pulling down to refresh a web page. Your data isn't affected by either.</p>
     </div>
   </section>
 
@@ -2886,7 +2889,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="14 Nov 2026 (c)";
+const APP_VERSION="14 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3889,9 +3892,20 @@ function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return nul
   const rd=$("run-days")&&$("run-days").closest("details");if(rd){rd.classList.add("fold");rd.open=L.folds&&L.folds[rd.dataset.fold]!=null?!!L.folds[rd.dataset.fold]:true}}
 document.addEventListener("click",async e=>{if(!e.target.closest("#upd-btn"))return;$("upd-msg").textContent="Checking…";
   try{const r=await fetch("index.html?check="+Date.now(),{cache:"no-store"}),t=await r.text(),m=t.match(/const APP_VERSION="([^"]+)"/),v=m?m[1]:null;
-    if(v&&v!==APP_VERSION){$("upd-msg").textContent="Updating to "+v+"…";try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg)await reg.update();const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(err){}setTimeout(()=>location.reload(),400)}
+    if(v&&v!==APP_VERSION){$("upd-msg").textContent="Updating to "+v+"…";setTimeout(hardReload,300)}
     else $("upd-msg").textContent=v?"You're on the latest version.":"Couldn't check. Try again with a signal."}
   catch(err){$("upd-msg").textContent="Couldn't check. Try again with a signal."}});
+/* hard refresh: clear the offline copy and load a fresh one from a one-off address */
+async function hardReload(){try{const ks=window.caches?await caches.keys():[];await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+  try{const regs=navigator.serviceWorker?await navigator.serviceWorker.getRegistrations():[];await Promise.all(regs.map(r=>r.unregister()))}catch(e){}
+  location.replace(location.pathname.replace(/[^/]*$/,"")+"index.html?r="+Date.now())}
+async function remoteVersion(){const r=await fetch("index.html?check="+Date.now(),{cache:"no-store"});const t=await r.text(),m=t.match(/const APP_VERSION="([^"]+)"/);return m?m[1]:null}
+let UPD_LAST=0;
+async function autoUpdCheck(force){if(!force&&Date.now()-UPD_LAST<10*60e3)return;UPD_LAST=Date.now();if(!navigator.onLine||location.protocol==="file:")return;
+  try{const v=await remoteVersion();if(v&&v!==APP_VERSION){$("upd-bar-t").textContent=`A new version is ready (${v}).`;$("upd-bar").hidden=false}}catch(e){}}
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#reload-btn,#upd-now");if(!t)return;t.textContent="Reloading…";t.disabled=true;hardReload()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")autoUpdCheck()});
+setTimeout(()=>autoUpdCheck(true),2500);
 /* ================= Schedule views: week, rolling, month, custom pattern ================= */
 let ROTA_WK=0,ROTA_MO=0,RP_DRAFT=null;
 const rotaView=()=>["personal","week","roll","month","custom"].includes(L.rotaView)?L.rotaView:"personal";
