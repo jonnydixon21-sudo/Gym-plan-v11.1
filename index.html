@@ -85,8 +85,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 /* surfaces */
 .card{background:var(--surface);border-radius:14px;padding:16px;border:0;display:grid;gap:12px;min-width:0}
-.logrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-@media (max-width:520px){.logrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.logrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.logrow .slf{grid-column:span 2}.logrow .slf .hm input{min-width:4.5em;font-size:1.05rem;padding:9px 8px}.logrow .slf .hm span{font-weight:600;color:var(--muted)}
+@media (max-width:520px){.logrow{grid-template-columns:repeat(2,minmax(0,1fr))}.logrow .slf{grid-column:1/-1}}
 .hm{display:flex;align-items:center;gap:4px}.hm input{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:8px 6px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;min-width:0;text-align:center}.hm span{color:var(--muted);font-weight:600}
 details.fold>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
 details.fold>summary::-webkit-details-marker{display:none}
@@ -403,6 +403,8 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+.rugbox{display:grid;gap:8px}.rugbox .chkline{display:flex;gap:8px;align-items:center}.rugbox input[type=time]{font:inherit;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+.rdot.rug{background:#8b5cf6}
 .updbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:.92rem}
 .updbar .btn.primary{background:var(--bg);color:var(--ink);border-color:var(--bg)}
 .sfamt{display:flex;align-items:center;gap:6px}.sfamt input{min-width:0;flex:1}
@@ -787,9 +789,9 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
       <div class="logrow">
         <label class="field" for="q-weight">Weight (kg)<input id="q-weight" type="number" step="0.1" min="40" max="200" inputmode="decimal" placeholder="94.2"></label>
         <label class="field" for="a-steps">Steps<input id="a-steps" type="number" min="0" step="100" inputmode="numeric" placeholder="10450"></label>
-        <div class="field"><span>Sleep</span><div class="hm"><input id="sl-h" type="number" min="0" max="16" step="1" inputmode="numeric" placeholder="7" aria-label="Sleep hours"><span>h</span><input id="sl-m" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="30" aria-label="Sleep minutes"><span>m</span></div></div>
-        <label class="field" for="a-cmin">Cardio (min)<input id="a-cmin" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
+        <label class="field" for="a-cmin" hidden>Cardio (min)<input id="a-cmin" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
         <label class="field" for="a-burn">Calories burned<input id="a-burn" type="number" min="0" step="10" inputmode="numeric" placeholder="e.g. 2900"></label>
+        <div class="field slf"><span>Sleep</span><div class="hm"><input id="sl-h" type="number" min="0" max="16" step="1" inputmode="numeric" placeholder="7" aria-label="Sleep hours"><span>h</span><input id="sl-m" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="30" aria-label="Sleep minutes"><span>m</span></div></div>
       </div>
       <div class="row"><button class="btn primary" id="log-save">Save</button><button class="btn small" id="a-stair" hidden>+ 15 min stair master</button><span class="toast" id="a-toast" aria-live="polite"></span></div>
       <p class="note" id="a-note"></p>
@@ -980,8 +982,9 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
         <div class="row"><button class="btn small" id="rota-flip">Make it a rest day</button><button class="btn small" id="rota-flex">Flex day</button><span class="mono note" id="rota-kcal"></span></div>
         <div class="row" id="rota-shift"></div>
         <details class="leavebox"><summary>Book leave for several days</summary><div class="g2"><label class="note">First day<input type="date" id="lv-from"></label><label class="note">Last day<input type="date" id="lv-to"></label></div><div class="row"><button class="btn small primary" type="button" id="lv-save">Book leave</button><button class="btn small ghost" type="button" id="lv-clear">Clear leave on these days</button></div><p class="note" id="lv-msg"></p><p class="note">Leave days use your day-off plan for meals and training, with no work reminders. To undo one day, pick it and choose Usual.</p></details>
+        <div id="rota-rugby"></div>
         <div id="rota-session"></div>
-        <div class="klegend"><span><i style="background:var(--k-meal);border-color:var(--k-meal-b)"></i>Food</span><span><i style="background:var(--k-train);border-color:var(--k-train-b)"></i>Gym</span><span><i style="background:var(--k-run);border-color:var(--k-run-b)"></i>Run</span><span><i style="background:var(--k-work);border-color:var(--k-work-b)"></i>Work</span><span><i style="background:var(--k-note);border-color:var(--k-note-b)"></i>Notes</span><span><i style="background:var(--k-sleep);border-color:var(--k-sleep-b)"></i>Sleep</span></div>
+        <div class="klegend"><span><i style="background:var(--k-meal);border-color:var(--k-meal-b)"></i>Food</span><span><i style="background:var(--k-train);border-color:var(--k-train-b)"></i>Gym</span><span><i style="background:var(--k-run);border-color:var(--k-run-b)"></i>Run / rugby</span><span><i style="background:var(--k-work);border-color:var(--k-work-b)"></i>Work</span><span><i style="background:var(--k-note);border-color:var(--k-note-b)"></i>Notes</span><span><i style="background:var(--k-sleep);border-color:var(--k-sleep-b)"></i>Sleep</span></div>
         <ol class="timeline" id="timeline"></ol>
         <p class="note" id="shiftnote"></p>
         <div id="rota-sleep"></div>
@@ -1362,29 +1365,29 @@ function dayInfo(date){
   else if(p.slot==="off1"&&!prevNight){slot="off";label="Off";def="T"}
   else if(p.slot==="n2"&&!prevNight){slot="n1";label="Night 1"}
   const o=(D.days[date]&&D.days[date].type)||L.over[date];
-  const type=o==="T"||o==="R"?o:def;
+  const type=o==="T"||o==="R"?o:(typeof rugbyOf==="function"&&rugbyOf(date)?"T":def);
   const trow=(SCHED[slot]&&SCHED[slot][o0type(date,def)]&&SCHED[slot][o0type(date,def)].rows||[]).find(r=>r[1]==="run");
   const usual=slot===p.slot&&p.run?{run:p.run,at:p.runAt||"16:30",kind:p.runKind||"easy"}:trow?{run:trow[2]||(trow[3]==="speed"?"Speed run":"Easy run"),at:trow[0],kind:trow[3]==="speed"?"speed":"easy"}:null,ro=D.days[date]&&D.days[date].run;
   let rn=usual?{...usual}:null;if(ro)rn=ro.kind==="none"?null:{run:ro.label||(ro.kind==="speed"?"Speed run":"Easy run"),at:ro.at||"16:30",kind:ro.kind==="speed"?"speed":"easy"};
-  const r2=!ro&&slot===p.slot&&p.run2?p.run2:null;
-  return {...p,slot,label,def,ot,idx:i,type,date,runUsual:usual,run:rn?rn.run:undefined,runAt:rn?rn.at:undefined,runKind:rn?rn.kind:undefined,run2:r2?r2.label:undefined,run2At:r2?r2.at:undefined,run2Kind:r2?r2.kind:undefined,sched:SCHED[slot][type]};
+  const r2=!ro&&slot===p.slot&&p.run2?p.run2:null,rug=typeof rugbyOf==="function"?rugbyOf(date):null;
+  return {...p,slot,label,def,ot,idx:i,type,date,runUsual:usual,run:rn?rn.run:undefined,runAt:rn?rn.at:undefined,runKind:rn?rn.kind:undefined,run2:r2?r2.label:undefined,run2At:r2?r2.at:undefined,run2Kind:r2?r2.kind:undefined,rugby:rug,sched:SCHED[slot][type]};
 }
 const dayType=s=>dayInfo(s).type;
 /* Which session goes on a day: what you logged there, or the next one in your split counted forward over upcoming training days. Rest days push everything along. */
 function plannedWorkout(date){
   const logged=D.workouts.filter(w=>w.date===date).sort((a,b)=>(a._id<b._id?1:-1))[0];if(logged)return logged.title;
-  if(dayType(date)!=="T"||date<TODAY||typeof ORDER==="undefined")return null;
+  if(!gymDay(date)||date<TODAY||typeof ORDER==="undefined")return null;
   let i=nextIndex();
-  for(let d=TODAY,g=0;d<=date&&g<60;d=addDays(d,1),g++){if(dayType(d)!=="T"||D.workouts.some(w=>w.date===d))continue;
+  for(let d=TODAY,g=0;d<=date&&g<60;d=addDays(d,1),g++){if(!gymDay(d)||D.workouts.some(w=>w.date===d))continue;
     const pick=D.days[d]&&D.days[d].session;if(pick&&ORDER.includes(pick))i=ORDER.indexOf(pick);
     if(d===date)return ORDER[i%ORDER.length];i++}
   return null}
 /* the next session you'll do: today's if today is a training day you haven't logged, otherwise the next training day's */
-function nextPlanned(){const lg=D.workouts.some(w=>w.date===TODAY);for(let k=lg?1:0;k<21;k++){const d=addDays(TODAY,k);if(dayType(d)==="T"&&!D.workouts.some(w=>w.date===d)){const t=plannedWorkout(d);if(t)return t}}return nextTemplate()}
+function nextPlanned(){const lg=D.workouts.some(w=>w.date===TODAY);for(let k=lg?1:0;k<21;k++){const d=addDays(TODAY,k);if(gymDay(d)&&!D.workouts.some(w=>w.date===d)){const t=plannedWorkout(d);if(t)return t}}return nextTemplate()}
 async function saveDayDoc(date,patch){
   const cur={...(D.days[date]||{}),...patch,date};Object.keys(cur).forEach(k=>{if(cur[k]==null)delete cur[k]});
   ["add","skip"].forEach(k=>{if(Array.isArray(cur[k])&&!cur[k].length)delete cur[k]});
-  const empty=!cur.type&&!cur.shift&&!cur.run&&!cur.add&&!cur.skip&&!cur.session;if(empty)delete D.days[date];else D.days[date]=cur;
+  const empty=!cur.type&&!cur.shift&&!cur.run&&!cur.add&&!cur.skip&&!cur.session&&!cur.rugby;if(empty)delete D.days[date];else D.days[date]=cur;
   L.shifts={...(L.shifts||{})};if(cur.shift)L.shifts[date]=cur.shift;else delete L.shifts[date];saveL();renderDayAll();
   if(db){try{empty?await db.doc("days/"+date).delete():await db.doc("days/"+date).set(cur)}catch(e){}}
 }
@@ -1528,7 +1531,7 @@ function renderActivity(){
   const wk=[...Array(7)].map((_,i)=>addDays(TODAY,-i-1)).filter(inPlan).map(d=>D.habits[d]).filter(x=>x&&num(x.stepsN)!=null);
   $("act-sum").textContent=wk.length?`7-day avg ${Math.round(wk.reduce((a,x)=>a+num(x.stepsN),0)/wk.length).toLocaleString()} steps`:"";
   const tw=D.workouts.find(w=>w.date===TODAY),title=tw?tw.title:(W?W.title:(dayType(TODAY)==="T"?nextTemplate():""));
-  $("a-note").textContent=title&&CARDIO_DAYS.includes(norm(title))?`${title} day: 15 min stair master on level 6 after training.`:"";
+  $("a-note").textContent="";
   ["a-steps","a-cmin","a-burn","a-save","a-stair","log-save","q-weight"].forEach(id=>$(id).disabled=!db);
 }
 async function saveActivity(patch){
@@ -1962,6 +1965,7 @@ function rowsFor(info){let rows=[[WAKE[info.slot][info.type],"info","Wake up"],.
     (dd.add||[]).forEach(a=>{if(a[1]==="info"||MEALS[a[1]])insertRow(rows,a[0],a[1],a[1]==="info"?a[2]:undefined)})}
   if(info.run){const at=info.runAt||"16:30",i=rows.findIndex(r=>r[0]>at);rows.splice(i<0?rows.length:i,0,[at,"info",info.run,"run"]);}
   if(info.run2){const at=info.run2At||"16:30",i=rows.findIndex(r=>r[0]>at);rows.splice(i<0?rows.length:i,0,[at,"info",info.run2,"run"]);}
+  if(info.rugby){if(info.rugby.noGym)rows=rows.filter(r=>r[1]!=="train");insertRow(rows,info.rugby.at||"19:00","info",rugbyLabel(info.rugby));const x=rows.find(r=>r[2]===rugbyLabel(info.rugby)&&r[1]==="info");if(x)x[3]="rugby"}
   if(L.nightHelp!==false&&(info.slot==="n1"||info.slot==="n2")){const mm=t=>{const [h,m]=t.split(":").map(Number);return h*60+m},ff=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")};
     let prev=-1;const cum=rows.map(r=>{let m=mm(r[0]);while(m<prev)m+=1440;prev=m;return m}),bi=rows.findIndex(r=>r[1]==="info"&&/^bed\b/i.test(r[2]||""));
     if(bi>0&&!rows.some(r=>/last caffeine/i.test(r[2]||"")))insertRow(rows,ff(cum[bi]-480),"info","Last caffeine: no coffee, energy drinks or pre-workout after this");
@@ -1980,7 +1984,7 @@ function renderDay(){if(EDITING_TIME)return;renderFlex();renderTrainLog();render
   $("d-label").textContent=onShift?`Your shift · ${WD(TODAY)} ${nice(TODAY)} – ${WD(calNow)} ${nice(calNow)}`:(TODAY!==calNow&&VIEW===calNow?"Starts at 7am":VIEW===TODAY?"Today":VIEW===addDays(TODAY,1)?"Tomorrow":VIEW===addDays(TODAY,-1)?"Yesterday":WD(VIEW))+" · "+nice(VIEW);
   $("d-label").title=onShift?"You're still on the night shift you started yesterday. Your new day starts at 7am when the shift ends.":"";
   $("d-shift").textContent=inPlan(VIEW)?`${info.label} · ${s.sum}`:"Before your plan started · saved for your info, not counted";
-  {const lg=D.workouts.find(w=>w.date===VIEW);$("today-pill").textContent=lg?"Trained · "+lg.title:info.type==="T"?(plannedWorkout(VIEW)?"Training · "+plannedWorkout(VIEW):"Training day"):"Rest day"}
+  {const lg=D.workouts.find(w=>w.date===VIEW);$("today-pill").textContent=lg?"Trained · "+lg.title:info.rugby&&info.rugby.noGym?rugbyLabel(info.rugby)+" day":info.type==="T"?(plannedWorkout(VIEW)?"Training · "+plannedWorkout(VIEW):"Training day")+(info.rugby?" + rugby":""):"Rest day"}
   $("today-pill").className="pill "+(info.type==="T"?"good":"warn");
   $("today-hint").textContent=`${P.kcal.toLocaleString()} kcal · ${P.p}g P`;
   $("today-flip").textContent=info.type==="T"?"Make it a rest day":"Make it a training day";const inRota=VIEW>=TODAY&&VIEW<=addDays(TODAY,7);$("today-flip").hidden=inRota;$("today-plan").hidden=!inRota;
@@ -2810,20 +2814,21 @@ function renderRota(){
   const inf=dayInfo(ROTA_SEL),s=inf.sched;
   {const pat=PATTERN[inf.idx].label.replace(" · after nights","");$("rota-shift").innerHTML=`<span class="note">Shift</span><div class="opts" role="group" aria-label="Shift on this day">${[["",`Usual (${pat})`],["day","Day"],["night","Night"],["off","Off"],["leave","Leave"]].map(([v,n])=>`<button type="button" class="opt" data-shift="${v}" aria-pressed="${(inf.ot||"")===v}">${n}</button>`).join("")}</div>${inf.ot&&inf.ot!=="off"?`<span class="note">Set to rest by default. Switch it to training if you want to train too.</span>`:""}`}
   $("rota-title").textContent=`${niceLong(ROTA_SEL)} · ${inf.label}${inf.type==="T"&&plannedWorkout(ROTA_SEL)?" · "+plannedWorkout(ROTA_SEL):""}`;
-  $("rota-pill").innerHTML=`<span class="pill ${inf.type==="T"?"good":"warn"}">${inf.type==="T"?"Training":"Rest"}</span>`;
+  $("rota-pill").innerHTML=`<span class="pill ${inf.type==="T"?"good":"warn"}">${inf.rugby&&inf.rugby.noGym?"Rugby day":inf.type==="T"?"Training":"Rest"}</span>`;
   const RP=TGd(ROTA_SEL,inf.type),fx=flexOf(ROTA_SEL);$("rota-flip").textContent=inf.type==="T"?"Make it a rest day":"Make it a training day";$("rota-flex").textContent=fx?`Flex day on · +${fx}`:"Flex day";$("rota-flex").classList.toggle("primary",!!fx);
   $("rota-kcal").textContent=`${RP.kcal.toLocaleString()} kcal · ${RP.p}g P`;
   $("timeline").innerHTML=rowsFor(inf).map(([time,id,txt,flag])=>{
     if(id==="train")return `<li class="train k-train"><time>${time}</time><span class="dot"></span><div class="what"><strong>Train${plannedWorkout(ROTA_SEL)?" · "+plannedWorkout(ROTA_SEL):""}</strong><span>Sip the intra-workout drink</span></div></li>`;
-    if(id==="work"||id==="info"){const k=flag==="run"?"run":id==="work"?"work":/^wake up$|^bed\b|sleep/i.test(txt)?"sleep":"note";return `<li class="work k-${k}"><time>${time}</time><span class="dot"></span><div class="what"><strong>${esc(txt)}</strong>${k==="run"?`<span>${inf.runKind==="speed"?"Speed run":"Easy run"}</span>`:""}</div></li>`}
+    if(id==="work"||id==="info"){const k=flag==="run"||flag==="rugby"?"run":id==="work"?"work":/^wake up$|^bed\b|sleep/i.test(txt)?"sleep":"note";return `<li class="work k-${k}"><time>${time}</time><span class="dot"></span><div class="what"><strong>${esc(txt)}</strong>${k==="run"&&flag!=="rugby"?`<span>${inf.runKind==="speed"?"Speed run":"Easy run"}</span>`:""}</div></li>`}
     const m=MEALS[id];if(!m)return "";const al=effAlt(ROTA_SEL,id),alts=Object.entries(D.alts).filter(([,a])=>a.for===id);
     const mac=al?`${al.p}P · ${al.c}C · ${al.f}F · ${al.kcal} kcal`:macT(mealMac(id,ROTA_SEL));
     const opts=alts.length?`<div class="opts" role="group" aria-label="Which version of ${esc(m.m)}">${[["plan",m.short||"Plan meal"],...alts.map(([aid,a])=>[aid,a.short||a.name])].map(([k,n])=>`<button type="button" class="opt" data-rpick="${id}:${k}" aria-pressed="${al?al.id===k:k==="plan"}">${esc(n)}</button>`).join("")}</div>`:"";
     return `<li class="k-meal"><time>${time}</time><span class="dot"></span><div class="what"><strong>${esc(mealTitle(ROTA_SEL,id))}</strong><span>${al?esc(al.name):mealParts(id,ROTA_SEL).map(x=>F[x.it[0]].n.replace(/\s*\(.*\)/,"")+(x.scaled?` ${fmt(x.it[1],"g")}`:"")).join(", ")}</span><span class="mono">${mac}</span>${al&&al.desc?`<span class="why">${esc(al.desc)}</span>`:""}${al&&al.isDefault?`<span class="why">Your usual on early training days</span>`:""}${opts}</div></li>`}).join("");
   $("shiftnote").textContent=[scaleNote(ROTA_SEL),s.note].filter(Boolean).join(" ");
+  if($("rota-rugby"))$("rota-rugby").innerHTML=rugbyEditHTML(ROTA_SEL);
   renderOnce(inf);if($("rota-sleep"))$("rota-sleep").innerHTML=sleepHTML(ROTA_SEL);
   {const el=$("rota-session"),d=ROTA_SEL,lg=D.workouts.find(w=>w.date===d);
-    if(inf.type!=="T"||lg||d<TODAY){el.innerHTML=lg?`<p class="note">Logged: <b>${esc(lg.title)}</b></p>`:"";}
+    if(inf.type!=="T"||(inf.rugby&&inf.rugby.noGym)||lg||d<TODAY){el.innerHTML=lg?`<p class="note">Logged: <b>${esc(lg.title)}</b></p>`:"";}
     else{const pick=D.days[d]&&D.days[d].session,cur=plannedWorkout(d);
       el.innerHTML=`<div class="sessrow"><label class="field" for="rs-sel">Session this day<select id="rs-sel">${ORDER.map((n,i)=>ORDER.indexOf(n)===i?`<option ${n===cur?"selected":""}>${esc(n)}</option>`:"").join("")}</select></label>${pick?`<button class="x" type="button" id="rs-reset">Back to the split order</button>`:""}</div><p class="note">${pick?"You picked this. ":""}The days after it carry on through your split from here.</p>`}}
 }
@@ -2895,7 +2900,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="14 Nov 2026 (i)";
+const APP_VERSION="16 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3127,6 +3132,30 @@ document.addEventListener("click",async e=>{if(!(e.target.closest&&e.target.clos
   if(t.id==="pe-reset"){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to reset";return}const P=planDoc();delete P.sched[PED.slot+":"+PED.type];D.plan=P;PED.dirty=false;await savePlan();pedLoad(PED.slot,PED.type);renderDays();return}});
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-medit]");if(b){medOpen(b.dataset.medit);return}
   if(e.target.closest("#nmeal-new")){const id="x"+Date.now().toString(36),P=planDoc();P.meals={...P.meals,[id]:{m:"New meal",items:[["chicken",150]]}};D.plan=P;await savePlan();medOpen(id)}});
+
+/* ---------- rugby: one-off or every week on a weekday; a rugby day replaces the gym ---------- */
+D.rugby=null;
+const RUGBY_KINDS={training:"Rugby training",match:"Rugby match"};
+function rugbyLabel(r){return ({training:"Rugby training",match:"Rugby match"})[r.kind]||"Rugby"}
+function rugbyRow(inf){const r=inf.rugby;if(!r)return "";const wk=r.weekly?`every ${pd(inf.date).toLocaleDateString("en-GB",{weekday:"long"})}`:"just this day";
+  return `<div class="rugbox"><div class="row between"><b>Rugby</b>${r?`<span class="pill">${esc(rugbyLabel(r))} · ${esc(r.at)}</span>`:""}</div><p class="note">${r.noGym?"Rugby day: no gym session, training-day food.":"Rugby on top of your gym session."} Set ${wk}.</p></div>`}
+function rugbyEditHTML(date){const inf=dayInfo(date),r=inf.rugby,wd=pd(date).toLocaleDateString("en-GB",{weekday:"long"}),cur=r?r.kind:"none";
+  return `<div class="rugbox"><span class="note">Rugby</span><div class="opts" role="group" aria-label="Rugby on this day">${[["none","None"],["training","Training"],["match","Match"]].map(([v,n])=>`<button type="button" class="opt" data-rug="${v}" aria-pressed="${cur===v}">${n}</button>`).join("")}</div>
+  ${r?`<div class="g2"><label class="note">Time<input type="time" id="rug-at" value="${esc(r.at)}"></label><label class="chkline"><input type="checkbox" id="rug-nogym" ${r.noGym?"checked":""}> Rugby only (no gym)</label></div>
+  <label class="chkline"><input type="checkbox" id="rug-weekly" ${r.weekly?"checked":""}> Every ${wd}</label>`:`<p class="note">Pick Training or Match to add rugby to this day.</p>`}</div>`}
+function rugbyOf(date){const dd=D.days&&D.days[date]&&D.days[date].rugby;if(dd)return dd.none?null:{...dd,weekly:false};const w=D.rugby&&D.rugby.weekly&&D.rugby.weekly[pd(date).getDay()];return w?{...w,weekly:true}:null}
+function gymDay(d){const i=dayInfo(d);return i.type==="T"&&!(i.rugby&&i.rugby.noGym)}
+async function saveRugbyWeekly(wd,v){const wk={...((D.rugby&&D.rugby.weekly)||{})};if(v)wk[wd]=v;else delete wk[wd];D.rugby={weekly:wk};if(db){try{await db.doc("prefs/rugby").set(D.rugby)}catch(e){}}renderDayAll()}
+async function setRugby(date,patch){const cur=rugbyOf(date),wd=pd(date).getDay();
+  if(patch.kind==="none"){if(cur&&cur.weekly){await saveDayDoc(date,{rugby:{none:true}})}else await saveDayDoc(date,{rugby:null});return}
+  const next={kind:patch.kind??(cur?cur.kind:"training"),at:patch.at??(cur?cur.at:"19:00"),noGym:patch.noGym??(cur?cur.noGym:true)},weekly=patch.weekly??(cur?cur.weekly:false);
+  if(weekly){await saveDayDoc(date,{rugby:null});await saveRugbyWeekly(wd,next)}
+  else{if(cur&&cur.weekly&&patch.weekly===false)await saveRugbyWeekly(wd,null);await saveDayDoc(date,{rugby:next})}}
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#rota-rugby [data-rug]");if(!b)return;await setRugby(ROTA_SEL,{kind:b.dataset.rug})});
+document.addEventListener("change",async e=>{const t=e.target;if(!t.closest||!t.closest("#rota-rugby"))return;
+  if(t.id==="rug-at"&&/^\d\d:\d\d$/.test(t.value))await setRugby(ROTA_SEL,{at:t.value});
+  if(t.id==="rug-nogym")await setRugby(ROTA_SEL,{noGym:t.checked});
+  if(t.id==="rug-weekly")await setRugby(ROTA_SEL,{weekly:t.checked})});
 
 /* ---------- running ---------- */
 /* run plan as boxes: day of the cycle, time, type, note */
@@ -3774,7 +3803,7 @@ function sleepHTML(date){const s=sleepPlan(date),h=Math.floor(s.len/60),m=s.len%
 function renderWeek(){const el=$("week-card");if(!el)return;const from=addDays(TODAY,-6),days=[...Array(7)].map((_,i)=>addDays(from,i));
   const wts=d0=>D.checkins.filter(c=>c.date>=addDays(d0,-6)&&c.date<=d0&&num(c.weight)!=null).map(c=>num(c.weight)),a=wts(TODAY),b=wts(addDays(TODAY,-7)),av=x=>x.length?x.reduce((p,q)=>p+q,0)/x.length:null;
   const wc=a.length>=2&&b.length>=2?av(a)-av(b):null;
-  const done=D.workouts.filter(w=>w.date>=from&&w.date<=TODAY),planned=days.filter(d=>dayType(d)==="T").length;
+  const done=D.workouts.filter(w=>w.date>=from&&w.date<=TODAY),planned=days.filter(d=>gymDay(d)).length;
   const H=liftHistory();const up=Object.values(H).filter(h=>h.ss.some((s,i)=>i&&s.date>=from&&s.perf>h.ss[i-1].perf+0.05)).map(h=>h.name);
   const prot=days.map(d=>eatenTotals(d)).filter(t=>t.kcal>0).map(t=>t.p),sl=days.map(d=>num((D.habits[d]||{}).sleepH)).filter(v=>v!=null);
   const km=(D.runs||[]).filter(r=>r.date>=from&&r.date<=TODAY).reduce((s,r)=>s+(+r.km||0),0);
@@ -3919,14 +3948,14 @@ const shortLbl=inf=>inf.ot?(inf.ot==="day"?"Extra day":inf.ot==="night"?"Extra n
 const kindOf=inf=>inf.ot==="leave"?"leave":inf.slot==="day"?"day":inf.slot==="n1"||inf.slot==="n2"?"night":"off";
 function rotaSummary(def){const ds=(def||currentRota()).days,parts=[];let i=0;while(i<ds.length){let j=i;while(j<ds.length&&ds[j].type===ds[i].type)j++;const n=j-i,t=ds[i].type;parts.push(n+" "+(t==="day"?(n>1?"days":"day"):t==="night"?(n>1?"nights":"night"):"off"));i=j}return parts.join(", ")+", repeating"}
 function rotaDays(){const v=rotaView();if(v==="personal")return [...Array(cycleLen())].map((_,i)=>addDays(TODAY,i));if(v==="week"){const mon=addDays(mondayOf(TODAY),7*ROTA_WK);return [...Array(7)].map((_,i)=>addDays(mon,i))}return [...Array(7)].map((_,i)=>addDays(TODAY,i))}
-function rotaBarHTML(days){return days.map(d=>{const inf=dayInfo(d);return `<button class="rd k-${kindOf(inf)}${d===TODAY?" today":""}${inf.ot?" ot":""}" data-rd="${d}" data-t="${inf.type}" aria-pressed="${d===ROTA_SEL}"><b>${d===TODAY?"Today":WD(d)}</b><small>${pd(d).getDate()} · ${esc(shortLbl(inf))}${flexOf(d)?" · Flex":""}</small><span>${inf.type==="T"?esc(plannedWorkout(d)||"Train"):"Rest"}</span>${inf.run?'<i class="rdot run" title="Run"></i>':""}</button>`}).join("")}
+function rotaBarHTML(days){return days.map(d=>{const inf=dayInfo(d);return `<button class="rd k-${kindOf(inf)}${d===TODAY?" today":""}${inf.ot?" ot":""}" data-rd="${d}" data-t="${inf.type}" aria-pressed="${d===ROTA_SEL}"><b>${d===TODAY?"Today":WD(d)}</b><small>${pd(d).getDate()} · ${esc(shortLbl(inf))}${flexOf(d)?" · Flex":""}</small><span>${inf.rugby&&inf.rugby.noGym?"Rugby":inf.type==="T"?esc(plannedWorkout(d)||"Train"):"Rest"}</span>${inf.run?'<i class="rdot run" title="Run"></i>':""}${inf.rugby?'<i class="rdot rug" title="Rugby"></i>':""}</button>`}).join("")}
 function monthHTML(){const base=pd(TODAY);base.setDate(1);base.setMonth(base.getMonth()+ROTA_MO);const first=iso(base),y=base.getFullYear(),m=base.getMonth(),last=new Date(y,m+1,0).getDate(),lead=(base.getDay()+6)%7;
   const cells=[];for(let i=0;i<lead;i++)cells.push('<div class="mc empty"></div>');
   for(let dd=1;dd<=last;dd++){const d=iso(new Date(y,m,dd)),inf=dayInfo(d),k=kindOf(inf),lg=D.workouts.some(w=>w.date===d);
-    cells.push(`<div class="mc k-${k}${d===TODAY?" today":""}${d<TODAY?" past":""}" title="${niceLong(d)}: ${esc(shortLbl(inf))}, ${inf.type==="T"?"training":"rest"}"><b>${dd}</b><span>${k==="day"?"D":k==="night"?"N":k==="leave"?"Leave":"Off"}</span><em>${inf.type==="T"?`<i class="rdot ${lg?"done":"gym"}"></i>`:""}${inf.run?'<i class="rdot run"></i>':""}</em></div>`)}
+    cells.push(`<div class="mc k-${k}${d===TODAY?" today":""}${d<TODAY?" past":""}" title="${niceLong(d)}: ${esc(shortLbl(inf))}, ${inf.type==="T"?"training":"rest"}"><b>${dd}</b><span>${k==="day"?"D":k==="night"?"N":k==="leave"?"Leave":"Off"}</span><em>${inf.type==="T"&&!(inf.rugby&&inf.rugby.noGym)?`<i class="rdot ${lg?"done":"gym"}"></i>`:""}${inf.run?'<i class="rdot run"></i>':""}${inf.rugby?'<i class="rdot rug"></i>':""}</em></div>`)}
   return `<div class="row between mnav"><button class="btn small ghost" type="button" data-mo="-1" aria-label="Previous month">‹</button><b>${base.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}</b><button class="btn small ghost" type="button" data-mo="1" aria-label="Next month">›</button></div>
   <div class="month">${["M","T","W","T","F","S","S"].map(x=>`<div class="mh">${x}</div>`).join("")}${cells.join("")}</div>
-  <div class="klegend"><span><i class="lg k-day"></i>Day shift</span><span><i class="lg k-night"></i>Night shift</span><span><i class="lg k-off"></i>Day off</span><span><i class="lg k-leave"></i>Leave</span><span><i class="rdot gym"></i>Training day</span><span><i class="rdot done"></i>Trained</span><span><i class="rdot run"></i>Run</span></div>`}
+  <div class="klegend"><span><i class="lg k-day"></i>Day shift</span><span><i class="lg k-night"></i>Night shift</span><span><i class="lg k-off"></i>Day off</span><span><i class="lg k-leave"></i>Leave</span><span><i class="rdot gym"></i>Training day</span><span><i class="rdot done"></i>Trained</span><span><i class="rdot run"></i>Run</span><span><i class="rdot rug"></i>Rugby</span></div>`}
 const PRESETS=[["My rota: 2 days, 2 nights, 4 off",()=>defaultRota()],["4 days, 4 off",()=>({start:TODAY,days:[..."DDDDOOOO"].map(c=>({type:c==="D"?"day":"off",train:"T"}))})],
   ["4 nights, 4 off",()=>({start:TODAY,days:[..."NNNNOOOO"].map((c,i)=>({type:c==="N"?"night":"off",train:c==="N"&&i>0?"R":"T"}))})],["Mon–Fri days, weekends off",()=>({start:mondayOf(TODAY),days:[..."DDDDDOO"].map(c=>({type:c==="D"?"day":"off",train:"T"}))})]];
 function customHTML(){const d=RP_DRAFT||(RP_DRAFT=JSON.parse(JSON.stringify(currentRota())));
@@ -4405,6 +4434,7 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
   db.doc("prefs/supersets").onSnapshot(s=>{D.ssmap=(s.exists&&s.data().map)||{}},()=>{});
   db.doc("prefs/injuries").onSnapshot(s=>{D.injuries=s.exists?s.data():null;renderInjuries();if(!W)renderStart()},()=>{});
   db.doc("prefs/volset").onSnapshot(s=>{D.volset=s.exists?s.data():null;renderAnalytics();if(!W)renderStart()},()=>{});
+  db.doc("prefs/rugby").onSnapshot(s=>{D.rugby=s.exists?s.data():null;try{renderDayAll()}catch(e){}},()=>{});
   db.doc("prefs/daily").onSnapshot(s=>{D.daily=s.exists?s.data():null;applyDaily();renderToday()},()=>{});
   db.doc("prefs/goals").onSnapshot(s=>{D.goals=s.exists?s.data():null;renderGoals();renderProgress()},()=>{});
   db.doc("prefs/rota").onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&d.days&&JSON.stringify(d)!==JSON.stringify(L.rota||null)){L.rota=d;saveL();applyRotaDef(d);applyRunPlan();try{renderDayAll();renderRun();renderStart()}catch(e){}}},()=>{});
