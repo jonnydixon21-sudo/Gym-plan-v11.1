@@ -2084,14 +2084,20 @@ $("eat").addEventListener("click",e=>{const b=e.target.closest("button.food");if
 });
 $("eat").addEventListener("click",e=>{const i=e.target.dataset.xrm;if(i==null)return;
   const cur=D.food[VIEW]||{};const extras=(cur.extras||[]).filter((_,j)=>j!=i);saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras})});
+/* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
+const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
 /* Per-unit macros for every plan food, worked out from the coach's sheet */
 const FM=(()=>{const m={};Object.keys(MEALS).forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!m[k]&&v&&a>0&&v[0]>0)m[k]={kcal:v[0]/a,p:v[1]/a,c:v[2]/a,f:v[3]/a,def:a}}));
   m.weetabix={kcal:68,p:2.25,c:13,f:0.4,def:2};m.mince={kcal:1.25,p:0.207,c:0,f:0.047,def:250};m.beans={kcal:0.98,p:0.07,c:0.13,f:0.006,def:60};m.almondmilk={kcal:0.13,p:0.004,c:0,f:0.011,def:200};return m})();
-function pfFill(){const groups={};Object.keys(FM).filter(k=>F[k]&&!isRemoved(k)).forEach(k=>{(groups[F[k].a]=groups[F[k].a]||[]).push(k)});
-  $("pf-food").innerHTML=`<option value="">Choose…</option>`+[...AISLES].filter(a=>groups[a]).map(a=>`<optgroup label="${a}">${groups[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}">${F[k].n}</option>`).join("")}</optgroup>`).join("")}
-function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!FM[k]||!q){$("pf-mac").textContent="";return null}
-  const m=FM[k],r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pf-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
-$("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=FM[k].def;pfCalc()});
+/* Every food the app knows about (plan foods, extra foods and your own added foods), not just the ones in your current meals */
+const pfNut=k=>{if(FM[k])return FM[k];const n=NUT_EXTRA[k];if(!n||!F[k])return null;const u=F[k].u;return {kcal:n[0],p:n[1],c:n[2],f:n[3],def:u===""?1:u==="ml"?200:100}};
+function pfFill(){const sel=$("pf-food");if(!sel)return;const keep=sel.value,groups={};
+  Object.keys(F).filter(k=>{const m=pfNut(k);return m&&m.kcal>0}).forEach(k=>{const a=AISLES.includes(F[k].a)?F[k].a:"Other";(groups[a]=groups[a]||[]).push(k)});
+  sel.innerHTML=`<option value="">Choose…</option>`+[...AISLES,"Other"].filter(a=>groups[a]).map(a=>`<optgroup label="${a}">${groups[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}">${esc(F[k].n)}</option>`).join("")}</optgroup>`).join("");
+  if(keep&&groups&&pfNut(keep))sel.value=keep}
+function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!pfNut(k)||!q){$("pf-mac").textContent="";return null}
+  const m=pfNut(k),r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pf-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
+$("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","basmati","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=pfNut(k).def;pfCalc()});
 $("pf-amt").addEventListener("input",pfCalc);
 $("pf-add").addEventListener("click",()=>{const k=$("pf-food").value,q=num($("pf-amt").value),r=pfCalc();if(!k||!r)return flash("pf-toast","Choose a food and amount");
   const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r}]});
@@ -2949,8 +2955,6 @@ const SLOTS=[["day","Day shift"],["n1","Night 1"],["n2","Night 2"],["off1","Off,
 const BASE={T:dcl(PLAN.T.meals),R:dcl(PLAN.R.meals),IM:dcl(IM),SCHED:dcl(SCHED),WAKE:dcl(WAKE),
   TG:{T:{kcal:PLAN.T.kcal,p:PLAN.T.p,c:PLAN.T.c,f:PLAN.T.f},R:{kcal:PLAN.R.kcal,p:PLAN.R.p,c:PLAN.R.c,f:PLAN.R.f}}};
 const BASE_IDS=new Set([...BASE.T,...BASE.R].map(m=>m.id));
-/* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
-const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
 const nutOf=k=>{const m=FM[k];return m?[m.kcal,m.p,m.c,m.f]:NUT_EXTRA[k]||null};
 const macroFor=(k,a)=>{const n=nutOf(k);return n?n.map(x=>Math.round(x*a)):[0,0,0,0]};
 const autoLabel=(k,a)=>{const f=F[k];if(!f)return undefined;
@@ -2972,6 +2976,7 @@ function applyPlan(){const P=D.plan||{};
   if(del.size){[PLAN.T.meals,PLAN.R.meals].forEach(a=>{for(let i=a.length-1;i>=0;i--)if(del.has(a[i].id))a.splice(i,1)});del.forEach(id=>{delete MEALS[id];delete IM[id]});
     SLOTS.forEach(([s])=>["T","R"].forEach(t=>{if(SCHED[s]&&SCHED[s][t])SCHED[s][t].rows=SCHED[s][t].rows.filter(r=>!del.has(r[1]))}))}
   ["T","R"].forEach(t=>{const g=(P.targets||{})[t]||BASE.TG[t];Object.assign(PLAN[t],{kcal:g.kcal,p:g.p,c:g.c,f:g.f})});
+  pfFill();
 }
 async function savePlan(){applyPlan();if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(e){}}renderPlanViews()}
 function renderPlanViews(){try{renderDayAll();renderPlans();renderDays();renderDay();renderShop()}catch(e){console.error(e)}}
