@@ -403,6 +403,7 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
+.ntfy-steps{margin:0;padding-left:20px;display:grid;gap:8px;font-size:.92rem}.ntopic{background:var(--surface-2);border-radius:8px;padding:8px 10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;user-select:all;-webkit-user-select:all}#ntfy-body{display:grid;gap:10px}
 .rugbox{display:grid;gap:8px}.rugbox .chkline{display:flex;gap:8px;align-items:center}.rugbox input[type=time]{font:inherit;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
 .rdot.rug{background:#8b5cf6}
 .updbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:.92rem}
@@ -1060,6 +1061,10 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
       <p class="note" id="ac-name"></p>
       <h3>Workouts</h3>
       <label class="chkline"><input type="checkbox" id="ka-on"> Keep the screen on during a workout, so the rest timer can beep and flash when it ends</label>
+    </div>
+    <div class="card" id="ntfy-card">
+      <h2>Rest alerts on your phone and watch</h2>
+      <div id="ntfy-body"></div>
     </div>
     <div class="card" id="set-card">
       <h2>Backup</h2>
@@ -2088,14 +2093,20 @@ $("eat").addEventListener("click",e=>{const b=e.target.closest("button.food");if
 });
 $("eat").addEventListener("click",e=>{const i=e.target.dataset.xrm;if(i==null)return;
   const cur=D.food[VIEW]||{};const extras=(cur.extras||[]).filter((_,j)=>j!=i);saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras})});
+/* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
+const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
 /* Per-unit macros for every plan food, worked out from the coach's sheet */
 const FM=(()=>{const m={};Object.keys(MEALS).forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!m[k]&&v&&a>0&&v[0]>0)m[k]={kcal:v[0]/a,p:v[1]/a,c:v[2]/a,f:v[3]/a,def:a}}));
   m.weetabix={kcal:68,p:2.25,c:13,f:0.4,def:2};m.mince={kcal:1.25,p:0.207,c:0,f:0.047,def:250};m.beans={kcal:0.98,p:0.07,c:0.13,f:0.006,def:60};m.almondmilk={kcal:0.13,p:0.004,c:0,f:0.011,def:200};return m})();
-function pfFill(){const groups={};Object.keys(FM).filter(k=>F[k]&&!isRemoved(k)).forEach(k=>{(groups[F[k].a]=groups[F[k].a]||[]).push(k)});
-  $("pf-food").innerHTML=`<option value="">Choose…</option>`+[...AISLES].filter(a=>groups[a]).map(a=>`<optgroup label="${a}">${groups[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}">${F[k].n}</option>`).join("")}</optgroup>`).join("")}
-function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!FM[k]||!q){$("pf-mac").textContent="";return null}
-  const m=FM[k],r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pf-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
-$("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=FM[k].def;pfCalc()});
+/* Every food the app knows about (plan foods, extra foods and your own added foods), not just the ones in your current meals */
+const pfNut=k=>{if(FM[k])return FM[k];const n=NUT_EXTRA[k];if(!n||!F[k])return null;const u=F[k].u;return {kcal:n[0],p:n[1],c:n[2],f:n[3],def:u===""?1:u==="ml"?200:100}};
+function pfFill(){const sel=$("pf-food");if(!sel)return;const keep=sel.value,groups={};
+  Object.keys(F).filter(k=>{const m=pfNut(k);return m&&m.kcal>0}).forEach(k=>{const a=AISLES.includes(F[k].a)?F[k].a:"Other";(groups[a]=groups[a]||[]).push(k)});
+  sel.innerHTML=`<option value="">Choose…</option>`+[...AISLES,"Other"].filter(a=>groups[a]).map(a=>`<optgroup label="${a}">${groups[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}">${esc(F[k].n)}</option>`).join("")}</optgroup>`).join("");
+  if(keep&&groups&&pfNut(keep))sel.value=keep}
+function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!pfNut(k)||!q){$("pf-mac").textContent="";return null}
+  const m=pfNut(k),r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pf-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
+$("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","basmati","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=pfNut(k).def;pfCalc()});
 $("pf-amt").addEventListener("input",pfCalc);
 $("pf-add").addEventListener("click",()=>{const k=$("pf-food").value,q=num($("pf-amt").value),r=pfCalc();if(!k||!r)return flash("pf-toast","Choose a food and amount");
   const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r}]});
@@ -2656,7 +2667,21 @@ function releaseAwake(){try{SCRLOCK&&SCRLOCK.release()}catch(e){}SCRLOCK=null}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&W)keepAwake()});
 setInterval(()=>{if(!W&&SCRLOCK)releaseAwake()},5000);
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#pv-start,[data-ok],#w-live")&&W!==undefined)setTimeout(()=>{if(W)keepAwake()},50)},true);
-function startRest(sec){keepAwake();try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}
+/* lock-screen and Apple Watch alerts go through the free ntfy app: the app asks ntfy to send a notification when the rest ends */
+function ntfyTopic(){if(!L.ntfyTopic){const a=new Uint8Array(6);(crypto.getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*256));L.ntfyTopic="gymrest-"+[...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,10);saveL()}return L.ntfyTopic}
+function ntfySend(delaySec,msg){if(!L.ntfyOn)return;const q=new URLSearchParams({title:"Rest over",priority:"high",tags:"muscle"});if(delaySec>=10)q.set("delay",Math.round(delaySec)+"s");
+  try{fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic())}?${q}`,{method:"POST",mode:"no-cors",body:msg||"Time for your next set"}).catch(()=>{})}catch(e){}}
+function renderNtfy(){const el=$("ntfy-body");if(!el)return;const t=ntfyTopic();
+  el.innerHTML=`<p class="note">The app can't buzz your phone or watch while the screen is locked, so it uses the free <b>ntfy</b> app for this. When a rest timer starts, ntfy sends a notification at the moment it ends. iPhone notifications show on your Apple Watch automatically.</p>
+  <ol class="ntfy-steps"><li>Install <b>ntfy</b> from the App Store and allow notifications.</li><li>In ntfy, tap <b>+</b>, type this topic, then <b>Subscribe</b>:<div class="row" style="flex-wrap:nowrap;margin-top:6px"><code class="mono ntopic">${esc(t)}</code><button class="btn small" type="button" id="ntfy-copy">Copy</button></div></li><li>Turn it on below and tap <b>Send a test</b>.</li></ol>
+  <label class="chkline"><input type="checkbox" id="ntfy-on" ${L.ntfyOn?"checked":""}> Send rest alerts to my phone and watch</label>
+  <div class="row"><button class="btn small" type="button" id="ntfy-test">Send a test</button><span class="toast" id="ntfy-msg" aria-live="polite"></span></div>
+  <p class="note">If you skip a rest early, its alert still arrives, so just ignore it. Keep the topic to yourself; it's how ntfy knows where to send your alerts.</p>`}
+document.addEventListener("change",e=>{if(e.target.id!=="ntfy-on")return;L.ntfyOn=e.target.checked;saveL()});
+document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest("#ntfy-copy,#ntfy-test");if(!t)return;
+  if(t.id==="ntfy-copy"){try{await navigator.clipboard.writeText(ntfyTopic());flash("ntfy-msg","Topic copied")}catch(err){flash("ntfy-msg","Press and hold the topic to copy it")}return}
+  if(!L.ntfyOn){flash("ntfy-msg","Tick the box above first");return}ntfySend(0,"Test from your gym app: rest alerts are working");flash("ntfy-msg","Sent. It should arrive in a few seconds.")});
+function startRest(sec){keepAwake();try{const ex=W&&W.exercises.find(x=>x.sets.some(st=>!st.done));ntfySend(sec,ex?"Next: "+ex.name:"Time for your next set")}catch(e){}try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}
   restLen=sec;restEnd=Date.now()+sec*1000;$("rest").hidden=false;$("rest").classList.remove("end");clearInterval(restI);restI=setInterval(tickRest,250);tickRest()}
 function tickRest(){const left=(restEnd-Date.now())/1000;$("rest-t").textContent=mmss(left);$("rest-fill").style.width=Math.max(0,left/restLen*100)+"%";
   if(left<=0){clearInterval(restI);$("rest").classList.add("end");$("rest-t").textContent="Go";beep();document.body.classList.remove("restflash");void document.body.offsetWidth;document.body.classList.add("restflash");setTimeout(()=>document.body.classList.remove("restflash"),2600);setTimeout(()=>{if(restEnd<=Date.now())$("rest").hidden=true},6000)}}
@@ -2911,13 +2936,13 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="17 Nov 2026";
+const APP_VERSION="17 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
   document.querySelectorAll("[data-ac]").forEach(b=>{const on=b.dataset.ac===(L.accent||"");b.setAttribute("aria-pressed",String(on));if(on&&$("ac-name"))$("ac-name").textContent=b.title});
   document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===(L.theme||""))));
-  if($("nh-on"))$("nh-on").checked=L.nightHelp!==false;if($("ka-on"))$("ka-on").checked=L.keepAwake!==false;if(!PF)renderProfile();const bl=$("bk-last");if(bl){const ago=L.lastBackup?Math.round((pd(TODAY)-pd(L.lastBackup))/864e5):null;
+  if($("nh-on"))$("nh-on").checked=L.nightHelp!==false;renderNtfy();if($("ka-on"))$("ka-on").checked=L.keepAwake!==false;if(!PF)renderProfile();const bl=$("bk-last");if(bl){const ago=L.lastBackup?Math.round((pd(TODAY)-pd(L.lastBackup))/864e5):null;
     bl.textContent=L.lastBackup?`Last backup: ${nice(L.lastBackup)}${ago>=14?" (over two weeks ago, do another)":""}`:"You haven't made a backup yet."}}
 async function deliverFile(file){
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:file.name});return true}}catch(e){if(e&&e.name==="AbortError")return false}
@@ -2960,8 +2985,6 @@ const SLOTS=[["day","Day shift"],["n1","Night 1"],["n2","Night 2"],["off1","Off,
 const BASE={T:dcl(PLAN.T.meals),R:dcl(PLAN.R.meals),IM:dcl(IM),SCHED:dcl(SCHED),WAKE:dcl(WAKE),
   TG:{T:{kcal:PLAN.T.kcal,p:PLAN.T.p,c:PLAN.T.c,f:PLAN.T.f},R:{kcal:PLAN.R.kcal,p:PLAN.R.p,c:PLAN.R.c,f:PLAN.R.f}}};
 const BASE_IDS=new Set([...BASE.T,...BASE.R].map(m=>m.id));
-/* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
-const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
 const nutOf=k=>{const m=FM[k];return m?[m.kcal,m.p,m.c,m.f]:NUT_EXTRA[k]||null};
 const macroFor=(k,a)=>{const n=nutOf(k);return n?n.map(x=>Math.round(x*a)):[0,0,0,0]};
 const autoLabel=(k,a)=>{const f=F[k];if(!f)return undefined;
@@ -2983,6 +3006,7 @@ function applyPlan(){const P=D.plan||{};
   if(del.size){[PLAN.T.meals,PLAN.R.meals].forEach(a=>{for(let i=a.length-1;i>=0;i--)if(del.has(a[i].id))a.splice(i,1)});del.forEach(id=>{delete MEALS[id];delete IM[id]});
     SLOTS.forEach(([s])=>["T","R"].forEach(t=>{if(SCHED[s]&&SCHED[s][t])SCHED[s][t].rows=SCHED[s][t].rows.filter(r=>!del.has(r[1]))}))}
   ["T","R"].forEach(t=>{const g=(P.targets||{})[t]||BASE.TG[t];Object.assign(PLAN[t],{kcal:g.kcal,p:g.p,c:g.c,f:g.f})});
+  pfFill();
 }
 async function savePlan(){applyPlan();if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(e){}}renderPlanViews()}
 function renderPlanViews(){try{renderDayAll();renderPlans();renderDays();renderDay();renderShop()}catch(e){console.error(e)}}
@@ -4250,14 +4274,15 @@ function renderSetup(){const el=$("setup");if(!el||!SU)return;const s=SU,ch=(k,v
     `<h2>Your work pattern</h2><p class="note">Meals, training days and timings follow this. Pick the closest one; you can build your own under Schedule → Custom pattern.</p>
      <div class="row">${s.again?ch("rota","keep","Keep my current pattern"):""}${SU_ROTAS.map(([k,n])=>ch("rota",k,n)).join("")}</div>
      ${s.rota&&s.rota!=="none"&&s.rota!=="mf"&&s.rota!=="keep"?`<label class="note">Day 1 of the pattern (your first ${s.rota==="4n4o"?"night":"day"} shift) falls on<input type="date" id="su-day1" data-suf="day1" value="${esc(s.day1)}"></label>`:""}`,
-    `<h2>Calories and protein</h2><p class="note">${sg?`A starting point for you: about ${sg.kcal.toLocaleString("en-GB")} kcal and ${sg.protein}g protein a day. Adjust it if you know your numbers; the app suggests changes once it sees your weight trend.`:"Enter a daily target."}</p>
+    `<h2>Calories and protein</h2><p class="note">${sg?`A starting point for you: about ${sg.kcal.toLocaleString("en-GB")} kcal and ${sg.protein}g protein a day. Adjust it if you know your numbers; the app suggests changes once it sees your weight trend.`:"Enter your daily calories and protein, or tap Skip to use a starting point."}</p>
      <div class="g2"><label class="note">Calories a day<input id="su-kcal" data-suf="kcal" inputmode="numeric" value="${esc(s.kcal||(sg?sg.kcal:""))}"></label><label class="note">Protein a day (g)<input id="su-protein" data-suf="protein" inputmode="numeric" value="${esc(s.protein||(sg?sg.protein:""))}"></label></div>
      <div><span class="note">Meals</span><div class="row">${ch("meals","starter","Simple starter meals")}${s.again?ch("meals","keep","Keep my current meals"):""}</div></div>
      ${s.meals==="starter"?`<p class="note">Everyday meals (oats, chicken and rice, yoghurt bowls, mince pasta, steak and potatoes, a shake after training) with portions sized to your calories. Edit, swap or replace any of them under Nutrition.</p>`:`<label class="chkline"><input type="checkbox" id="su-fit" ${s.fit?"checked":""}> Scale my current meals to these calories</label>`}`];
   el.innerHTML=`<div class="setup-card"><div class="row between"><span class="note">Step ${s.step+1} of ${steps.length}</span>${s.again?`<button class="x" type="button" id="su-close">Close</button>`:""}</div>
     <div class="sudots">${steps.map((_,i)=>`<i class="${i<=s.step?"on":""}"></i>`).join("")}</div>${steps[s.step]}
     <p class="note" id="su-err" style="color:#d9534f"></p>
-    <div class="row between">${s.step?`<button class="btn ghost" type="button" id="su-back">Back</button>`:"<span></span>"}<button class="btn primary" type="button" id="su-next">${s.step===steps.length-1?"Start my plan":"Next"}</button></div></div>`;
+    <div class="row between">${s.step?`<button class="btn ghost" type="button" id="su-back">Back</button>`:"<span></span>"}<span class="row" style="gap:8px">${!s.again&&(s.step===1||s.step===steps.length-1)?`<button class="btn ghost" type="button" id="su-skip">Skip</button>`:""}<button class="btn primary" type="button" id="su-next">${s.step===steps.length-1?"Start my plan":"Next"}</button></span></div>
+    ${!s.again&&(s.step===1||s.step===steps.length-1)?`<p class="note">${s.step===1?"Skip to set your weight and goal later (Settings → Profile).":"Skip to start on 2,500 kcal and 150g protein. Change it any time in Nutrition → Targets."}</p>`:""}</div>`;
   document.body.classList.add("setup-open")}
 document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.suf;if(k&&SU){SU[k]=e.target.value;const er=$("su-err");if(er)er.textContent=""}});
 document.addEventListener("change",e=>{if(e.target.id==="su-fit"&&SU)SU.fit=e.target.checked});
@@ -4265,8 +4290,10 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
   if(t.dataset.suc){const [k,v]=t.dataset.suc.split(":");SU[k]=v;if(k==="w"&&!SU._l)SU.l=v==="lb"?"in":"cm";if(k==="l")SU._l=true;renderSetup();return}
   if(t.id==="su-close"){SU=null;$("setup").remove();document.body.classList.remove("setup-open");return}
   if(t.id==="su-back"){SU.step--;renderSetup();return}
-  if(t.id!=="su-next")return;const s=SU,lo=s.w==="lb"?66:30,hi=s.w==="lb"?660:300;
+  if(t.id==="su-skip"){if(SU.step===1){SU.skipGoal=true;SU.weight="";SU.goal="";SU.mode="maintain";SU.step++;renderSetup();return}SU.skipCal=true;SU.kcal="2500";SU.protein="150"}
+  if(t.id!=="su-next"&&!(t.id==="su-skip"&&SU.skipCal))return;const s=SU,lo=s.w==="lb"?66:30,hi=s.w==="lb"?660:300;
   if(s.step===0&&!s.name.trim())return err("Add your name.");
+  if(s.step===1)s.skipGoal=false;
   if(s.step===1){const w=n(s.weight),g=n(s.goal);if(!(w>lo&&w<hi))return err(`Enter your weight in ${s.w}.`);if(s.mode!=="maintain"&&!(g>lo&&g<hi))return err(`Enter your goal weight in ${s.w}.`);
     if(s.mode==="bulk"&&g<=w)return err("For a bulk, the goal should be above your weight now.");if(s.mode==="cut"&&g>=w)return err("For a cut, the goal should be below your weight now.")}
   if(s.step===2&&!s.split)return err("Pick a split, or Custom to build your own.");
@@ -4276,14 +4303,14 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
   t.disabled=true;t.textContent="Setting up…";
   try{const w=n(s.weight),g=n(s.goal);
     if(s.again&&(s.w!==unitW()||s.l!==unitL()))await convertUnits(unitW(),s.w,unitL(),s.l);
-    L.profile={name:s.name.trim(),mode:s.mode,startDate:s.again?(SETUP.startDate||TODAY):TODAY,startWeight:w,goalWeight:g>0?g:null,units:{w:s.w,l:s.l}};saveL();
+    L.profile={name:s.name.trim(),mode:s.mode,startDate:s.again?(SETUP.startDate||TODAY):TODAY,startWeight:w>0?w:null,goalWeight:g>0?g:null,units:{w:s.w,l:s.l}};saveL();
     if(s.rota!=="keep")await saveRota(suRota(s.rota));
-    const cal=logicalToday();if(L.profile&&!s.again)L.profile.startDate=cal,saveL();if(!s.again&&db&&!D.checkins.some(c=>c.date===cal))await db.doc("checkins/"+cal).set({date:cal,weight:w,photos:[]});
+    const cal=logicalToday();if(L.profile&&!s.again)L.profile.startDate=cal,saveL();if(!s.again&&db&&w>0&&!D.checkins.some(c=>c.date===cal))await db.doc("checkins/"+cal).set({date:cal,weight:w,photos:[]});
     if(s.split&&s.split!=="keep"){const prog=splitProgram(s.split,s.sessions);D.program=prog;applyNames();if(db)await db.doc("prefs/program").set(prog)}
     if(s.meals==="starter"){starterPlan(kcal,pr);await savePlan()}
     else{const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-pr*4-f*9)/4)),T={kcal,p:pr,c,f};
       const P=planDoc();P.targets={T,R:{...T}};D.plan=P;applyPlan();if(s.fit){const meals={...P.meals};["T","R"].forEach(x=>fitCarbs(meals,x,kcal));P.meals=meals;D.plan=P}await savePlan()}
-    if(db&&s.mode!=="maintain"&&g>0){const wg={id:"gw",type:"weight",mode:s.mode,target:g,startKg:w,by:null};const others=D.goals&&Array.isArray(D.goals.list)?D.goals.list.filter(x=>x.type!=="weight"):[];await db.doc("prefs/goals").set({list:[wg,...others]})}
+    if(db&&s.mode!=="maintain"&&g>0&&w>0){const wg={id:"gw",type:"weight",mode:s.mode,target:g,startKg:w,by:null};const others=D.goals&&Array.isArray(D.goals.list)?D.goals.list.filter(x=>x.type!=="weight"):[];await db.doc("prefs/goals").set({list:[wg,...others]})}
   }catch(ex){console.warn(ex)}
   setTimeout(()=>location.reload(),300)});
 
