@@ -451,7 +451,7 @@ li.lifted{position:relative;z-index:30;box-shadow:0 14px 30px rgba(0,0,0,.25);tr
 li.justmoved{outline:2px solid var(--good);outline-offset:-1px}
 body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 .eatfoot{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-start;margin-top:10px}.eatfoot>details{flex:1 1 0;min-width:0}.eatfoot>details[open]{flex-basis:100%;order:2}
-.eatfoot .tlog{margin:0;flex:none}#run-done .tldone{margin-top:8px}
+.eatfoot .tlog{margin:0;flex:none}.eatfoot>#tadd{flex-basis:100%;order:3}#ta-list ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}#ta-list li{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:.9rem}#run-done .tldone{margin-top:8px}
 .rota.wide .rd{padding:10px 6px}.rota.wide .rd b{font-size:.95rem}.rota.wide .rd small{font-size:.72rem}.rota.wide .rd span{font-size:.7rem;white-space:normal;text-align:center}
 .ed .edcol{display:grid;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
 
@@ -781,7 +781,14 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
           <label class="field" for="x-f">Fat (g)<input id="x-f" type="number" min="0" inputmode="numeric"></label>
         </div>
         <div class="row" style="margin-top:10px"><button class="btn" id="x-add">Add</button><span class="toast" id="x-toast"></span></div>
-      </details><div id="train-log" class="tlog"></div></div>
+      </details><div id="train-log" class="tlog"></div>
+      <details class="extra" id="tadd"><summary id="tadd-sum">Add to today's plan</summary>
+        <p class="note" style="margin-top:8px">Just for this day. Same choices as Plan your days; your usual plan stays as it is.</p>
+        <div class="form"><label class="field" for="ta-type">What<select id="ta-type"><option value="meal">Meal</option><option value="food">Single food</option><option value="train">Gym session</option><option value="run">Run</option><option value="rugby">Rugby</option><option value="work">Work</option><option value="info">Note</option></select></label><label class="field" for="ta-at">Time<input type="time" id="ta-at" value="12:00"></label></div>
+        <div class="form" id="ta-extra"></div>
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="ta-save" type="button">Add to plan</button><span class="toast" id="ta-toast"></span></div>
+        <div id="ta-list"></div>
+      </details></div>
       <div id="run-done"></div>
     </div>
 
@@ -1396,7 +1403,7 @@ function nextPlanned(){const lg=D.workouts.some(w=>w.date===TODAY);for(let k=lg?
 async function saveDayDoc(date,patch){
   const cur={...(D.days[date]||{}),...patch,date};Object.keys(cur).forEach(k=>{if(cur[k]==null)delete cur[k]});
   ["add","skip"].forEach(k=>{if(Array.isArray(cur[k])&&!cur[k].length)delete cur[k]});
-  const empty=!cur.type&&!cur.shift&&!cur.run&&!cur.add&&!cur.skip&&!cur.session&&!cur.rugby;if(empty)delete D.days[date];else D.days[date]=cur;
+  const empty=!cur.type&&!cur.shift&&!cur.run&&!cur.add&&!cur.skip&&!cur.session&&!cur.rugby&&!cur.gymAdd;if(empty)delete D.days[date];else D.days[date]=cur;
   L.shifts={...(L.shifts||{})};if(cur.shift)L.shifts[date]=cur.shift;else delete L.shifts[date];saveL();renderDayAll();
   if(db){try{empty?await db.doc("days/"+date).delete():await db.doc("days/"+date).set(cur)}catch(e){}}
 }
@@ -1971,7 +1978,10 @@ function eatenTotals(date){
 const WAKE={day:{T:"05:30",R:"05:30"},n1:{T:"08:30",R:"08:30"},n2:{T:"13:45",R:"13:45"},off1:{T:"13:00",R:"13:00"},off:{T:"07:30",R:"07:30"}};
 function rowsFor(info){let rows=[[WAKE[info.slot][info.type],"info","Wake up"],...info.sched.rows.filter(r=>r[1]!=="run")];
   {const dd=(info.date&&D.days[info.date])||{};if(dd.skip&&dd.skip.length)rows=rows.filter((r,i)=>i===0||!dd.skip.includes(r[0]+"|"+r[1]));
-    (dd.add||[]).forEach(a=>{if(a[1]==="info"||MEALS[a[1]])insertRow(rows,a[0],a[1],a[1]==="info"?a[2]:undefined)})}
+    (dd.add||[]).forEach(a=>{if(a[1]==="info"||a[1]==="work")insertRow(rows,a[0],a[1],a[2]||"");
+      else if(a[1]==="run"){const lb=a[2]||"Run";insertRow(rows,a[0],"info",lb);const x=rows.find(r=>r[0]===a[0]&&r[1]==="info"&&r[2]===lb&&!r[3]);if(x)x[3]="run"}
+      else if(a[1]==="train"){if(!rows.some(r=>r[1]==="train"))insertRow(rows,a[0],"train")}
+      else if(MEALS[a[1]])insertRow(rows,a[0],a[1])})}
   if(info.run){const at=info.runAt||"16:30",i=rows.findIndex(r=>r[0]>at);rows.splice(i<0?rows.length:i,0,[at,"info",info.run,"run"]);}
   if(info.run2){const at=info.run2At||"16:30",i=rows.findIndex(r=>r[0]>at);rows.splice(i<0?rows.length:i,0,[at,"info",info.run2,"run"]);}
   if(info.rugby){if(info.rugby.noGym)rows=rows.filter(r=>r[1]!=="train");insertRow(rows,info.rugby.at||"19:00","info",rugbyLabel(info.rugby));const x=rows.find(r=>r[2]===rugbyLabel(info.rugby)&&r[1]==="info");if(x)x[3]="rugby"}
@@ -1987,7 +1997,7 @@ const DEFAULT_ALT={};
 function effAlt(date,id){const log=D.food[date]||{},v=(log.swaps||{})[id];
   if(v==="plan")return null;if(v&&D.alts[v])return {id:v,...D.alts[v]};
   let d=(DEFAULT_ALT[dayInfo(date).slot]||{})[id];return d&&D.alts[d]?{id:d,...D.alts[d],isDefault:true}:null}
-function renderDay(){if(EDITING_TIME)return;renderFlex();renderTrainLog();renderRecent();
+function renderDay(){if(EDITING_TIME)return;if(typeof renderTadd==="function")renderTadd();renderFlex();renderTrainLog();renderRecent();
   const info=dayInfo(VIEW),P=TGd(VIEW,info.type),s=info.sched,log=D.food[VIEW]||{},eaten=log.eaten||{};
   const calNow=iso(new Date()),onShift=VIEW===TODAY&&TODAY!==calNow;
   $("d-label").textContent=onShift?`Your shift · ${WD(TODAY)} ${nice(TODAY)} – ${WD(calNow)} ${nice(calNow)}`:(TODAY!==calNow&&VIEW===calNow?"Starts at 7am":VIEW===TODAY?"Today":VIEW===addDays(TODAY,1)?"Tomorrow":VIEW===addDays(TODAY,-1)?"Yesterday":WD(VIEW))+" · "+nice(VIEW);
@@ -2936,7 +2946,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="17 Nov 2026 (d)";
+const APP_VERSION="17 Nov 2026 (e)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3424,7 +3434,7 @@ function renderOnce(inf){const el=$("once-status");if(!el)return;const d=ROTA_SE
   if(dd.run){if(dd.run.kind==="none")L_.push(`<li><span>Usual run skipped this day</span>${btn("runreset","Put back")}</li>`);
     else L_.push(`<li><span><b>${esc(inf.run)}</b> at ${esc(inf.runAt)} · ${inf.runKind==="speed"?"speed":"easy"} · this day only</span>${btn("runreset",u?"Back to usual":"Remove")}</li>`)}
   else if(u)L_.push(`<li><span>Usual run: <b>${esc(u.run)}</b> at ${esc(u.at)}</span>${btn("runskip","Skip it this day")}</li>`);
-  (dd.add||[]).forEach((a,i)=>L_.push(`<li><span>${esc(a[0])} · <b>${esc(MEALS[a[1]]?MEALS[a[1]].m:(a[2]||"Note"))}</b> · this day only</span>${btn("rmadd","Remove",i)}</li>`));
+  (dd.add||[]).forEach((a,i)=>L_.push(`<li><span>${esc(a[0])} · <b>${esc(MEALS[a[1]]?MEALS[a[1]].m:a[1]==="train"?"Gym session":(a[2]||"Note"))}</b> · this day only</span>${btn("rmadd","Remove",i)}</li>`));
   (dd.skip||[]).forEach((k,i)=>{const [t,id]=k.split("|");L_.push(`<li><span>Skipped: ${esc(t)} ${esc(MEALS[id]?MEALS[id].m:id)}</span>${btn("unskip","Put back",i)}</li>`)});
   el.innerHTML=L_.length?`<ul>${L_.join("")}</ul>`:`<p class="note">Nothing changed for this day.</p>`;
   const rows=rowsFor(inf),on=new Set(rows.map(r=>r[1])),added=new Set((dd.add||[]).map(a=>a[0]+"|"+a[1]));
@@ -4435,6 +4445,60 @@ function renderInOut(){const el=$("io-card");if(!el)return;const n=IO_DAYS,data=
 document.addEventListener("click",e=>{const c=e.target.closest&&e.target.closest("[data-ion]");if(c){IO_DAYS=+c.dataset.ion;IO_TIP=null;renderInOut();return}
   const g=e.target.closest&&e.target.closest("#io-card [data-io]");if(g){IO_TIP=+g.dataset.io===IO_TIP?null:+g.dataset.io;renderInOut()}});
 document.addEventListener("mouseover",e=>{const g=e.target.closest&&e.target.closest("#io-card [data-io]");if(g&&+g.dataset.io!==IO_TIP){IO_TIP=+g.dataset.io;renderInOut()}});
+
+/* ---------- add to today's plan ---------- */
+/* Same choices as Plan your days (meal, single food, gym, run, rugby, work, note), but for the day you're looking at only. */
+function taExtraHTML(t){
+  if(t==="meal")return `<label class="field" for="ta-meal">Meal<select id="ta-meal">${mealOptsHtml("").replace(/<option value="__new">[^<]*<\/option>/,"")}</select></label>`;
+  if(t==="food"){const k=Object.keys(F).find(x=>nutOf(x)&&x==="banana")||Object.keys(F).find(x=>nutOf(x));
+    return `<label class="field" for="ta-food">Food<select id="ta-food">${foodOpts(k)}</select></label><label class="field" for="ta-amt">Amount<input id="ta-amt" inputmode="decimal" value="${(FM[k]&&FM[k].def)||(F[k]&&F[k].u===""?1:100)}"></label>`}
+  if(t==="train")return `<label class="field" for="ta-sess">Session<select id="ta-sess"><option value="">Next in your split</option>${ORDER.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</select></label>`;
+  if(t==="run")return `<label class="field" for="ta-rt">Type<select id="ta-rt">${RTYPES.map(([k,n])=>`<option value="${k}">${n}</option>`).join("")}</select></label><label class="field" for="ta-rn">Note (optional)<input id="ta-rn" type="text" maxlength="40" placeholder="e.g. 5K"></label>`;
+  if(t==="rugby")return `<label class="field" for="ta-rk">Rugby<select id="ta-rk"><option value="training">Training</option><option value="match">Match</option></select></label><label class="chkline" style="align-self:end"><input type="checkbox" id="ta-rng" checked> Rugby only (no gym)</label>`;
+  if(t==="work")return `<label class="field" for="ta-txt">Work<input id="ta-txt" type="text" maxlength="80" placeholder="e.g. Overtime until 3pm"></label>`;
+  return `<label class="field" for="ta-txt">Note<input id="ta-txt" type="text" maxlength="80" placeholder="e.g. Physio appointment"></label>`}
+const TA_DEF={meal:"12:00",food:"12:00",train:"17:00",run:"17:00",rugby:"19:00",work:"07:00",info:"12:00"};
+function taFill(){const t=$("ta-type").value;$("ta-extra").innerHTML=taExtraHTML(t);$("ta-at").value=TA_DEF[t]||"12:00"}
+function renderTadd(){const s=$("tadd-sum");if(!s)return;s.textContent=VIEW===TODAY?"Add to today's plan":"Add to this day's plan";
+  const dd=D.days[VIEW]||{},L_=[],b=(act,i)=>`<button class="x" type="button" data-ta="${act}"${i!=null?` data-i="${i}"`:""}>Remove</button>`;
+  (dd.add||[]).forEach((a,i)=>L_.push(`<li><span>${esc(a[0])} · <b>${esc(MEALS[a[1]]?MEALS[a[1]].m:a[1]==="train"?"Gym session":(a[2]||"Note"))}</b></span>${b("add",i)}</li>`));
+  if(dd.gymAdd){const tr=rowsFor(dayInfo(VIEW)).find(r=>r[1]==="train"),gt=((D.food[VIEW]||{}).times||{}).train||(tr&&tr[0])||"";L_.push(`<li><span>${esc(gt)}${gt?" · ":""}<b>Gym session</b>${dd.session?" · "+esc(dd.session):""}</span>${b("gym")}</li>`)}
+  if(dd.run&&dd.run.kind!=="none")L_.push(`<li><span>${esc(dd.run.at||"")} · <b>${esc(dd.run.label||"Run")}</b></span>${b("run")}</li>`);
+  if(dd.rugby&&!dd.rugby.none&&!(dd.gymAdd&&dd.gymAdd.hadRug))L_.push(`<li><span>${esc(dd.rugby.at||"")} · <b>${esc(rugbyLabel(dd.rugby))}</b>${dd.rugby.noGym?" · no gym":""}</span>${b("rugby")}</li>`);
+  L_.sort((x,y)=>(x.match(/<span>(\d\d:\d\d)/)||[,"99"])[1].localeCompare((y.match(/<span>(\d\d:\d\d)/)||[,"99"])[1]));
+  $("ta-list").innerHTML=L_.length?`<p class="note" style="margin:12px 0 4px">Added to this day only</p><ul class="oncel">${L_.join("")}</ul>`:""}
+$("tadd").addEventListener("toggle",()=>{if($("tadd").open&&!$("ta-extra").innerHTML)taFill()});
+$("ta-type").addEventListener("change",taFill);
+document.addEventListener("change",e=>{if(e.target.id!=="ta-food")return;const k=e.target.value;$("ta-amt").value=(FM[k]&&FM[k].def)||(F[k]&&F[k].u===""?1:100)});
+$("tadd").addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;
+  const d=VIEW,dd=D.days[d]||{},say=m=>flash("ta-toast",m,3200),add=a=>saveDayDoc(d,{add:[...(dd.add||[]),a]});
+  if(t.dataset.ta){const k=t.dataset.ta;
+    if(k==="add"){const a=[...(dd.add||[])];a.splice(+t.dataset.i,1);await saveDayDoc(d,{add:a})}
+    else if(k==="run")await saveDayDoc(d,{run:null});
+    else if(k==="rugby")await saveDayDoc(d,{rugby:null});
+    else if(k==="gym"){const g=dd.gymAdd||{},p={gymAdd:null,type:g.prev||null,session:null};if(g.hadRug)p.rugby=g.rug||null;await saveDayDoc(d,p)}
+    renderTadd();return}
+  if(t.id!=="ta-save")return;
+  const ty=$("ta-type").value,at=$("ta-at").value;if(!/^\d\d:\d\d$/.test(at))return say("Set a time");
+  const info=dayInfo(d);
+  if(ty==="meal"){const id=$("ta-meal").value;if(!MEALS[id])return say("Pick a meal");await add([at,id])}
+  else if(ty==="food"){const k=$("ta-food").value,a=parseFloat(String($("ta-amt").value).replace(",","."));if(!F[k]||!(a>0))return say("Pick a food and amount");const id=await soloNew(k,a);await add([at,id])}
+  else if(ty==="work"||ty==="info"){const x=$("ta-txt").value.trim();if(!x)return say(ty==="work"?"Type the shift":"Type the note");await add([at,ty,x])}
+  else if(ty==="run"){const rt=$("ta-rt").value,n=$("ta-rn").value.trim(),label=rtLabel(rt)+(n?" · "+n:"");
+    if(!info.run)await saveDayDoc(d,{run:{kind:rtKind(rt),at,label}});else await add([at,"run",label])}
+  else if(ty==="rugby"){if(info.rugby)return say("There's already rugby on this day. Change it in Rota.");
+    await saveDayDoc(d,{rugby:{kind:$("ta-rk").value,at,noGym:$("ta-rng").checked}})}
+  else if(ty==="train"){const sess=$("ta-sess").value;
+    if(gymDay(d)){const p={};if(sess)p.session=sess;if(sess)await saveDayDoc(d,p);
+      if(rowsFor(dayInfo(d)).some(r=>r[1]==="train")){const c=curLog();c.times={...c.times,train:at};await saveFood(d,c)}
+      else await add([at,"train"]);
+      $("tadd").open=false;renderTadd();return say("Gym session set for "+at)}
+    const p={gymAdd:{prev:dd.type||null}};if(info.type!=="T")p.type=info.def==="T"?null:"T";
+    if(info.rugby&&info.rugby.noGym){p.rugby={kind:info.rugby.kind,at:info.rugby.at,noGym:false};p.gymAdd.hadRug=1;p.gymAdd.rug=dd.rugby||null}
+    if(sess)p.session=sess;await saveDayDoc(d,p);
+    if(rowsFor(dayInfo(d)).some(r=>r[1]==="train")){const c=curLog();if((c.times||{}).train!==at){c.times={...c.times,train:at};await saveFood(d,c)}}
+    else await add([at,"train"])}
+  $("ta-txt")&&($("ta-txt").value="");$("tadd").open=false;renderTadd();say("Added to "+(d===TODAY?"today":nice(d)))});
 
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
