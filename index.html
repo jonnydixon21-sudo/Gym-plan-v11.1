@@ -494,6 +494,8 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 .rest-in .btn{background:transparent;color:var(--bg);border-color:rgba(127,127,127,.6)}
 .rest-in .btn.primary{background:var(--bg);color:var(--ink);border-color:var(--bg)}
 .restbar.end .rest-in{background:var(--accent);color:var(--on-accent)}
+body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-index:95;display:grid;place-items:center;font:700 1.6rem var(--f-display);color:#fff;background:rgba(47,158,91,.92);animation:rflash 2.6s ease forwards;pointer-events:none}
+@keyframes rflash{0%{opacity:0}8%{opacity:1}22%{opacity:.35}36%{opacity:1}75%{opacity:1}100%{opacity:0}}
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
 .summary{display:grid;gap:10px}
 .prs{margin:0;padding-left:18px;display:grid;gap:3px}
@@ -1056,6 +1058,8 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
       <h3>Button colour</h3>
       <div class="row" id="ac-chips"><button class="sw" data-ac="" style="--sw:#6b6c70" aria-label="Graphite" title="Graphite"></button><button class="sw" data-ac="green" style="--sw:#2f9e5b" aria-label="Green" title="Green"></button><button class="sw" data-ac="blue" style="--sw:#2f74d6" aria-label="Blue" title="Blue"></button><button class="sw" data-ac="teal" style="--sw:#16918e" aria-label="Teal" title="Teal"></button><button class="sw" data-ac="purple" style="--sw:#7a55d6" aria-label="Purple" title="Purple"></button><button class="sw" data-ac="orange" style="--sw:#d9741c" aria-label="Orange" title="Orange"></button><button class="sw" data-ac="red" style="--sw:#d6453b" aria-label="Red" title="Red"></button><button class="sw" data-ac="pink" style="--sw:#d6438d" aria-label="Pink" title="Pink"></button></div>
       <p class="note" id="ac-name"></p>
+      <h3>Workouts</h3>
+      <label class="chkline"><input type="checkbox" id="ka-on"> Keep the screen on during a workout, so the rest timer can beep and flash when it ends</label>
     </div>
     <div class="card" id="set-card">
       <h2>Backup</h2>
@@ -2084,20 +2088,14 @@ $("eat").addEventListener("click",e=>{const b=e.target.closest("button.food");if
 });
 $("eat").addEventListener("click",e=>{const i=e.target.dataset.xrm;if(i==null)return;
   const cur=D.food[VIEW]||{};const extras=(cur.extras||[]).filter((_,j)=>j!=i);saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras})});
-/* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
-const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
 /* Per-unit macros for every plan food, worked out from the coach's sheet */
 const FM=(()=>{const m={};Object.keys(MEALS).forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!m[k]&&v&&a>0&&v[0]>0)m[k]={kcal:v[0]/a,p:v[1]/a,c:v[2]/a,f:v[3]/a,def:a}}));
   m.weetabix={kcal:68,p:2.25,c:13,f:0.4,def:2};m.mince={kcal:1.25,p:0.207,c:0,f:0.047,def:250};m.beans={kcal:0.98,p:0.07,c:0.13,f:0.006,def:60};m.almondmilk={kcal:0.13,p:0.004,c:0,f:0.011,def:200};return m})();
-/* Every food the app knows about (plan foods, extra foods and your own added foods), not just the ones in your current meals */
-const pfNut=k=>{if(FM[k])return FM[k];const n=NUT_EXTRA[k];if(!n||!F[k])return null;const u=F[k].u;return {kcal:n[0],p:n[1],c:n[2],f:n[3],def:u===""?1:u==="ml"?200:100}};
-function pfFill(){const sel=$("pf-food");if(!sel)return;const keep=sel.value,groups={};
-  Object.keys(F).filter(k=>{const m=pfNut(k);return m&&m.kcal>0}).forEach(k=>{const a=AISLES.includes(F[k].a)?F[k].a:"Other";(groups[a]=groups[a]||[]).push(k)});
-  sel.innerHTML=`<option value="">Choose…</option>`+[...AISLES,"Other"].filter(a=>groups[a]).map(a=>`<optgroup label="${a}">${groups[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}">${esc(F[k].n)}</option>`).join("")}</optgroup>`).join("");
-  if(keep&&groups&&pfNut(keep))sel.value=keep}
-function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!pfNut(k)||!q){$("pf-mac").textContent="";return null}
-  const m=pfNut(k),r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pf-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
-$("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","basmati","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=pfNut(k).def;pfCalc()});
+function pfFill(){const groups={};Object.keys(FM).filter(k=>F[k]&&!isRemoved(k)).forEach(k=>{(groups[F[k].a]=groups[F[k].a]||[]).push(k)});
+  $("pf-food").innerHTML=`<option value="">Choose…</option>`+[...AISLES].filter(a=>groups[a]).map(a=>`<optgroup label="${a}">${groups[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}">${F[k].n}</option>`).join("")}</optgroup>`).join("")}
+function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!FM[k]||!q){$("pf-mac").textContent="";return null}
+  const m=FM[k],r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pf-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
+$("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=FM[k].def;pfCalc()});
 $("pf-amt").addEventListener("input",pfCalc);
 $("pf-add").addEventListener("click",()=>{const k=$("pf-food").value,q=num($("pf-amt").value),r=pfCalc();if(!k||!r)return flash("pf-toast","Choose a food and amount");
   const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r}]});
@@ -2651,10 +2649,17 @@ $("w-done").addEventListener("click",e=>{if(e.target.id==="w-done-x")$("w-done")
 /* rest timer */
 let restEnd=0,restLen=0,restI=null,actx=null;
 function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();[0,0.25,0.5].forEach(t=>{const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(0.0001,actx.currentTime+t);g.gain.exponentialRampToValueAtTime(0.3,actx.currentTime+t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+t+0.18);o.start(actx.currentTime+t);o.stop(actx.currentTime+t+0.2)})}catch(e){}try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
-function startRest(sec){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}
+/* keep the screen on during a workout so the rest timer can sound (iPhone stops timers when it locks) */
+let SCRLOCK=null;
+async function keepAwake(){if(L.keepAwake===false||SCRLOCK||!("wakeLock" in navigator)||document.visibilityState!=="visible")return;try{SCRLOCK=await navigator.wakeLock.request("screen");SCRLOCK.addEventListener("release",()=>{SCRLOCK=null})}catch(e){SCRLOCK=null}}
+function releaseAwake(){try{SCRLOCK&&SCRLOCK.release()}catch(e){}SCRLOCK=null}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&W)keepAwake()});
+setInterval(()=>{if(!W&&SCRLOCK)releaseAwake()},5000);
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#pv-start,[data-ok],#w-live")&&W!==undefined)setTimeout(()=>{if(W)keepAwake()},50)},true);
+function startRest(sec){keepAwake();try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}
   restLen=sec;restEnd=Date.now()+sec*1000;$("rest").hidden=false;$("rest").classList.remove("end");clearInterval(restI);restI=setInterval(tickRest,250);tickRest()}
 function tickRest(){const left=(restEnd-Date.now())/1000;$("rest-t").textContent=mmss(left);$("rest-fill").style.width=Math.max(0,left/restLen*100)+"%";
-  if(left<=0){clearInterval(restI);$("rest").classList.add("end");$("rest-t").textContent="Go";beep();setTimeout(()=>{if(restEnd<=Date.now())$("rest").hidden=true},6000)}}
+  if(left<=0){clearInterval(restI);$("rest").classList.add("end");$("rest-t").textContent="Go";beep();document.body.classList.remove("restflash");void document.body.offsetWidth;document.body.classList.add("restflash");setTimeout(()=>document.body.classList.remove("restflash"),2600);setTimeout(()=>{if(restEnd<=Date.now())$("rest").hidden=true},6000)}}
 function stopRest(){clearInterval(restI);$("rest").hidden=true}
 $("rest-m").addEventListener("click",()=>{restEnd-=15000;tickRest()});
 $("rest-p").addEventListener("click",()=>{restEnd+=15000;restLen+=15;if($("rest").classList.contains("end")){$("rest").classList.remove("end");clearInterval(restI);restI=setInterval(tickRest,250)}tickRest()});
@@ -2906,13 +2911,13 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="16 Nov 2026 (b)";
+const APP_VERSION="17 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
   document.querySelectorAll("[data-ac]").forEach(b=>{const on=b.dataset.ac===(L.accent||"");b.setAttribute("aria-pressed",String(on));if(on&&$("ac-name"))$("ac-name").textContent=b.title});
   document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===(L.theme||""))));
-  if($("nh-on"))$("nh-on").checked=L.nightHelp!==false;if(!PF)renderProfile();const bl=$("bk-last");if(bl){const ago=L.lastBackup?Math.round((pd(TODAY)-pd(L.lastBackup))/864e5):null;
+  if($("nh-on"))$("nh-on").checked=L.nightHelp!==false;if($("ka-on"))$("ka-on").checked=L.keepAwake!==false;if(!PF)renderProfile();const bl=$("bk-last");if(bl){const ago=L.lastBackup?Math.round((pd(TODAY)-pd(L.lastBackup))/864e5):null;
     bl.textContent=L.lastBackup?`Last backup: ${nice(L.lastBackup)}${ago>=14?" (over two weeks ago, do another)":""}`:"You haven't made a backup yet."}}
 async function deliverFile(file){
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:file.name});return true}}catch(e){if(e&&e.name==="AbortError")return false}
@@ -2955,6 +2960,8 @@ const SLOTS=[["day","Day shift"],["n1","Night 1"],["n2","Night 2"],["off1","Off,
 const BASE={T:dcl(PLAN.T.meals),R:dcl(PLAN.R.meals),IM:dcl(IM),SCHED:dcl(SCHED),WAKE:dcl(WAKE),
   TG:{T:{kcal:PLAN.T.kcal,p:PLAN.T.p,c:PLAN.T.c,f:PLAN.T.f},R:{kcal:PLAN.R.kcal,p:PLAN.R.p,c:PLAN.R.c,f:PLAN.R.f}}};
 const BASE_IDS=new Set([...BASE.T,...BASE.R].map(m=>m.id));
+/* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
+const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
 const nutOf=k=>{const m=FM[k];return m?[m.kcal,m.p,m.c,m.f]:NUT_EXTRA[k]||null};
 const macroFor=(k,a)=>{const n=nutOf(k);return n?n.map(x=>Math.round(x*a)):[0,0,0,0]};
 const autoLabel=(k,a)=>{const f=F[k];if(!f)return undefined;
@@ -2976,7 +2983,6 @@ function applyPlan(){const P=D.plan||{};
   if(del.size){[PLAN.T.meals,PLAN.R.meals].forEach(a=>{for(let i=a.length-1;i>=0;i--)if(del.has(a[i].id))a.splice(i,1)});del.forEach(id=>{delete MEALS[id];delete IM[id]});
     SLOTS.forEach(([s])=>["T","R"].forEach(t=>{if(SCHED[s]&&SCHED[s][t])SCHED[s][t].rows=SCHED[s][t].rows.filter(r=>!del.has(r[1]))}))}
   ["T","R"].forEach(t=>{const g=(P.targets||{})[t]||BASE.TG[t];Object.assign(PLAN[t],{kcal:g.kcal,p:g.p,c:g.c,f:g.f})});
-  pfFill();
 }
 async function savePlan(){applyPlan();if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(e){}}renderPlanViews()}
 function renderPlanViews(){try{renderDayAll();renderPlans();renderDays();renderDay();renderShop()}catch(e){console.error(e)}}
@@ -4147,6 +4153,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
   if(rows.length<2){m.textContent="Nothing logged there yet.";return}
   const ok=await deliverFile(new File(["﻿"+toCSV(rows)],`gym-${k}-${TODAY}.csv`,{type:"text/csv"}));m.textContent=ok?`Saved ${rows.length-1} row${rows.length>2?"s":""}. Open it in Excel, Numbers or Google Sheets.`:"Cancelled."});
 /* ---------- night-shift helper setting ---------- */
+document.addEventListener("change",e=>{if(e.target.id==="ka-on"){L.keepAwake=e.target.checked;saveL();if(!e.target.checked)releaseAwake();return}});
 document.addEventListener("change",e=>{if(e.target.id!=="nh-on")return;L.nightHelp=e.target.checked;saveL();renderDayAll()});
 
 /* ---------- warm-up sets ---------- */
