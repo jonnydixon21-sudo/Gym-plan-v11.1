@@ -761,6 +761,14 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
         <summary>Ate something not on the plan?</summary>
         <div id="x-recent" class="xrecent"></div>
         <div class="pick" style="margin-top:10px">
+          <span class="note">Pick a meal from your plan</span>
+          <div class="form">
+            <label class="field" for="pm-meal" style="grid-column:1/-1">Meal<select id="pm-meal"></select></label>
+            <label class="field" for="pm-qty">Portions<input id="pm-qty" type="number" min="0" step="0.25" value="1" inputmode="decimal"></label>
+          </div>
+          <div class="row"><span class="mono note" id="pm-mac"></span><button class="btn primary" id="pm-add">Add</button><span class="toast" id="pm-toast"></span></div>
+        </div>
+        <div class="pick" style="margin-top:14px">
           <span class="note">Pick a food from your plan</span>
           <div class="form">
             <label class="field" for="pf-food">Food<select id="pf-food"></select></label>
@@ -783,8 +791,8 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
         <div class="row" style="margin-top:10px"><button class="btn" id="x-add">Add</button><span class="toast" id="x-toast"></span></div>
       </details><div id="train-log" class="tlog"></div>
       <details class="extra" id="tadd"><summary id="tadd-sum">Add to today's plan</summary>
-        <p class="note" style="margin-top:8px">Just for this day. Same choices as Plan your days; your usual plan stays as it is.</p>
-        <div class="form"><label class="field" for="ta-type">What<select id="ta-type"><option value="meal">Meal</option><option value="food">Single food</option><option value="train">Gym session</option><option value="run">Run</option><option value="rugby">Rugby</option><option value="work">Work</option><option value="info">Note</option></select></label><label class="field" for="ta-at">Time<input type="time" id="ta-at" value="12:00"></label></div>
+        <p class="note" style="margin-top:8px">Gym, a run, rugby, work or a note, just for this day. Your usual plan stays as it is. Food goes in "Ate something not on the plan?" above.</p>
+        <div class="form"><label class="field" for="ta-type">What<select id="ta-type"><option value="train">Gym session</option><option value="run">Run</option><option value="rugby">Rugby</option><option value="work">Work</option><option value="info">Note</option></select></label><label class="field" for="ta-at">Time<input type="time" id="ta-at" value="17:00"></label></div>
         <div class="form" id="ta-extra"></div>
         <div class="row" style="margin-top:10px"><button class="btn primary" id="ta-save" type="button">Add to plan</button><span class="toast" id="ta-toast"></span></div>
         <div id="ta-list"></div>
@@ -1174,7 +1182,8 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
     const touch=(navigator.maxTouchPoints||0)>0||matchMedia("(pointer:coarse)").matches;
     const land=matchMedia("(orientation: landscape)").matches,sw0=screen.width||0,sh0=screen.height||0;
     const sw=sw0&&sh0?(land?Math.max(sw0,sh0):Math.min(sw0,sh0)):0;
-    const want=touch&&sw>0&&uz!==1?`width=${Math.round(sw/uz)},viewport-fit=cover`:"width=device-width,initial-scale=1,viewport-fit=cover";
+    /* 100% uses the same kind of setting as the other sizes (the screen's own width), so going back to 100% from another size resets properly on iPhone */
+    const want=touch&&sw>=280&&sw<=1400?`width=${Math.round(sw/uz)},viewport-fit=cover`:"width=device-width,initial-scale=1,viewport-fit=cover";
     if(meta&&meta.getAttribute("content")!==want)meta.setAttribute("content",want);
     let z=touch?1:uz;
     if(touch&&uz===1){const vw=window.innerWidth,s0=Math.min(sw0,sh0);const ps=s0>0&&s0<=500?s0:(vw>=640&&!/iPad/.test(navigator.userAgent)?430:0);if(ps>0&&vw>ps*1.25)z=vw/ps}
@@ -2122,6 +2131,16 @@ $("pf-add").addEventListener("click",()=>{const k=$("pf-food").value,q=num($("pf
   const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r}]});
   $("pf-food").value="";$("pf-amt").value="";$("pf-mac").textContent="";flash("pf-toast","Added")});
 pfFill();
+function pmFill(){const sel=$("pm-meal");if(!sel)return;const keep=sel.value;
+  sel.innerHTML=`<option value="">Choose…</option>`+Object.keys(MEALS).filter(id=>!MEALS[id].solo&&MEALS[id].items&&MEALS[id].items.length).sort((a,b)=>MEALS[a].m.localeCompare(MEALS[b].m)).map(id=>`<option value="${id}">${esc(MEALS[id].m)} · ${Math.round(mealMac(id).kcal)} kcal</option>`).join("");
+  if(keep&&MEALS[keep])sel.value=keep}
+function pmCalc(){const id=$("pm-meal").value,q=num($("pm-qty").value);if(!id||!MEALS[id]||!(q>0)){$("pm-mac").textContent="";return null}
+  const m=mealMac(id),r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pm-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
+$("pm-meal").addEventListener("change",pmCalc);$("pm-qty").addEventListener("input",pmCalc);
+$("pm-add").addEventListener("click",()=>{const id=$("pm-meal").value,q=num($("pm-qty").value),r=pmCalc();if(!id||!r)return flash("pm-toast","Choose a meal");
+  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:MEALS[id].m+(q!==1?" ×"+q:""),...r}]});
+  $("pm-meal").value="";$("pm-qty").value="1";$("pm-mac").textContent="";flash("pm-toast","Added")});
+pmFill();document.addEventListener("toggle",e=>{if(e.target.matches&&e.target.matches(".eatfoot>details.extra:not(#tadd)")&&e.target.open)pmFill()},true);
 $("x-add").addEventListener("click",()=>{setTimeout(()=>{if(!$("x-name").value){XS=null;xsRender();$("xs-code").value=""}},50);
   const name=$("x-name").value.trim(),kcal=Math.round(num($("x-kcal").value)||0);
   if(!name||!kcal)return flash("x-toast","Add a name and the kcal");
@@ -2946,7 +2965,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="17 Nov 2026 (e)";
+const APP_VERSION="18 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
