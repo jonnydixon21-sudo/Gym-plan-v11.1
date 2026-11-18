@@ -95,6 +95,7 @@ details.fold[open]>summary::after{transform:rotate(-90deg)}
 details.fold>summary>span{margin-left:auto}
 details.card.fold{display:block}details.fold>*+*{margin-top:12px}details.fold:not([open])>summary{margin:0}
 details.fold.sub{border-top:1px solid var(--line);padding-top:10px}
+details.fold.glance{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px}details.fold.glance>summary h2{font-size:1.05rem;flex:1}details.fold.glance>.fw-inner{padding:0;background:none;border:0;box-shadow:none}
 .stat{border:0!important}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -125,7 +126,8 @@ textarea{font-family:var(--f-mono);font-variant-numeric:tabular-nums!important;f
 .empty{border:1.5px dashed var(--line);border-radius:12px;padding:18px;color:var(--muted);font-size:.92rem;text-align:center}
 
 /* today */
-.hero{display:grid;gap:6px}
+.hero{display:grid;gap:6px}.htab{display:none;font-size:1.45rem}
+body[data-tab]:not([data-tab="today"]) .hero #hello,body[data-tab]:not([data-tab="today"]) .hero #hello-sub{display:none}body[data-tab]:not([data-tab="today"]) .hero .htab{display:block}body[data-tab]:not([data-tab="today"]) .hero{gap:2px}
 .brand{order:-1;font-family:var(--f-display);font-weight:600;letter-spacing:.06em;font-size:.82rem;color:var(--muted)}
 .daytype{display:inline-flex;gap:8px;align-items:center}
 .habits{display:grid;gap:6px}
@@ -214,6 +216,10 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .pantry li button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:.82rem}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
 .plan{display:grid;gap:10px;align-content:start}
+.mtools{display:grid;gap:8px;margin:10px 0}.mtools input{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%}.mtools .row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.mtools .chip{flex:none}
+.mgroup{background:var(--surface);border-radius:10px;padding:12px 14px}.mgroup>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}.mgroup>summary::-webkit-details-marker{display:none}
+.mgroup>summary>span{display:grid;gap:2px}.mgroup>summary b{font-family:var(--f-display)}.mgroup>summary::after{content:"›";color:var(--muted);font-size:1.3rem;transform:rotate(90deg);transition:transform .2s}.mgroup[open]>summary::after{transform:rotate(-90deg)}
+.mgroup>.plan{margin-top:10px}.mgroup .meal{background:var(--surface-2)}
 .macros{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.85rem}
 .meal{background:var(--surface);border-radius:10px;padding:12px 14px;min-width:0;display:grid;gap:6px}
 .meal.snack{background:transparent;border:1.5px dashed var(--line)}
@@ -254,7 +260,11 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .mbar .fill{height:100%;border-radius:999px;background:var(--accent);transition:width .3s}
 .mbar.over .fill{background:var(--rest)}
 .eat{list-style:none;margin:0;padding:0;display:grid}
+.mmore{display:flex;justify-content:flex-end;align-items:flex-start;gap:8px;margin-top:-2px}.mmenu{display:flex;flex-wrap:wrap;gap:6px;flex:1}.mmenu .chip{font-size:.78rem;padding:6px 10px}
+button.more{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;min-width:40px;height:30px;font-size:1.1rem;line-height:1;padding:0 10px;font-weight:700}
 .eat li{display:grid;grid-template-columns:62px 14px minmax(0,1fr);gap:8px}
+.tw2{position:relative;display:block}.tlab{display:block;padding:4px 2px;text-align:right;white-space:nowrap;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:.84rem;letter-spacing:-.02em}.tlab.moved{color:var(--warn)}
+.tw2 .tedit{position:absolute;inset:0;opacity:0;height:100%}.tw2:focus-within .tedit{opacity:1;background:var(--surface);z-index:2;width:auto;min-width:100%}.tw2:focus-within .tlab{visibility:hidden}
 .eat time{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:.9rem;padding-top:12px;text-align:right}
 .eat .dot{position:relative}
 .eat .dot::before{content:"";position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--line)}
@@ -321,6 +331,8 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .tpl button b{font-family:var(--f-display);font-size:1rem}
 .tpl button small{color:var(--muted);font-size:.78rem}
 .tpl button.next{border-color:var(--accent);background:var(--accent-soft)}
+.tpl .whero{grid-column:1/-1;background:var(--ink);color:var(--bg);border-color:var(--ink);padding:16px 18px;border-radius:14px;gap:4px}.tpl .whero b{font-size:1.35rem}.tpl .whero small,.tpl .whero span{color:inherit;opacity:.75;font-size:.82rem}.tpl .tsub{grid-column:1/-1;margin:6px 0 0}
+.tpl:has(.whero) .tw>button[data-tpl],.tpl:has(.whero)>button{padding:9px 10px;padding-right:30px}.tpl:has(.whero) button b{font-size:.92rem}.tpl:has(.whero) button small{font-size:.72rem}.tpl:has(.whero) button.cog{width:30px;height:30px;top:2px;right:2px}
 .tpl .tw{position:relative;display:grid}.tpl .tw>button[data-tpl]{width:100%;padding-right:34px}
 .tpl button.cog{position:absolute;top:4px;right:4px;width:34px;height:34px;padding:0;border:0;background:none;display:grid;place-items:center;color:var(--muted);border-radius:10px}
 .tpl button.cog svg{width:18px;height:18px}
@@ -703,7 +715,7 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 
 <div class="wrap">
   <header class="hero">
-    <h1 id="hello">Morning</h1>
+    <h1 id="hello">Morning</h1><h1 class="htab" id="hero-tab"></h1>
     <p class="sub" id="hello-sub">Your fat-loss phase, all in one place.</p>
     <span class="brand">My Gym Plan</span>
   </header>
@@ -888,12 +900,6 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
       <div class="sessions" id="sessions"></div>
     </details>
 
-    <details class="card fold" data-fold="sgimport"><summary><h2>Import from Setgraph</h2></summary>
-      <p class="note">In Setgraph, open a finished workout and tap Share. Choose Text, then Summary, then Copy, and paste it here. The date is today unless you change it.</p>
-      <label class="field" for="g-paste">Workout text<textarea id="g-paste" placeholder="Hack Squat • 5 rep 52.5 kg, 7 rep 45 kg&#10;Sl Leg Press • 2 sets: 8 rep 45 kg&#10;Strength Training • 42 min"></textarea></label>
-      <div class="row"><button class="btn primary" id="g-parse">Read workout</button><button class="btn" id="g-ai" hidden>Read it with Claude</button><span class="err" id="g-err" aria-live="polite"></span></div>
-      <div class="preview" id="g-preview" hidden></div>
-    </details>
 
 
     <details class="card fold" data-fold="liftchart"><summary><h2>Lift chart</h2></summary>
@@ -978,6 +984,7 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
     <div class="view" id="food-meals" hidden>
       <p class="note">All your meals. Tap the cog on a meal to change its foods or to assign it to your day shift, night shift or day off.</p>
       <div class="row"><button class="btn primary" id="nmeal-new">+ New meal</button><button class="btn" id="nfood-new">+ New food</button></div>
+      <div class="mtools"><input id="mq" type="search" placeholder="Search meals or foods" aria-label="Search meals or foods" autocomplete="off"><div class="row" id="mf-chips"><button class="chip" data-mf="" aria-pressed="true">All</button><button class="chip" data-mf="day" aria-pressed="false">Day shift</button><button class="chip" data-mf="night" aria-pressed="false">Night shift</button><button class="chip" data-mf="off" aria-pressed="false">Day off</button><button class="chip" data-mf="none" aria-pressed="false">Not on a day</button></div></div>
       <div class="plans" id="plans"></div>
     </div>
 
@@ -1095,6 +1102,12 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
       <p class="note">Deletes everything this app has saved on this device (workouts, weights, meals, settings) and starts from the beginning. Make a backup first if you might want any of it.</p>
       <div class="row"><button class="btn ghost small" type="button" id="wipe-btn">Delete everything on this device</button></div>
     </div>
+    <details class="card fold" data-fold="sgimport"><summary><h2>Import from Setgraph</h2></summary>
+      <p class="note">In Setgraph, open a finished workout and tap Share. Choose Text, then Summary, then Copy, and paste it here. The date is today unless you change it.</p>
+      <label class="field" for="g-paste">Workout text<textarea id="g-paste" placeholder="Hack Squat • 5 rep 52.5 kg, 7 rep 45 kg&#10;Sl Leg Press • 2 sets: 8 rep 45 kg&#10;Strength Training • 42 min"></textarea></label>
+      <div class="row"><button class="btn primary" id="g-parse">Read workout</button><button class="btn" id="g-ai" hidden>Read it with Claude</button><span class="err" id="g-err" aria-live="polite"></span></div>
+      <div class="preview" id="g-preview" hidden></div>
+    </details>
     <div class="card">
       <h2>Night-shift helpers</h2>
       <label class="chkline"><input type="checkbox" id="nh-on"> On night shifts, add a "last caffeine" reminder to Today's plan (8 hours before your sleep after work), and a nap before your first night if your plan doesn't have one.</label>
@@ -2000,7 +2013,10 @@ function rowsFor(info){let rows=[[WAKE[info.slot][info.type],"info","Wake up"],.
     if(info.slot==="n1"&&!rows.some(r=>/\bnap\b/i.test(r[2]||""))){const w=rows.find(r=>r[1]==="work");if(w)insertRow(rows,ff(mm(w[0])-300),"info","Nap 60–90 minutes before your shift")}}
   return rows}
 const stepKey=(time,txt)=>(time+"-"+String(txt).toLowerCase().replace(/[^a-z0-9]+/g,"-")).slice(0,40);
-let OPEN_SWAP=null;const OPEN_MEAL=new Set();
+let OPEN_SWAP=null;const OPEN_MEAL=new Set(),OPEN_MORE=new Set();
+/* phone set to 12-hour clock: 10:30am, 7:15pm. 24-hour: 10:30 */
+var H12=(()=>{try{const o=new Intl.DateTimeFormat(undefined,{hour:"numeric"}).resolvedOptions();return o.hour12!==undefined?!!o.hour12:/h1[12]/.test(o.hourCycle||"")}catch(e){return false}})();
+function clock(t){if(!/^\d\d:\d\d$/.test(t||""))return t||"";if(!H12)return t;let [h,m]=t.split(":").map(Number);const ap=h<12?"am":"pm";h=h%12||12;return h+":"+String(m).padStart(2,"0")+ap}
 /* Default meal choices by shift: early (4:45am) training means a quick Weetabix bowl post-workout */
 const DEFAULT_ALT={};
 function effAlt(date,id){const log=D.food[date]||{},v=(log.swaps||{})[id];
@@ -2030,7 +2046,7 @@ function renderDay(){if(EDITING_TIME)return;if(typeof renderTadd==="function")re
   let prev=-1;const rows=base.map(([time,id,txt],i)=>{let om=mins(time);while(om<prev)om+=1440;prev=om;
     const k=rkey(id,txt),t=tov[k]||time;let m=om+(mins(t)-mins(time));if(m-om>720)m-=1440;if(om-m>720)m+=1440;
     return {time:t,orig:time,id,txt,k,m,moved:!!tov[k],i}}).sort((a,b)=>a.m-b.m||a.i-b.i);
-  const tcell=r=>`<input type="time" class="tedit${r.moved?" moved":""}" data-tkey="${r.k}" data-orig="${r.orig}" value="${r.time}" aria-label="Change time" ${db?"":"disabled"}>`;
+  const tcell=r=>`<span class="tw2"><span class="tlab${r.moved?" moved":""}" aria-hidden="true">${clock(r.time)}</span><input type="time" class="tedit${r.moved?" moved":""}" data-tkey="${r.k}" data-orig="${r.orig}" value="${r.time}" aria-label="Change time, ${clock(r.time)}" ${db?"":"disabled"}></span>`;
   const trainedToday=D.workouts.some(w=>w.date===VIEW);
   const mealRows=rows.filter(r=>MEALS[r.id]).map(r=>[r.time,r.id]);
   const stOf=id=>effAlt(VIEW,id)?(eaten[id+"_alt"]?"all":"none"):mealState(eaten,id);
@@ -2052,7 +2068,8 @@ function renderDay(){if(EDITING_TIME)return;if(typeof renderTadd==="function")re
     const panel=OPEN_SWAP===id?`<div class="swapp"><b>What did you have instead?</b>${alts.length?`<div class="alts">${alts.map(([aid,a])=>`<button type="button" class="alt" data-usealt="${id}:${aid}"><b>${esc(a.name)}</b><span class="mono">${a.p}P · ${a.c}C · ${a.f}F · ${a.kcal} kcal</span></button>`).join("")}</div>`:""}
       <div class="form"><label class="field" for="s-name-${id}">New meal<input id="s-name-${id}" type="text" maxlength="60" placeholder="e.g. Chicken wrap"></label><label class="field" for="s-kcal-${id}">kcal<input id="s-kcal-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="s-p-${id}">P (g)<input id="s-p-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="s-c-${id}">C (g)<input id="s-c-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="s-f-${id}">F (g)<input id="s-f-${id}" type="number" min="0" inputmode="numeric"></label></div>
       <div class="row"><button class="btn small primary" type="button" data-newalt="${id}">Save and use</button><button class="btn small ghost" type="button" data-closeswap="1">Cancel</button><span class="err" id="s-err-${id}"></span></div></div>`:"";
-    return `<li class="${cls}${st==="all"?" done":st==="some"?" part":""}"><time>${title.time}</time><span class="dot"></span><div class="body"><div class="mcard"><label class="mhead"><span><b>${title.name}${title.next?' <span class="pill good">Next</span>':""}</b><span class="mac">${macTxt}</span></span><input type="checkbox" data-eat="${id}" ${st==="all"?"checked":""} ${st==="some"?'data-part="1"':""} aria-label="Ate all of ${m.m}"></label>${twoTag}${altBody}${chips?`<div class="foods">${chips}</div>`:""}${folded?`<div class="row"><button type="button" class="x" data-showfoods="${id}">Show foods</button></div>`:id==="intra"?"":`<div class="row">${foldable?`<button type="button" class="x" data-hidefoods="${id}">Hide foods</button>`:""}<button type="button" class="x" data-openswap="${id}">Had something else</button><button type="button" class="x" data-adjopen="${id}">Adjust amounts</button>${VIEW>=TODAY&&VIEW<=addDays(TODAY,7)?`<button type="button" class="x" data-goplan="1">Change meal</button>`:""}</div>`}${adjPanel(id)}${panel}</div></div></li>`};
+    return `<li class="${cls}${st==="all"?" done":st==="some"?" part":""}"><time>${title.time}</time><span class="dot"></span><div class="body"><div class="mcard"><label class="mhead"><span><b>${title.name}${title.next?' <span class="pill good">Next</span>':""}</b><span class="mac">${macTxt}</span></span><input type="checkbox" data-eat="${id}" ${st==="all"?"checked":""} ${st==="some"?'data-part="1"':""} aria-label="Ate all of ${m.m}"></label>${twoTag}${altBody}${chips?`<div class="foods">${chips}</div>`:""}${(()=>{const acts=[folded?`<button type="button" class="chip" data-showfoods="${id}">Show foods</button>`:foldable?`<button type="button" class="chip" data-hidefoods="${id}">Hide foods</button>`:"",...(id==="intra"?[]:[`<button type="button" class="chip" data-openswap="${id}">Had something else</button>`,`<button type="button" class="chip" data-adjopen="${id}">Adjust amounts</button>`,VIEW>=TODAY&&VIEW<=addDays(TODAY,7)?`<button type="button" class="chip" data-goplan="1">Change meal</button>`:""])].filter(Boolean);if(!acts.length)return "";const op=OPEN_MORE.has(id);
+      return `<div class="mmore">${op?`<div class="mmenu">${acts.join("")}</div>`:""}<button type="button" class="more" data-more="${id}" aria-expanded="${op}" aria-label="${op?"Close options":"More options for "+esc(m.m)}">${op?"×":"⋯"}</button></div>`})()}${adjPanel(id)}${panel}</div></div></li>`};
   const sleepH=num((D.habits[VIEW]||{}).sleepH);
   $("eat").innerHTML=rows.map(r=>{const {id,txt}=r,time=tcell(r);
     if(id==="work"||id==="info")return step(time,txt,stepKey(r.orig,txt),false);
@@ -2083,6 +2100,8 @@ $("eat").addEventListener("change",e=>{const k=e.target.dataset.step;if(k==null)
   const c=curLog();if(e.target.checked)c.steps[k]=true;else delete c.steps[k];saveFood(VIEW,c)});
 $("eat").addEventListener("click",async e=>{
   const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.more){const k=t.dataset.more;if(OPEN_MORE.has(k))OPEN_MORE.delete(k);else{OPEN_MORE.clear();OPEN_MORE.add(k)}renderDay();return}
+  {const mk=t.dataset.showfoods||t.dataset.hidefoods||t.dataset.openswap||t.dataset.adjopen||(t.dataset.goplan&&"*");if(mk)OPEN_MORE.clear()}
   if(t.dataset.showfoods){OPEN_MEAL.add(t.dataset.showfoods);renderDay();return}
   if(t.dataset.hidefoods){OPEN_MEAL.delete(t.dataset.hidefoods);renderDay();return}
   if(t.dataset.goplan){goPlan(VIEW);return}
@@ -2522,7 +2541,8 @@ function renderStart(){renderSplit();if($("ready-card")){$("ready-card").hidden=
   if(EDIT){$("w-tpls").classList.add("pvmode");$("w-tpls").innerHTML=editHTML();$("w-start").hidden=!!W;$("w-live").hidden=!W;return}
   if(PREVIEW){$("w-tpls").classList.add("pvmode");$("w-tpls").innerHTML=previewHTML(PREVIEW);$("w-start").hidden=!!W;$("w-live").hidden=!W;return}
   $("w-tpls").classList.remove("pvmode");
-  $("w-tpls").innerHTML=TEMPLATES.map(t=>tplOf(t.title)).map(t=>`<div class="tw"><button data-tpl="${esc(t.title)}" class="${t.title===nx?"next":""}"><b>${esc(t.title)}</b><small>${t.ex.length} exercises · ${t.ex.reduce((a,e)=>a+targets(e.groups).length,0)} sets</small></button><button class="cog" data-edit="${esc(t.title)}" aria-label="Edit ${esc(t.title)}" title="Edit this session"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>`).join("")+`<button data-tpl=""><b>Free rein</b><small>Build it as you go</small></button><button data-tplnew="1"><b>+ New workout</b><small>Make your own session</small></button>`;
+  const hx=tplOf(nx),hlg=D.workouts.find(w=>w.date===TODAY),hero=hx&&!hlg?`<button class="whero" data-tpl="${esc(nx)}"><small>${gymDay(TODAY)?"Today's workout":"Next workout"}</small><b>Start ${esc(nx)} <span aria-hidden="true">›</span></b><span>${hx.ex.length} exercises · ${hx.ex.reduce((a,e)=>a+targets(e.groups).length,0)} sets</span></button><p class="note tsub">Or pick another</p>`:"";
+  $("w-tpls").innerHTML=hero+TEMPLATES.map(t=>tplOf(t.title)).map(t=>`<div class="tw"><button data-tpl="${esc(t.title)}" class="${t.title===nx?"next":""}"><b>${esc(t.title)}</b><small>${t.ex.length} exercises · ${t.ex.reduce((a,e)=>a+targets(e.groups).length,0)} sets</small></button><button class="cog" data-edit="${esc(t.title)}" aria-label="Edit ${esc(t.title)}" title="Edit this session"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>`).join("")+`<button data-tpl=""><b>Free rein</b><small>Build it as you go</small></button><button data-tplnew="1"><b>+ New workout</b><small>Make your own session</small></button>`;
   $("w-start").hidden=!!W;$("w-live").hidden=!W;
   {const tl=$("tab-training")&&$("tab-training").querySelector(".tl");if(tl)tl.textContent=W?"Training •":"Training"}
 }
@@ -2841,7 +2861,19 @@ function altList(id){const a=Object.entries(D.alts).filter(([,x])=>x.for===id);
   if(!a.length)return "";
   return `<div class="altlist"><span class="note">Alternatives</span>${a.map(([aid,x])=>`<div class="altrow"><div><b>${esc(x.name)}</b>${x.desc?`<small>${esc(x.desc)}</small>`:""}<span class="mono">${x.p}P · ${x.c}C · ${x.f}F · ${x.kcal} kcal</span></div><button class="x" data-delalt="${aid}" type="button">Delete</button></div>`).join("")}</div>`}
 const mealCard=m=>`<article class="meal${m.kind?" snack":""}" id="meal-${m.id}"><header><strong>${m.m}</strong>${m.tag?`<em>${m.tag}</em>`:""}<button class="cogm" data-medit="${m.id}" aria-label="Edit foods in ${m.m}" title="Edit foods and amounts">${COG}</button></header><p class="note usedin">${usedLabel(m.id)}</p><ul>${m.items.filter(([k],i)=>!isRemoved(k)&&itemActive(m.id,i,TODAY)).map(([k,a,l])=>`<li><span>${F[k].n}</span><span class="mono">${l||fmt(a,F[k].u)}</span></li>`).join("")}</ul>${altList(m.id)}${swaps[m.id]?`<div class="swap">${swaps[m.id]}</div>`:""}<footer><span>${macT(mealMac(m.id))}</span>${m.kind==="drink"?"":`<button class="btn small" data-swap="${m.id}" ${sample?"":"hidden"}>Swap</button>`}</footer></article>`;
-function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=`<div class="plan">${[...PLAN.T.meals,...PLAN.R.meals].filter(m=>!m.solo).map((m,i)=>[catRank(m.id),i,m]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>mealCard(x[2])).join("")}</div>`}
+function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=mealsListHTML()}
+/* Meals tab: one entry per meal name. Meals with several versions (different amounts for different days) open to show each one. */
+var MQ="",MF="",MG_OPEN=new Set();
+function mealsListHTML(){const seen=new Set(),all=[...PLAN.T.meals,...PLAN.R.meals].filter(m=>!m.solo&&!seen.has(m.id)&&seen.add(m.id));
+  const q=MQ.trim().toLowerCase(),ok=m=>(!MF||(MF==="none"?catRank(m.id)===9:catState(m.id,MF)!=="none"))&&(!q||m.m.toLowerCase().includes(q)||m.items.some(([k])=>F[k]&&F[k].n.toLowerCase().includes(q)));
+  const groups=new Map();all.map((m,i)=>[catRank(m.id),i,m]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(([,,m])=>{const k=m.m.trim().toLowerCase();if(!groups.has(k))groups.set(k,[]);groups.get(k).push(m)});
+  const out=[...groups.entries()].map(([k,ms])=>{const vis=ms.filter(ok);if(!vis.length)return "";if(ms.length===1)return mealCard(vis[0]);
+    const kc=vis.map(m=>Math.round(mealMac(m.id).kcal)),lo=Math.min(...kc),hi=Math.max(...kc),on=CATS.filter(c=>vis.some(m=>catState(m.id,c[0])!=="none")).map(c=>c[1]);
+    return `<details class="mgroup" data-mg="${esc(k)}"${MG_OPEN.has(k)||q?" open":""}><summary><span><b>${esc(ms[0].m)}</b><span class="note">${vis.length} versions · ${lo===hi?lo:lo+"–"+hi} kcal</span><span class="note">${on.length?"On: "+on.join(", "):"Not assigned to a day yet"}</span></span></summary><div class="plan">${vis.map(m=>mealCard(m).replace(`<strong>${m.m}</strong>`,`<strong>${Math.round(mealMac(m.id).kcal)} kcal version</strong>`)).join("")}</div></details>`}).join("");
+  return out?`<div class="plan">${out}</div>`:`<p class="note">No meals match.</p>`}
+$("mq").addEventListener("input",e=>{MQ=e.target.value;renderPlans()});
+$("mf-chips").addEventListener("click",e=>{const b=e.target.closest("[data-mf]");if(!b)return;MF=b.dataset.mf;document.querySelectorAll("#mf-chips [data-mf]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderPlans()});
+$("plans").addEventListener("toggle",e=>{const d=e.target;if(!d.dataset||!d.dataset.mg)return;if(d.open)MG_OPEN.add(d.dataset.mg);else MG_OPEN.delete(d.dataset.mg)},true);
 $("plans").addEventListener("change",async e=>{const id=e.target.dataset.share;if(!id)return;const sh={...sharedMeals()};if(e.target.checked)sh[id]=true;else delete sh[id];D.home={...(D.home||{}),shared:sh};renderShop();renderPrep();renderDay();if(db){try{await db.doc("prefs/home").set(D.home)}catch(err){}}});
 $("plans").addEventListener("change",async e=>{const id=e.target.dataset.herdef;if(!id)return;const po={...((D.home||{}).portion||{}),[id]:+e.target.value};D.home={...(D.home||{}),portion:po};renderShop();renderPrep();renderDay();renderRota();if(db){try{await db.doc("prefs/home").set(D.home)}catch(err){}}});
 $("plans").addEventListener("click",async e=>{
@@ -2958,6 +2990,7 @@ function buildNav(){if(NAV_BUILT)return;NAV_BUILT=true;const host=$("view-today"
   document.addEventListener("click",e=>{const b=e.target.closest("[data-sub]");if(!b)return;const [t,k]=b.dataset.sub.split(":");show(t,k);window.scrollTo({top:0})})}
 function show(tab,sub){buildNav();if(LEGACY[tab]){[tab,sub]=[LEGACY[tab][0],sub||LEGACY[tab][1]]}if(tab==="progress"&&!sub&&!(L.sub&&L.sub.progress))sub="body";if(!NAV[tab])tab="today";
   TABS.forEach(t=>{$("tab-"+t).setAttribute("aria-selected",t===tab);$("sec-"+t).hidden=t!==tab});
+  document.body.dataset.tab=tab;{const ht=$("hero-tab"),tl=$("tab-"+tab).querySelector(".tl");if(ht)ht.textContent=tl?tl.textContent.replace(/\s*•$/,""):""}
   const panes=NAV[tab];L.sub=L.sub||{};if(!sub||!panes.some(p=>p[0]===sub))sub=panes.some(p=>p[0]===L.sub[tab])?L.sub[tab]:panes[0][0];L.sub[tab]=sub;
   panes.forEach(([k,id])=>{$(id).hidden=k!==sub});document.querySelectorAll(`#sec-${tab} [data-sub]`).forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.sub===tab+":"+sub)));
   L.tab=tab;saveL();if(sub==="body")try{renderWeek()}catch(e){}if(sub==="library")renderLibrary();if(sub==="lifts")renderAnalytics();if(sub==="days")renderDays();if(sub==="targets")renderTargets()}
@@ -2965,7 +2998,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="18 Nov 2026 (b)";
+const APP_VERSION="18 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3979,7 +4012,7 @@ function foldWrap(el,key,title,open,keep){if(!el||el.dataset.wrapped)return;el.d
   d.innerHTML=`<summary><h2>${title}</h2></summary>`;el.parentNode.insertBefore(d,el);d.appendChild(el);el.classList.remove("card");el.classList.add(keep?"fw-keep":"fw-inner");return d}
 function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return null;const x=el.querySelector(sel);return x?x.closest(".card"):null};
   foldWrap(card("view-today","#log-save"),"log","Daily log");
-  foldWrap($("io-card"),"inout","Calories in vs out",true);foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");{const d=foldWrap($("daily-card"),"basics","Daily targets");if(d){const sc=$("habit-score");sc.classList.add("pill");d.querySelector("summary").appendChild(sc)}}foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
+  foldWrap($("io-card"),"inout","Calories in vs out",true);foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");{const d=foldWrap($("daily-card"),"basics","Daily targets");if(d){const sc=$("habit-score");sc.classList.add("pill");d.querySelector("summary").appendChild(sc);const mc=$("macro-card");if(mc){d.className="fold glance";mc.insertBefore(d,mc.firstChild)}}}foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
   foldWrap($("lift-dash"),"liftdash","Lift progression");foldWrap($("pr-card"),"prs","Personal records");foldWrap($("vol-card"),"volume","Volume by muscle");foldWrap($("effort-card"),"effort","Effort and recovery");
   foldWrap(card("view-photos","#compare"),"compare","Compare photos");foldWrap($("p-upload-card"),"upload","Add progress photos");
   foldWrap(card("view-coach","#review"),"review","Weekly review");
