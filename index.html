@@ -510,7 +510,11 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-index:95;display:grid;place-items:center;font:700 1.6rem var(--f-display);color:#fff;background:rgba(47,158,91,.92);animation:rflash 2.6s ease forwards;pointer-events:none}
 @keyframes rflash{0%{opacity:0}8%{opacity:1}22%{opacity:.35}36%{opacity:1}75%{opacity:1}100%{opacity:0}}
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
-.summary{display:grid;gap:10px}
+.summary{display:grid;gap:12px}
+.drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
+.dlist{display:grid;gap:8px}.dx{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}.dxg{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.9rem}
+.absc{display:grid;gap:10px}.absrow{display:grid;grid-template-columns:minmax(0,1fr) 80px auto;gap:8px;align-items:center}.absrow select,.absrow input{font:inherit;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-width:0}.absrow input[data-abso]{grid-column:1/-1;order:2}
+.wfin{display:grid;gap:6px;margin:6px 0 18px}.wfin .btn{width:100%;padding:14px;font-size:1rem}
 .prs{margin:0;padding-left:18px;display:grid;gap:3px}
 @media (max-width:700px), (hover:none) and (pointer:coarse){
   .whead{top:env(safe-area-inset-top,0px)}
@@ -2628,8 +2632,9 @@ function renderLive(){
   <div class="card"><h3>Add exercise</h3><div class="form"><label class="field" for="w-addsel">From your list<select id="w-addsel"><option value="">Choose…</option>${opts}</select></label><label class="field" for="w-addnew">Or a new one<input id="w-addnew" type="text" maxlength="60" placeholder="e.g. Cable crunch"></label></div><div class="row"><button class="btn" id="w-add">Add</button></div></div>
   ${injBanner()?`<div class="card">${injBanner()}</div>`:""}
   ${W.deload?`<div class="card deload on"><b>Deload session</b><p class="note">Fewer sets than usual. Keep the weights, finish each set with 2–3 reps in reserve.</p></div>`:""}
-  <div class="card"><b>How hard was this session?</b><p class="note">1 = very easy, 10 = couldn't have done any more. Used for fatigue and progress analytics.</p><div class="row diffrow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="chip" data-wdiff="${n}" aria-pressed="${W.diff===n}">${n}</button>`).join("")}</div></div>
-  <div class="card"><label class="field" for="w-notes">Session notes (energy, niggles, anything)<input id="w-notes" type="text" maxlength="200" value="${esc(W.notes||"")}"></label></div>`;
+  <div class="card"><label class="field" for="w-notes">Session notes (energy, niggles, anything)<input id="w-notes" type="text" maxlength="200" value="${esc(W.notes||"")}"></label></div>
+  ${absHTML()}
+  <div class="wfin"><button class="btn primary" type="button" data-finish="1">Finish workout</button><p class="note">You'll rate the session and see your summary next.</p></div>`;
 }
 $("w-live").addEventListener("change",e=>{if(e.target.dataset.rest!==undefined&&W){const ex=W.exercises[+e.target.dataset.rest];D.rest={...(D.rest||{}),[norm(ex.name)]:+e.target.value};if(db)db.doc("prefs/rest").set({map:D.rest}).catch(()=>{});return}if(e.target.dataset.f==="rir"&&W){W.exercises[+e.target.dataset.ex].sets[+e.target.dataset.s].rir=e.target.value;saveLive()}
   if(e.target.dataset.sf&&W){const s=W.exercises[+e.target.dataset.ex].sets[+e.target.dataset.s],on=e.target.checked;s[e.target.dataset.sf]=on;
@@ -2680,8 +2685,21 @@ $("w-live").addEventListener("click",async e=>{
     const tp=TEMPLATES.flatMap(x=>x.ex).find(x=>norm(x.name)===norm(n));W.exercises.push(mkEx(tp?tp.name:n,tp?tp.groups:null,tp?tp.note:""));saveLive();renderLive();
     document.querySelector(`.wex[data-ex="${W.exercises.length-1}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});return}
   if(t.id==="w-cancel"){if(t.dataset.confirm!=="1"){t.dataset.confirm="1";t.textContent="Tap again to discard";return}endSession();return}
-  if(t.id==="w-finish"){finishSession();return}
+  if(t.id==="w-finish"||t.dataset.finish){finishSession();return}
+  if(t.id==="w-abs-tog"){W.abs=[{name:(L.lastAbs||ABS_EX[0]),reps:""}];saveLive();renderLive();document.getElementById("w-abs")?.scrollIntoView({block:"center"});return}
+  if(t.id==="w-abs-add"){const l=W.abs[W.abs.length-1];W.abs.push({name:l?l.name:ABS_EX[0],other:l?l.other:"",reps:""});saveLive();renderLive();return}
+  if(t.dataset.absrm!=null){W.abs.splice(+t.dataset.absrm,1);if(!W.abs.length)delete W.abs;saveLive();renderLive();return}
 });
+$("w-live").addEventListener("change",e=>{const t=e.target;if(!W||!W.abs)return;
+  if(t.dataset.absn!=null){const r=W.abs[+t.dataset.absn];r.name=t.value;if(t.value!=="__other"){r.other="";L.lastAbs=t.value;saveL()}saveLive();renderLive()}});
+$("w-live").addEventListener("input",e=>{const t=e.target;if(!W||!W.abs)return;
+  if(t.dataset.absr!=null){W.abs[+t.dataset.absr].reps=t.value;saveLive()}
+  if(t.dataset.abso!=null){W.abs[+t.dataset.abso].other=t.value;saveLive()}});
+/* "Done abs?": pick ab exercises and reps at the end of any workout. Each row is one set. */
+var ABS_EX=["Hanging leg raise","Hanging knee raise","Cable crunch","Leg raise on bench","Decline sit-up","Ab wheel rollout","Machine crunch","Captain's chair knee raise","Toes to bar","Crunch","Bicycle crunch","Russian twist","Dead bug","Pallof press","Cable woodchopper","Dragon flag","Mountain climbers","Plank (seconds)","Side plank (seconds)"];
+function absName(r){return r.name==="__other"?(r.other||"").trim():r.name}
+function absHTML(){if(!W.abs)return `<div class="card absc"><button class="btn" type="button" id="w-abs-tog">Done abs?</button></div>`;
+  return `<div class="card absc" id="w-abs"><h3>Abs</h3><p class="note">One line per set. Add as many as you like.</p>${W.abs.map((r,i)=>`<div class="absrow"><select data-absn="${i}" aria-label="Ab exercise ${i+1}">${ABS_EX.map(n=>`<option ${r.name===n?"selected":""}>${esc(n)}</option>`).join("")}${r.name!=="__other"&&!ABS_EX.includes(r.name)?`<option selected>${esc(r.name)}</option>`:""}<option value="__other" ${r.name==="__other"?"selected":""}>Other (type it)</option></select>${r.name==="__other"?`<input type="text" data-abso="${i}" value="${esc(r.other||"")}" maxlength="40" placeholder="Exercise name" aria-label="Exercise name">`:""}<input type="number" inputmode="numeric" min="0" data-absr="${i}" value="${esc(r.reps)}" placeholder="${/seconds/.test(r.name)?"Secs":"Reps"}" aria-label="${/seconds/.test(r.name)?"Seconds":"Reps"} for set ${i+1}"><button class="x" type="button" data-absrm="${i}" aria-label="Remove this line">Remove</button></div>`).join("")}<div class="row"><button class="btn small" type="button" id="w-abs-add">+ Add another</button></div></div>`}
 function saveLive(now){
   try{L.live=W;saveL()}catch(e){}
   clearTimeout(saveT);const go=()=>{if(!db)return;(W?db.doc("live/session").set({session:JSON.stringify(W)}):db.doc("live/session").delete()).catch(()=>{})};
@@ -2692,19 +2710,46 @@ async function lockScreen(){try{if(navigator.wakeLock&&W)wakeLock=await navigato
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&W)lockScreen()});
 function endSession(){W=null;L.live=null;saveL();saveLive(true);clearInterval(wTimer);stopRest();try{wakeLock&&wakeLock.release()}catch(e){}wakeLock=null;renderLive()}
 async function finishSession(){
-  const exs=W.exercises.map(e=>({name:e.name,sets:e.sets.filter(s=>s.done&&+s.reps>0).map(s=>{const o={kg:+(+s.kg||0).toFixed(2),reps:parseInt(s.reps)};if(s.rir!=null&&s.rir!=="")o.rir=+s.rir;if(s.fail)o.fail=true;if(s.spot)o.spot=true;if(s.cheat)o.cheat=true;return o})})).filter(e=>e.sets.length);
+  const absEx=[];(W.abs||[]).forEach(r=>{const n=absName(r),reps=parseInt(r.reps);if(!n||!(reps>0))return;let x=absEx.find(a=>a.name===n);if(!x){x={name:n,sets:[]};absEx.push(x)}x.sets.push({kg:0,reps})});
+  const exs0=W.exercises.map(e=>({name:e.name,sets:e.sets.filter(s=>s.done&&+s.reps>0).map(s=>{const o={kg:+(+s.kg||0).toFixed(2),reps:parseInt(s.reps)};if(s.rir!=null&&s.rir!=="")o.rir=+s.rir;if(s.fail)o.fail=true;if(s.spot)o.spot=true;if(s.cheat)o.cheat=true;return o})})).filter(e=>e.sets.length),exs=[...exs0,...absEx];
   if(!exs.length){const b=$("w-finish");b.textContent="No sets ticked yet";setTimeout(()=>{if($("w-finish"))$("w-finish").textContent="Finish"},2000);return}
-  const prs=[];exs.forEach(e=>{const b=bestE1(e.name),top=e.sets.reduce((m,s)=>Math.max(m,s.kg>0?e1rm(s.kg,s.reps):0),0);if(b>0&&top>b+0.01){const s=e.sets.reduce((m,s)=>e1rm(s.kg,s.reps)>e1rm(m.kg,m.reps)?s:m);prs.push(`${e.name}: ${s.kg}kg × ${s.reps}`)}});
+  const prs=[],H0=liftHistory();exs.forEach(e=>{const bw=e.sets.every(s=>!(s.kg>0)),h=H0[norm(e.name)];
+    if(bw){const top=Math.max(...e.sets.map(s=>s.reps)),pb=h&&h.ss.some(x=>x.bw)?Math.max(...h.ss.filter(x=>x.bw).map(x=>x.perf)):0;if(pb>0&&top>pb)prs.push(`${e.name}: ${top} ${/seconds/i.test(e.name)?"seconds":"reps"}`);return}
+    const b=bestE1(e.name),top=e.sets.reduce((m,s)=>Math.max(m,s.kg>0?e1rm(s.kg,s.reps):0),0);if(b>0&&top>b+0.01){const s=e.sets.reduce((m,s)=>e1rm(s.kg,s.reps)>e1rm(m.kg,m.reps)?s:m);prs.push(`${e.name}: ${s.kg}kg × ${s.reps}`)}});
   const mins=Math.round((Date.now()-W.start)/60000),vol=Math.round(exs.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+s.kg*s.reps,0),0)),sets=exs.reduce((a,e)=>a+e.sets.length,0);
-  const doc={date:W.date,title:W.title,exercises:exs,source:"app",minutes:mins,notes:W.notes||""};if(W.diff)doc.rpe=W.diff;
+  const doc={date:W.date,title:W.title,exercises:exs,source:"app",minutes:mins,notes:W.notes||""};if(W.diff)doc.rpe=W.diff;if(absEx.length&&W.abs)L.lastAbs=W.abs[W.abs.length-1].name!=="__other"?W.abs[W.abs.length-1].name:L.lastAbs;
   const id=W.date+"-"+W.title.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,30)+(D.workouts.some(w=>w._id===W.date+"-"+W.title.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,30))?"-"+(Date.now()%10000):"");
   if(db){try{await db.doc("workouts/"+id).set(doc)}catch(e){const b=$("w-finish");if(b)b.textContent="Couldn't save. Try again";return}}
   const title=W.title;endSession();
   $("w-done").hidden=false;
-  $("w-done").innerHTML=`<div class="summary"><div class="row between"><h2>${esc(title)} done</h2><button class="x" id="w-done-x">Close</button></div><div class="stats">${stat("Time",mins+" min","")}${stat("Sets",String(sets),"")}${stat("Volume",vol.toLocaleString()+"kg","weight × reps")}</div>${prs.length?`<div><b>New bests</b><ul class="prs">${prs.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`:`<p class="note">No new bests this time. Keep the weights steady and add a rep or two next time. That's how a bulk builds.</p>`}</div>`;
+  LAST_DONE={id,doc};
+  $("w-done").innerHTML=doneHTML(id,doc,{title,mins,sets,vol,prs});
   window.scrollTo({top:0});
 }
-$("w-done").addEventListener("click",e=>{if(e.target.id==="w-done-x")$("w-done").hidden=true});
+var LAST_DONE=null;
+/* what to aim for next time, from the lift history including this session */
+function aimFor(h,r){const c=r.cur,p=r.prev,go=r.flags.find(f=>f[0]==="go"),u=/seconds/i.test(h.name)?"seconds":"reps";
+  if(go)return go[1].replace(/^You hit[^.]*\. /,"");
+  if(c.bw){const t=Math.max(...c.sets.map(s=>+s.reps));return p&&c.perf<p.perf-0.05?`Get back to ${p.top.reps} ${u} on your best set.`:`Aim for ${t+1} ${u} on your best set${c.sets.length>1?", or one more on the others":""}.`}
+  if(p&&c.perf<p.perf-0.05)return `Aim to get back to last time: ${setTxt(p.sets)}.`;
+  const t=c.top;return `Stay at ${+t.kg}kg and aim for ${+t.reps+1} reps on your best set, or one more rep on the others.`}
+function stalled(h){const ss=h.ss;if(ss.length<4)return false;const ref=ss[ss.length-4].perf,last=ss.slice(-3).map(x=>x.perf);return Math.max(...last)<=ref+0.05}
+function doneHTML(id,doc,o){const H=liftHistory([...D.workouts.filter(w=>w._id!==id),{...doc,_id:id}]);
+  const rows=doc.exercises.map(e=>{const h=H[norm(e.name)];if(!h)return "";const r=liftReport(h),pb=o.prs.some(x=>x.startsWith(e.name+":"));
+    const st=!r.prev?["First time","warn"]:r.status;
+    return `<div class="dx"><div class="row between"><b>${esc(e.name)}</b><span class="row" style="gap:4px">${pb?'<span class="pill good">PB</span>':""}<span class="pill ${st[1]}">${st[0]}</span></span></div>
+      <div class="dxg"><span class="note">Today</span><span>${esc(setTxt(e.sets))}</span>${r.prev?`<span class="note">Last time</span><span>${esc(setTxt(r.prev.sets))}</span>`:""}<span class="note">Next time</span><span><b>${esc(aimFor(h,r))}</b></span></div></div>`}).join("");
+  const stuck=doc.exercises.map(e=>H[norm(e.name)]).filter(h=>h&&stalled(h));
+  return `<div class="summary"><div class="row between"><h2>${esc(o.title)} done</h2><button class="x" id="w-done-x">Close</button></div>
+  <div class="stats">${stat("Time",o.mins+" min","")}${stat("Sets",String(o.sets),"")}${stat("Volume",o.vol.toLocaleString()+"kg","weight × reps")}</div>
+  <div class="drate"><b>How hard was this session?</b><p class="note">1 = very easy, 10 = couldn't have done any more. Used for fatigue and progress.</p><div class="row diffrow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="chip" data-rate="${n}" aria-pressed="${doc.rpe===n}">${n}</button>`).join("")}</div><span class="toast" id="w-rate-t"></span></div>
+  ${o.prs.length?`<div class="dpb"><b>New PBs</b><ul class="prs">${o.prs.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`:`<p class="note">No new PBs this time. Hit the targets below next time and they'll come.</p>`}
+  ${stuck.length?`<div class="dstuck"><b>Not improving</b><p class="note">No progress in the last 3 sessions:</p><ul class="prs">${stuck.map(h=>`<li><b>${esc(h.name)}</b> · best lately ${esc(setTxt(h.ss.slice(-3).reduce((b,x)=>x.perf>b.perf?x:b).sets))}</li>`).join("")}</ul><p class="note">Try a different rep range, add a set, check sleep and food, or swap it for a similar exercise.</p></div>`:""}
+  <div class="dlist"><h3>Exercise by exercise</h3>${rows}</div></div>`}
+$("w-done").addEventListener("click",async e=>{if(e.target.id==="w-done-x"){$("w-done").hidden=true;return}
+  const b=e.target.closest("[data-rate]");if(!b||!LAST_DONE)return;const n=+b.dataset.rate;LAST_DONE.doc.rpe=n;
+  document.querySelectorAll("#w-done [data-rate]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  if(db){try{await db.doc("workouts/"+LAST_DONE.id).set(LAST_DONE.doc);flash("w-rate-t","Saved")}catch(err){flash("w-rate-t","Couldn't save. Try again")}}});
 
 /* rest timer */
 let restEnd=0,restLen=0,restI=null,actx=null;
@@ -2998,7 +3043,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="18 Nov 2026 (c)";
+const APP_VERSION="20 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3694,7 +3739,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
     GOAL_NEW=null;await saveGoals([...goalList(),g])}});
 
 /* ================= lift progression ================= */
-function liftHistory(){const m={};[...D.workouts].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).forEach(w=>(w.exercises||[]).forEach(ex=>{const sets=(ex.sets||[]).filter(s=>+s.reps>0);if(!sets.length)return;
+function liftHistory(list){const m={};[...(list||D.workouts)].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).forEach(w=>(w.exercises||[]).forEach(ex=>{const sets=(ex.sets||[]).filter(s=>+s.reps>0);if(!sets.length)return;
   const k=norm(ex.name);m[k]=m[k]||{k,name:ex.name,ss:[]};const bw=sets.every(s=>!(+s.kg>0));
   const best=sets.reduce((b,s)=>{const v=bw?+s.reps:e1rm(+s.kg,+s.reps);return v>b.v?{v,s}:b},{v:0,s:sets[0]});
   m[k].ss.push({date:w.date,wid:w._id,sets,bw,perf:best.v,top:best.s,reps:sets.reduce((a,s)=>a+(+s.reps),0),rpe:w.rpe})}));return m}
