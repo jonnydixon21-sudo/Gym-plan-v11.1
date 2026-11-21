@@ -331,6 +331,8 @@ button.more{border:1px solid var(--line);background:var(--surface);color:var(--i
 .tpl button b{font-family:var(--f-display);font-size:1rem}
 .tpl button small{color:var(--muted);font-size:.78rem}
 .tpl button.next{border-color:var(--accent);background:var(--accent-soft)}
+.edbtns .spcog{display:grid;place-items:center;color:var(--muted)}.edbtns .spcog svg{width:18px;height:18px}.spother{display:grid;gap:6px;margin:10px 0}.spother .chip svg{width:14px;height:14px;vertical-align:-2px}
+.tpl .tw>button[data-tpl]{padding-right:12px}
 .tpl .whero{grid-column:1/-1;background:var(--ink);color:var(--bg);border-color:var(--ink);padding:16px 18px;border-radius:14px;gap:4px}.tpl .whero b{font-size:1.35rem}.tpl .whero small,.tpl .whero span{color:inherit;opacity:.75;font-size:.82rem}.tpl .tsub{grid-column:1/-1;margin:6px 0 0}
 .tpl:has(.whero) .tw>button[data-tpl],.tpl:has(.whero)>button{padding:9px 10px;padding-right:30px}.tpl:has(.whero) button b{font-size:.92rem}.tpl:has(.whero) button small{font-size:.72rem}.tpl:has(.whero) button.cog{width:30px;height:30px;top:2px;right:2px}
 .tpl .tw{position:relative;display:grid}.tpl .tw>button[data-tpl]{width:100%;padding-right:34px}
@@ -893,9 +895,9 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
     <details class="card fold" id="ready-card" data-fold="ready"><summary><h2>Readiness</h2><span class="pill" id="ready-pill"></span></summary><div id="ready-body"></div></details>
     <details class="card fold" id="w-start" data-fold="start" open><summary><h2>Start a workout</h2><span class="note" id="w-next"></span></summary>
       <div class="tpl" id="w-tpls"></div>
-      <p class="note">Tap a workout to see what's in it before you start. The cog edits it.</p>
+      <p class="note">Tap a workout to see what's in it before you start. To change a workout, use Split below.</p>
     </details>
-    <details class="card fold" id="split-card" data-fold="split"><summary><h2>Split</h2><span class="note" id="split-next"></span></summary><div id="split-body"></div></details>
+    <details class="card fold" id="split-card" data-fold="split"><summary><h2>Split</h2><span class="note" id="split-next"></span></summary><div id="split-body"></div><div id="sp-edit" class="tpl pvmode" hidden></div></details>
     <details class="card fold" id="splitvol-card" data-fold="splitvol"><summary><h2>Sets per muscle</h2><span class="note" id="sv-sum"></span></summary><div id="sv-body"></div></details>
 
     <div class="view" id="w-live" hidden></div>
@@ -2534,25 +2536,26 @@ function previewHTML(title){
 function renderSplit(){try{renderSplitVol()}catch(e){console.warn(e)}const el=$("split-body");if(!el)return;$("split-card").hidden=!!W;const sp=splitKeys(),ni=(()=>{const t=TEMPLATES.find(x=>x.title===nextPlanned());const k=t?sp.indexOf(t.key):-1;return k<0?nextIndex():k})(),tt=k=>(TEMPLATES.find(t=>t.key===k)||{}).title||k;
   {const nx=TEMPLATES.find(x=>x.key===sp[ni]);$("split-next").textContent=nx?"Next: "+nx.title:""}
   el.innerHTML=`<p class="note">The order your sessions run in. After the last one it starts again from the top. Rest days don't use one up: the next session waits for your next training day. You can add a session more than once.</p>
-  <div class="ed"><ol>${sp.map((k,i)=>`<li class="edcol"><div class="row between"><b>${i+1}. ${esc(tt(k))}</b>${i===ni?'<span class="pill good">Next</span>':""}</div><div class="edbtns"><button data-spup="${i}" aria-label="Move up">↑</button><button data-spdn="${i}" aria-label="Move down">↓</button><button class="rm" data-sprm="${i}" aria-label="Remove from split">−</button></div></li>`).join("")}</ol>
+  <div class="ed"><ol>${sp.map((k,i)=>`<li class="edcol"><div class="row between"><b>${i+1}. ${esc(tt(k))}</b>${i===ni?'<span class="pill good">Next</span>':""}</div><div class="edbtns"><button class="cog spcog" data-edit="${esc(tt(k))}" aria-label="Edit ${esc(tt(k))}" title="Edit this workout">${COG}</button><button data-spup="${i}" aria-label="Move up">↑</button><button data-spdn="${i}" aria-label="Move down">↓</button><button class="rm" data-sprm="${i}" aria-label="Remove from split">−</button></div></li>`).join("")}</ol>
+  ${(()=>{const out=TEMPLATES.filter(t=>!sp.includes(t.key));return `<div class="spother"><span class="note">${out.length?"Workouts not in your split":"Edit a workout with its cog above."}</span><div class="row">${out.map(t=>`<button class="chip" type="button" data-edit="${esc(t.title)}">${COG} ${esc(t.title)}</button>`).join("")}<button class="chip" type="button" data-tplnew="1">+ New workout</button></div></div>`})()}
   <div class="row"><select id="sp-add" aria-label="Session to add">${TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.title)}</option>`).join("")}</select><button class="btn" id="sp-addbtn">+ Add to split</button></div>
   <div class="row"><button class="btn ghost small" id="sp-reset">Reset to original order</button><span class="note" id="sp-msg"></span></div></div>`}
 async function saveSplit(sp){const prog=D.program||{};D.program={...prog,split:sp};applyNames();renderStart();try{renderDayAll();renderDay()}catch(e){}if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}}
 function renderStart(){renderSplit();if($("ready-card")){$("ready-card").hidden=!!W;if(!W)renderReady()}
   const nx=nextPlanned();
   {const lg=D.workouts.find(w=>w.date===TODAY);$("w-next").textContent=PREVIEW?"":lg?`Done today: ${lg.title} · next: ${nx}`:dayType(TODAY)==="T"?`Today: ${nx}`:`Rest day today · next: ${nx}`}
-  if(EDIT||PREVIEW)$("w-start").open=true;
-  if(EDIT){$("w-tpls").classList.add("pvmode");$("w-tpls").innerHTML=editHTML();$("w-start").hidden=!!W;$("w-live").hidden=!W;return}
+  if(PREVIEW)$("w-start").open=true;
+  {const se=$("sp-edit");if(se){se.innerHTML=EDIT&&!W?editHTML():"";se.hidden=!EDIT||!!W;$("split-body").hidden=!!EDIT;if(EDIT)$("split-card").open=true}}
   if(PREVIEW){$("w-tpls").classList.add("pvmode");$("w-tpls").innerHTML=previewHTML(PREVIEW);$("w-start").hidden=!!W;$("w-live").hidden=!W;return}
   $("w-tpls").classList.remove("pvmode");
   const hx=tplOf(nx),hlg=D.workouts.find(w=>w.date===TODAY),hero=hx&&!hlg?`<button class="whero" data-tpl="${esc(nx)}"><small>${gymDay(TODAY)?"Today's workout":"Next workout"}</small><b>Start ${esc(nx)} <span aria-hidden="true">›</span></b><span>${hx.ex.length} exercises · ${hx.ex.reduce((a,e)=>a+targets(e.groups).length,0)} sets</span></button><p class="note tsub">Or pick another</p>`:"";
-  $("w-tpls").innerHTML=hero+TEMPLATES.map(t=>tplOf(t.title)).map(t=>`<div class="tw"><button data-tpl="${esc(t.title)}" class="${t.title===nx?"next":""}"><b>${esc(t.title)}</b><small>${t.ex.length} exercises · ${t.ex.reduce((a,e)=>a+targets(e.groups).length,0)} sets</small></button><button class="cog" data-edit="${esc(t.title)}" aria-label="Edit ${esc(t.title)}" title="Edit this session"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>`).join("")+`<button data-tpl=""><b>Free rein</b><small>Build it as you go</small></button><button data-tplnew="1"><b>+ New workout</b><small>Make your own session</small></button>`;
+  $("w-tpls").innerHTML=hero+TEMPLATES.map(t=>tplOf(t.title)).map(t=>`<div class="tw"><button data-tpl="${esc(t.title)}" class="${t.title===nx?"next":""}"><b>${esc(t.title)}</b><small>${t.ex.length} exercises · ${t.ex.reduce((a,e)=>a+targets(e.groups).length,0)} sets</small></button></div>`).join("")+`<button data-tpl=""><b>Free rein</b><small>Build it as you go</small></button>`;
   $("w-start").hidden=!!W;$("w-live").hidden=!W;
   {const tl=$("tab-training")&&$("tab-training").querySelector(".tl");if(tl)tl.textContent=W?"Training •":"Training"}
 }
 const setsText=g=>g.map(([n,r])=>n+"x"+r).join(" + ");
 function parseSets(t){const out=[];for(const part of String(t).split("+")){const m=part.trim().match(/^(\d+)\s*[x×*]\s*(\d+(?:\s*-\s*\d+)?)$/i);if(!m||+m[1]<1||+m[1]>20)return null;out.push([+m[1],m[2].replace(/\s/g,"")])}return out.length?out:null}
-function editOpen(title){const t=tplOf(title);if(!t)return;EDIT={key:TEMPLATES.find(x=>x.title===title).key,name:t.title,ex:t.ex.map(e=>({name:e.name,sets:setsText(e.groups),note:e.note||""})),err:""};renderStart();$("w-start").scrollIntoView({behavior:"smooth",block:"start"})}
+function editOpen(title){const t=tplOf(title);if(!t)return;EDIT={key:TEMPLATES.find(x=>x.title===title).key,name:t.title,ex:t.ex.map(e=>({name:e.name,sets:setsText(e.groups),note:e.note||""})),err:""};renderStart();$("split-card").scrollIntoView({behavior:"smooth",block:"start"})}
 function editHTML(){const d=EDIT;return `<div class="ed"><h2>Edit session</h2><p class="note">Changes apply every time you start this session. Past workouts are not touched.</p>
   <label class="note">Session name<input id="ed-name" value="${esc(d.name)}" maxlength="30"></label>
   <ol>${d.ex.map((e,i)=>`<li class="edcol"><div class="edrow"><input class="ed-n" data-i="${i}" list="ed-known" value="${esc(e.name)}" placeholder="Exercise" aria-label="Exercise ${i+1} name"><input class="ed-s" data-i="${i}" value="${esc(e.sets)}" placeholder="2x8-12" aria-label="Sets and reps" inputmode="text"></div><div class="edbtns"><button data-edup="${i}" aria-label="Move up">↑</button><button data-eddn="${i}" aria-label="Move down">↓</button><button class="rm" data-edrm="${i}" aria-label="Remove exercise">−</button></div></li>`).join("")}</ol>
@@ -2575,15 +2578,21 @@ async function editSave(){const d=EDIT,name=d.name.trim();
   D.program={...prog,days,names,log};applyNames();EDIT=null;
   if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}
   renderStart();renderProgSugs()}
-$("w-tpls").addEventListener("input",e=>{if(!EDIT)return;const t=e.target,i=t.dataset.i;
+$("split-card").addEventListener("input",e=>{if(!EDIT)return;const t=e.target,i=t.dataset.i;
   if(t.id==="ed-name")EDIT.name=t.value;else if(t.classList.contains("ed-n"))EDIT.ex[+i].name=t.value;else if(t.classList.contains("ed-s")){EDIT.ex[+i].sets=t.value;t.classList.toggle("bad",!!t.value.trim()&&!parseSets(t.value))}});
-$("w-tpls").addEventListener("click",async e=>{if(W)return;
+$("split-card").addEventListener("click",async e=>{if(W)return;
   const ce=e.target.closest("[data-edit]");if(ce){editOpen(ce.dataset.edit);return}
+  if(!EDIT&&e.target.closest("[data-tplnew]")){const key="c"+Date.now().toString(36),prog=D.program||{};let title="New workout",k=2;while(TEMPLATES.some(t=>norm(t.title)===norm(title)))title="New workout "+k++;
+    D.program={...prog,custom:{...(prog.custom||{}),[key]:{title}}};applyNames();if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}editOpen(title);return}
+  if(!EDIT)return;
+  await tplsClick(e)});
+$("w-tpls").addEventListener("click",e=>tplsClick(e));
+async function tplsClick(e){if(W)return;
   if(!EDIT&&e.target.closest("[data-tplnew]")){const key="c"+Date.now().toString(36),prog=D.program||{};let title="New workout",k=2;while(TEMPLATES.some(t=>norm(t.title)===norm(title)))title="New workout "+k++;
     D.program={...prog,custom:{...(prog.custom||{}),[key]:{title}}};applyNames();if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}editOpen(title);return}
   if(EDIT){const t=e.target.closest("button");if(!t)return;const D_=EDIT;
     if(t.id==="ed-cancel"){EDIT=null;renderStart();return}
-    if(t.id==="ed-add"){D_.ex.push({name:"",sets:"2x8-12",note:""});D_.err="";renderStart();const ins=$("w-tpls").querySelectorAll(".ed-n");if(ins.length)ins[ins.length-1].focus();return}
+    if(t.id==="ed-add"){D_.ex.push({name:"",sets:"2x8-12",note:""});D_.err="";renderStart();const ins=$("sp-edit").querySelectorAll(".ed-n");if(ins.length)ins[ins.length-1].focus();return}
     if(t.id==="ed-save"){await editSave();return}
     if(t.id==="ed-reset"){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to reset";return}
       const prog=D.program||{},days={...(prog.days||{})},names={...(prog.names||{})};delete days[D_.key];delete names[D_.key];const cu={...(prog.custom||{})};let sp=prog.split||null;const bp=prog.base&&D_.key.startsWith("s_")&&splitProgram(prog.base.id,prog.base.n);if(bp&&bp.days[D_.key]){days[D_.key]=bp.days[D_.key];cu[D_.key]=bp.custom[D_.key]}else if(cu[D_.key]){delete cu[D_.key];if(sp)sp=sp.filter(k=>k!==D_.key)}D.program={...prog,days,names,custom:cu,split:sp};applyNames();EDIT=null;
@@ -2596,7 +2605,7 @@ $("w-tpls").addEventListener("click",async e=>{if(W)return;
   if(e.target.closest("#pv-start")){const t=PREVIEW;PREVIEW=null;newSession(t);return}
   const b=e.target.closest("[data-tpl]");if(!b)return;
   if(!b.dataset.tpl){newSession("");return}
-  PREVIEW=b.dataset.tpl;renderStart();$("w-start").scrollIntoView({behavior:"smooth",block:"start"});});
+  PREVIEW=b.dataset.tpl;renderStart();$("w-start").scrollIntoView({behavior:"smooth",block:"start"})}
 const mmss=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 function renderLive(){
   renderStart();if(!W){$("w-live").innerHTML="";return}
@@ -3043,7 +3052,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="20 Nov 2026";
+const APP_VERSION="20 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
