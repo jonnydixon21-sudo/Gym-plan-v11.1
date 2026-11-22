@@ -514,7 +514,8 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
-.dlist{display:grid;gap:8px}.dx{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}.dxg{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.9rem}
+.dlist{display:grid;gap:8px}.dsum{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}.dsum textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;resize:vertical}
+.lastsum{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:grid;gap:4px}.lastsum p{margin:0;white-space:pre-wrap}.dx{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}.dxg{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.9rem}
 .absc{display:grid;gap:10px}.absrow{display:grid;grid-template-columns:minmax(0,1fr) 80px auto;gap:8px;align-items:center}.absrow select,.absrow input{font:inherit;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-width:0}.absrow input[data-abso]{grid-column:1/-1;order:2}
 .wfin{display:grid;gap:6px;margin:6px 0 18px}.wfin .btn{width:100%;padding:14px;font-size:1rem}
 .prs{margin:0;padding-left:18px;display:grid;gap:3px}
@@ -2467,7 +2468,7 @@ let W=null;               // live session
 let wTimer=null,wakeLock=null,saveT=null;
 const targets=groups=>groups.flatMap(([n,r])=>Array(n).fill(r));
 const rr=r=>{const [a,b]=String(r||"").split("-").map(Number);return {lo:a||0,hi:b||a||0}};
-const restFor=r=>{const {lo}=rr(r);return lo<=6?180:lo<=8?150:lo<=10?120:90};
+const restFor=r=>120;
 function lastSession(name){
   const k=norm(name);const ws=[...D.workouts].sort((a,b)=>a.date<b.date?1:-1);
   for(const w of ws){const ex=(w.exercises||[]).find(e=>norm(e.name)===k);if(ex)return {date:w.date,sets:ex.sets||[]}}
@@ -2524,6 +2525,7 @@ function previewHTML(title){
   const last=[...D.workouts].filter(w=>norm(w.title)===norm(title)).sort((a,b)=>a.date<b.date?1:-1)[0];
   const sets=t.ex.reduce((a,e)=>a+targets(e.groups).length,0);
   return `<div class="pv"><div class="row between"><div><b class="pv-t">${esc(t.title)}</b><span class="note">${t.ex.length} exercises · ${sets} sets${last?` · last done ${niceLong(last.date)}`:""}</span></div></div>
+  ${lastSumHTML(t.title)}
   ${wnGet(wnKey(t.title))?`<span class="pvnote"><b>Your note:</b> ${esc(wnGet(wnKey(t.title)))}</span>`:""}
   ${(()=>{const m={};t.ex.forEach(e=>{const i=exInfo(swapFor(e.name)||e.name);if(!i)return;const g=GEN_OF[i.p]||i.p;m[g]=(m[g]||0)+targets(e.groups).length});const ks=GEN_ORDER.filter(g=>m[g]).concat(Object.keys(m).filter(g=>!GEN_ORDER.includes(g)));
     return ks.length?`<div class="pvmus" aria-label="Sets per muscle in this workout"><span class="note">Sets per muscle (main muscle only)</span><div class="row">${ks.map(g=>`<span class="mchip">${esc(g)} <b>${m[g]}</b></span>`).join("")}</div></div>`:""})()}
@@ -2612,6 +2614,7 @@ function renderLive(){
   const done=W.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0),tot=W.exercises.reduce((a,e)=>a+e.sets.length,0);
   const opts=knownExercises().map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
   $("w-live").innerHTML=`<div class="whead"><span class="toast sstoast" id="w-ss-toast" aria-live="polite"></span><div><b>${esc(W.title)}</b><span class="mono" id="w-clock">${mmss((Date.now()-W.start)/1000)}</span><span class="mono"> · ${done}/${tot} sets</span></div><div class="row"><button class="btn small ghost" id="w-cancel">Discard</button><button class="btn small" id="w-finish">Finish</button></div></div>
+  ${lastSummary(W.title)?`<div class="card">${lastSumHTML(W.title)}</div>`:""}
   <div class="card"><label class="field">Notes for ${esc(W.title)} (kept and shown every time)<textarea class="wnote" rows="2" maxlength="400" data-wn="${esc(wnKey(W.title))}" placeholder="e.g. Start with the lat pulldown if the row is busy">${esc(wnGet(wnKey(W.title)))}</textarea></label></div>
   ${W.exercises.map((ex,ei)=>{const last=lastSession(ex.name),h=hintFor(ex),best=bestE1(ex.name);
     const g=groupOf(ex),alts=g?ALTG[g].x.filter(a=>norm(a[0])!==norm(ex.name)):[],orig=ex.from||ex.name;
@@ -2754,8 +2757,15 @@ function doneHTML(id,doc,o){const H=liftHistory([...D.workouts.filter(w=>w._id!=
   <div class="drate"><b>How hard was this session?</b><p class="note">1 = very easy, 10 = couldn't have done any more. Used for fatigue and progress.</p><div class="row diffrow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="chip" data-rate="${n}" aria-pressed="${doc.rpe===n}">${n}</button>`).join("")}</div><span class="toast" id="w-rate-t"></span></div>
   ${o.prs.length?`<div class="dpb"><b>New PBs</b><ul class="prs">${o.prs.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`:`<p class="note">No new PBs this time. Hit the targets below next time and they'll come.</p>`}
   ${stuck.length?`<div class="dstuck"><b>Not improving</b><p class="note">No progress in the last 3 sessions:</p><ul class="prs">${stuck.map(h=>`<li><b>${esc(h.name)}</b> · best lately ${esc(setTxt(h.ss.slice(-3).reduce((b,x)=>x.perf>b.perf?x:b).sets))}</li>`).join("")}</ul><p class="note">Try a different rep range, add a set, check sleep and food, or swap it for a similar exercise.</p></div>`:""}
-  <div class="dlist"><h3>Exercise by exercise</h3>${rows}</div></div>`}
-$("w-done").addEventListener("click",async e=>{if(e.target.id==="w-done-x"){$("w-done").hidden=true;return}
+  <div class="dlist"><h3>Exercise by exercise</h3>${rows}</div>
+  <div class="dsum"><label class="field" for="w-sumtxt"><b>Your summary of this session</b><span class="note">Shows at the top next time you start ${esc(o.title)}.</span><textarea id="w-sumtxt" rows="3" maxlength="600" placeholder="e.g. Felt strong on presses. Hack squat 50kg felt heavy, stay there. Neck fine.">${esc(doc.summary||"")}</textarea></label><div class="row"><button class="btn small primary" type="button" id="w-sumsave">Save summary</button><span class="toast" id="w-sum-t"></span></div></div></div>`}
+function lastSummary(title){const w=[...D.workouts].filter(x=>norm(x.title)===norm(title)&&x.summary&&String(x.summary).trim()).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(a._id<b._id?1:-1))[0];return w?{date:w.date,text:String(w.summary).trim()}:null}
+function lastSumHTML(title){const ls=lastSummary(title);return ls?`<div class="lastsum"><b>Last time · ${esc(nice(ls.date))}</b><p>${esc(ls.text)}</p></div>`:""}
+async function saveSummary(){if(!LAST_DONE)return;const v=($("w-sumtxt")||{}).value||"";LAST_DONE.doc.summary=v.trim();if(!LAST_DONE.doc.summary)delete LAST_DONE.doc.summary;
+  if(db){try{await db.doc("workouts/"+LAST_DONE.id).set(LAST_DONE.doc);flash("w-sum-t","Saved")}catch(err){flash("w-sum-t","Couldn't save. Try again")}}}
+document.addEventListener("change",e=>{if(e.target.id==="w-sumtxt")saveSummary()});
+$("w-done").addEventListener("click",async e=>{if(e.target.id==="w-sumsave"){await saveSummary();return}
+  if(e.target.id==="w-done-x"){if($("w-sumtxt")&&LAST_DONE&&($("w-sumtxt").value.trim()!==(LAST_DONE.doc.summary||"")))await saveSummary();$("w-done").hidden=true;return}
   const b=e.target.closest("[data-rate]");if(!b||!LAST_DONE)return;const n=+b.dataset.rate;LAST_DONE.doc.rpe=n;
   document.querySelectorAll("#w-done [data-rate]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
   if(db){try{await db.doc("workouts/"+LAST_DONE.id).set(LAST_DONE.doc);flash("w-rate-t","Saved")}catch(err){flash("w-rate-t","Couldn't save. Try again")}}});
@@ -3052,7 +3062,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="20 Nov 2026 (b)";
+const APP_VERSION="22 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
