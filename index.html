@@ -514,7 +514,9 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
-.dlist{display:grid;gap:8px}.dsum{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}.dsum textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;resize:vertical}
+.dlist{display:grid;gap:8px}
+.acbox{position:absolute;z-index:60;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:grid}
+.acbox button{font:inherit;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 12px;color:var(--ink)}.acbox button:last-child{border-bottom:0}.acbox button b{color:var(--accent-ink)}.acbox button:active{background:var(--surface-2)}.dsum{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}.dsum textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;resize:vertical}
 .lastsum{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:grid;gap:4px}.lastsum p{margin:0;white-space:pre-wrap}.dx{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}.dxg{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.9rem}
 .absc{display:grid;gap:10px}.absrow{display:grid;grid-template-columns:minmax(0,1fr) 80px auto;gap:8px;align-items:center}.absrow select,.absrow input{font:inherit;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-width:0}.absrow input[data-abso]{grid-column:1/-1;order:2}
 .wfin{display:grid;gap:6px;margin:6px 0 18px}.wfin .btn{width:100%;padding:14px;font-size:1rem}
@@ -2641,7 +2643,7 @@ function renderLive(){
       return `<div class="set${s.done?" done":""}${pr?" pr":""}"><span class="no">${si+1}</span><span class="prev">${p?(p.kg?`${p.kg}×${p.reps}`:`${p.reps} reps`)+(p.fail?" F":"")+(p.spot?" S":"")+(p.cheat?" C":""):"–"}<em>${esc(s.target||"")}</em></span><input inputmode="decimal" type="number" step="any" min="0" data-f="kg" data-ex="${ei}" data-s="${si}" value="${esc(s.kg)}"${s.auto?' class="autokg" title="Filled from last time"':""} placeholder="${p?p.kg:""}" aria-label="Set ${si+1} kg"><input inputmode="numeric" type="number" min="0" data-f="reps" data-ex="${ei}" data-s="${si}" value="${esc(s.reps)}" placeholder="${p?p.reps:rr(s.target).hi||""}" aria-label="Set ${si+1} reps"><select class="rir" data-f="rir" data-ex="${ei}" data-s="${si}" aria-label="Set ${si+1} reps in reserve">${["","0","1","2","3","4","5"].map(v=>`<option value="${v}" ${String(s.rir??"")===v?"selected":""}>${v===""?"–":v==="5"?"5+":v}</option>`).join("")}</select><button class="ok" data-ok="${ei}:${si}" aria-label="Set ${si+1} done" title="Tick when the set is done">✓</button></div>
       <div class="setx${s.done?" done":""}"><label class="chkline"><input type="checkbox" data-sf="fail" data-ex="${ei}" data-s="${si}" ${s.fail?"checked":""}> Failed</label><label class="chkline"><input type="checkbox" data-sf="spot" data-ex="${ei}" data-s="${si}" ${s.spot?"checked":""}> Spotted</label><label class="chkline"><input type="checkbox" data-sf="cheat" data-ex="${ei}" data-s="${si}" ${s.cheat?"checked":""}> Cheat</label></div>`}).join("")}
     </div><div class="row"><button class="btn small" data-addset="${ei}">+ Add set</button>${ex.sets.length>1?`<button class="x" data-rmset="${ei}">Remove last set</button>`:""}</div></div>`}).join("")}
-  <div class="card"><h3>Add exercise</h3><div class="form"><label class="field" for="w-addsel">From your list<select id="w-addsel"><option value="">Choose…</option>${opts}</select></label><label class="field" for="w-addnew">Or a new one<input id="w-addnew" type="text" maxlength="60" placeholder="e.g. Cable crunch"></label></div><div class="row"><button class="btn" id="w-add">Add</button></div></div>
+  <div class="card"><h3>Add exercise</h3><div class="form"><label class="field" for="w-addsel">From your list<select id="w-addsel"><option value="">Choose…</option>${opts}</select></label><label class="field" for="w-addnew">Or a new one<input id="w-addnew" data-exac="1" autocomplete="off" type="text" maxlength="60" placeholder="e.g. Cable crunch"></label></div><div class="row"><button class="btn" id="w-add">Add</button></div></div>
   ${injBanner()?`<div class="card">${injBanner()}</div>`:""}
   ${W.deload?`<div class="card deload on"><b>Deload session</b><p class="note">Fewer sets than usual. Keep the weights, finish each set with 2–3 reps in reserve.</p></div>`:""}
   <div class="card"><label class="field" for="w-notes">Session notes (energy, niggles, anything)<input id="w-notes" type="text" maxlength="200" value="${esc(W.notes||"")}"></label></div>
@@ -3062,7 +3064,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="22 Nov 2026";
+const APP_VERSION="23 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -4616,6 +4618,29 @@ $("tadd").addEventListener("click",async e=>{const t=e.target.closest("button");
     else await add([at,"train"])}
   $("ta-txt")&&($("ta-txt").value="");$("tadd").open=false;renderTadd();say("Added to "+(d===TODAY?"today":nice(d)))});
 
+/* ---------- exercise name suggestions: a dropdown under any exercise box as you type ---------- */
+(function(){let box=null,inp=null,hideT=null;
+  const isEx=el=>el&&el.tagName==="INPUT"&&(el.dataset.exac||el.dataset.acl||["sw-list","ed-known","gf-exl"].includes(el.getAttribute("list")));
+  const names=()=>{try{return libNames().map(x=>x.n)}catch(e){return knownExercises()}};
+  function close(){if(box){box.remove();box=null}inp=null}
+  function place(){if(!box||!inp)return;if(!inp.isConnected)return close();const r=inp.getBoundingClientRect(),w=Math.max(r.width,240),vw=document.documentElement.clientWidth;
+    box.style.width=Math.min(w,vw-16)+"px";box.style.left=Math.max(8,Math.min(r.left,vw-8-Math.min(w,vw-16)))+window.scrollX+"px";box.style.top=r.bottom+window.scrollY+4+"px"}
+  function show(el){const q=norm(el.value||"");if(!q){close();return}
+    const all=names(),qs=q.split(" ");
+    const score=n=>{const k=norm(n);if(k===q)return -1;if(k.startsWith(q))return 0;const ws=k.split(/[\s\-/]+/);if(ws.some(w=>w.startsWith(q)))return 1;if(qs.every(t=>ws.some(w=>w.startsWith(t))))return 2;if(k.includes(q))return 3;return 9};
+    const hits=all.map(n=>[score(n),n]).filter(x=>x[0]>=0&&(q.length<2?x[0]===0:x[0]<9)).sort((a,b)=>a[0]-b[0]||a[1].localeCompare(b[1])).slice(0,30).map(x=>x[1]);
+    if(!hits.length){close();return}
+    if(!box){box=document.createElement("div");box.className="acbox";box.setAttribute("role","listbox");document.body.appendChild(box);
+      box.addEventListener("mousedown",e=>e.preventDefault());
+      box.addEventListener("click",e=>{const b=e.target.closest("[data-acv]");if(!b||!inp)return;const t=inp;t.value=b.dataset.acv;close();t.dispatchEvent(new Event("input",{bubbles:true}));t.dispatchEvent(new Event("change",{bubbles:true}));t.focus()})}
+    inp=el;box.innerHTML=hits.map(n=>{const k=norm(n),i=k.indexOf(q);return `<button type="button" role="option" data-acv="${esc(n)}">${i>=0?esc(n.slice(0,i))+"<b>"+esc(n.slice(i,i+q.length))+"</b>"+esc(n.slice(i+q.length)):esc(n)}</button>`}).join("");place()}
+  document.addEventListener("focusin",e=>{const el=e.target;if(!isEx(el))return;clearTimeout(hideT);
+    if(el.getAttribute("list")){el.dataset.acl=el.getAttribute("list");el.removeAttribute("list")}el.setAttribute("autocomplete","off");if(el.value)show(el)});
+  document.addEventListener("input",e=>{if(isEx(e.target)&&e.isTrusted!==false)show(e.target)},true);
+  document.addEventListener("focusout",e=>{if(e.target===inp)hideT=setTimeout(close,250)});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box)close()});
+  window.addEventListener("resize",place);window.addEventListener("scroll",place,{passive:true});
+})();
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
