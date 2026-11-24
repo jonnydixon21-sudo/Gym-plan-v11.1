@@ -413,7 +413,7 @@ textarea.wnote{min-height:0;height:64px;resize:vertical}
 #run-next li{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .cogm{border:0;background:none;color:var(--muted);width:34px;height:34px;padding:0;display:grid;place-items:center;border-radius:10px}.cogm svg{width:18px;height:18px}
 .ed ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.ed .edrow{display:grid;grid-template-columns:1fr 128px;gap:6px}
+.ed .edrow{display:grid;grid-template-columns:1fr 128px;gap:6px}.ed .edrow.exrow{grid-template-columns:minmax(0,1fr)}.ed .edbtns .ed-s{width:110px;flex:none}
 .ed .edbtns{display:flex;gap:6px;grid-column:1/-1}
 .ed .edbtns button{border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;min-width:40px;height:36px;font-size:1.1rem;padding:0 10px;display:grid;place-items:center}
 .ed .edbtns button.rm{margin-left:auto}
@@ -2567,7 +2567,7 @@ function parseSets(t){const out=[];for(const part of String(t).split("+")){const
 function editOpen(title){const t=tplOf(title);if(!t)return;EDIT={key:TEMPLATES.find(x=>x.title===title).key,name:t.title,ex:t.ex.map(e=>({name:e.name,sets:setsText(e.groups),note:e.note||""})),err:""};renderStart();$("split-card").scrollIntoView({behavior:"smooth",block:"start"})}
 function editHTML(){const d=EDIT;return `<div class="ed"><h2>Edit session</h2><p class="note">Changes apply every time you start this session. Past workouts are not touched.</p>
   <label class="note">Session name<input id="ed-name" value="${esc(d.name)}" maxlength="30"></label>
-  <ol>${d.ex.map((e,i)=>`<li class="edcol"><div class="edrow"><input class="ed-n" data-i="${i}" list="ed-known" value="${esc(e.name)}" placeholder="Exercise" aria-label="Exercise ${i+1} name"><input class="ed-s" data-i="${i}" value="${esc(e.sets)}" placeholder="2x8-12" aria-label="Sets and reps" inputmode="text"></div><div class="edbtns"><button data-edup="${i}" aria-label="Move up">↑</button><button data-eddn="${i}" aria-label="Move down">↓</button><button class="rm" data-edrm="${i}" aria-label="Remove exercise">−</button></div></li>`).join("")}</ol>
+  <ol>${d.ex.map((e,i)=>`<li class="edcol"><div class="edrow exrow"><input class="ed-n" data-i="${i}" list="ed-known" value="${esc(e.name)}" placeholder="Exercise" aria-label="Exercise ${i+1} name"></div><div class="edbtns"><input class="ed-s" data-i="${i}" value="${esc(e.sets)}" placeholder="2x8-12" aria-label="Sets and reps" inputmode="text"><button data-edup="${i}" aria-label="Move up">↑</button><button data-eddn="${i}" aria-label="Move down">↓</button><button class="rm" data-edrm="${i}" aria-label="Remove exercise">−</button></div></li>`).join("")}</ol>
   <button class="btn" id="ed-add">+ Add exercise</button>
   <datalist id="ed-known">${knownExercises().map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
   <p class="note">Sets and reps like <b>2x8-12</b>. For mixed sets use <b>1x6-8 + 1x8-12</b>.</p>
@@ -3069,7 +3069,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="24 Nov 2026";
+const APP_VERSION="24 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3625,7 +3625,7 @@ function exInfo(name){const k=norm(name),o=D.exdb&&D.exdb[k];if(o)return {...o,s
   for(const [re,v] of EX_RULES)if(re.test(name))return {...v,src:"guess"};return null}
 function libNames(){const s=new Map();const add=n=>{const k=norm(n);if(!s.has(k))s.set(k,n)};TEMPLATES.forEach(t=>t.ex.forEach(e=>add(e.name)));
   Object.keys(EXDB_BASE).forEach(k=>{if(!s.has(k))s.set(k,k.charAt(0).toUpperCase()+k.slice(1))});D.workouts.forEach(w=>(w.exercises||[]).forEach(e=>add(e.name)));
-  Object.values(D.exdb||{}).forEach(v=>v.name&&add(v.name));return [...s.entries()].map(([k,n])=>({k,n})).sort((a,b)=>a.n.localeCompare(b.n))}
+  Object.values(D.exdb||{}).forEach(v=>v.name&&!v.hidden&&add(v.name));Object.entries(D.exdb||{}).forEach(([k,v])=>{if(v&&v.hidden&&!D.workouts.some(w=>(w.exercises||[]).some(e=>norm(e.name)===k))&&!TEMPLATES.some(t=>tplOf(t.title).ex.some(e=>norm(e.name)===k)))s.delete(k)});return [...s.entries()].map(([k,n])=>({k,n})).sort((a,b)=>a.n.localeCompare(b.n))}
 let LIB_EDIT=null,LIB_Q="";
 function renderLibrary(){const el=$("lib-list");if(!el)return;const all=libNames().filter(x=>!LIB_Q||norm(x.n).includes(norm(LIB_Q)));
   const by={};all.forEach(x=>{const i=exInfo(x.n),g=i?i.p:"Not set";(by[g]=by[g]||[]).push({...x,i})});
@@ -3634,7 +3634,7 @@ function renderLibrary(){const el=$("lib-list");if(!el)return;const all=libNames
     if(LIB_EDIT&&LIB_EDIT.k===x.k)return libEditor(LIB_EDIT);
     return `<div class="libitem"><div><b>${esc(x.n)}</b><small class="note">${i?[i.s&&i.s.length?"Also: "+i.s.map(g=>g+" "+exW(i,g)).join(", "):"",i.eq,i.cat].filter(Boolean).join(" · "):"Muscles not set, so it isn't counted in volume"}${i&&i.src==="guess"?' · <span class="pill warn">Guessed</span>':""}${i&&i.src==="you"?' · <span class="pill">Edited</span>':""}</small></div><button class="x" type="button" data-libedit="${esc(x.k)}">Edit</button></div>`}).join("")}</div>`).join("")||`<div class="empty">No exercises match.</div>`}
 function libEditor(d){const opt=(arr,v)=>arr.map(a=>`<option ${a===v?"selected":""}>${esc(a)}</option>`).join("");
-  return `<div class="libitem edit ed"><label class="note">Name${d.isNew?`<input id="lib-name" value="${esc(d.n)}" maxlength="50" placeholder="e.g. Cable crunch">`:`<b style="display:block">${esc(d.n)}</b>`}</label>
+  return `<div class="libitem edit ed"><label class="note">Name<input id="lib-name" value="${esc(d.n)}" maxlength="50" placeholder="e.g. Cable crunch">${d.isNew?"":`<span class="note">Renaming changes it everywhere: your workouts, past sessions, PBs, notes and rest times.</span>`}</label>
   <div class="g2"><label class="note">Main muscle<select id="lib-p">${opt(MGROUPS,d.p)}</select></label><label class="note">Equipment<select id="lib-eq">${opt(EQUIP,d.eq)}</select></label></div>
   <label class="note">Type<select id="lib-cat">${opt(EXCATS,d.cat)}</select></label>
   <div class="note">Also works (counts as indirect sets)</div><div class="row">${MGROUPS.filter(g=>g!==d.p).map(g=>`<button type="button" class="chip" data-libs="${esc(g)}" aria-pressed="${d.s.includes(g)}">${esc(g)}</button>`).join("")}</div>
@@ -3651,10 +3651,27 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(t.id==="lib-reset"){const m={...D.exdb};delete m[LIB_EDIT.k];D.exdb=m;LIB_EDIT=null;await saveExdb();return}
   if(t.id==="lib-save"){const d=LIB_EDIT;d.p=$("lib-p").value;d.eq=$("lib-eq").value;d.cat=$("lib-cat").value;d.s=d.s.filter(g=>g!==d.p);
     if(d.isNew){d.n=$("lib-name").value.trim();if(!d.n){$("lib-msg").textContent="Give it a name.";return}d.k=norm(d.n)}
+    else{const nn=$("lib-name").value.trim().replace(/\s+/g," ");if(!nn){$("lib-msg").textContent="Give it a name.";return}
+      if(nn!==d.n){if(norm(nn)!==d.k&&libNames().some(x=>x.k===norm(nn))&&t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Merge and save";$("lib-msg").textContent=`${nn} already exists. Saving joins the two, so their history becomes one exercise.`;return}
+        const old=d.n;await renameExercise(old,nn);const ok=d.k;d.n=nn;d.k=norm(nn);if(ok!==d.k){const m={...D.exdb};delete m[ok];if(EXDB_BASE[ok])m[ok]={...EXDB_BASE[ok],name:old,hidden:true};D.exdb=m}}}
     const w={};Object.entries(d.w||{}).forEach(([g,v])=>{if(d.s.includes(g)&&v!==""&&v!=null)w[g]=+v});D.exdb={...D.exdb,[d.k]:{name:d.n,p:d.p,s:d.s,eq:d.eq,cat:d.cat,...(Object.keys(w).length?{w}:{})}};LIB_EDIT=null;await saveExdb()}});
 document.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.libw!=null&&LIB_EDIT){LIB_EDIT.w={...(LIB_EDIT.w||{}),[e.target.dataset.libw]:e.target.value};return}if(e.target.id==="lib-p"&&LIB_EDIT){LIB_EDIT.p=e.target.value;LIB_EDIT.s=LIB_EDIT.s.filter(g=>g!==LIB_EDIT.p);LIB_EDIT.eq=$("lib-eq").value;LIB_EDIT.cat=$("lib-cat").value;if($("lib-name"))LIB_EDIT.n=$("lib-name").value;
   const box=e.target.closest(".libitem");box.outerHTML=libEditor(LIB_EDIT)}});
 document.addEventListener("input",e=>{if(e.target.id==="lib-q"){LIB_Q=e.target.value;LIB_EDIT=null;renderLibrary()}});
+
+/* rename an exercise everywhere it's used: workouts (split), past sessions, notes, rest times, supersets, swaps, a live session */
+async function renameExercise(oldN,newN){const ok=norm(oldN),nk=norm(newN),is=n=>norm(n)===ok,jobs=[];
+  const prog=D.program||{},days={...(prog.days||{})};let progCh=false;
+  TEMPLATES.forEach(tp=>{const t=tplOf(tp.title);if(t&&t.ex.some(e=>is(e.name))){days[tp.key]=t.ex.map(e=>is(e.name)?{...e,name:newN}:e);progCh=true}});
+  if(progCh){D.program={...prog,days,log:[...(prog.log||[]),{date:TODAY,text:`Renamed ${oldN} to ${newN}`}]};try{applyNames()}catch(e){}if(db)jobs.push(db.doc("prefs/program").set(D.program))}
+  D.workouts.forEach(w=>{if(!(w.exercises||[]).some(e=>is(e.name)))return;const {_id,...doc}=w;doc.exercises=doc.exercises.map(e=>is(e.name)?{...e,name:newN}:e);Object.assign(w,{exercises:doc.exercises});if(db&&_id)jobs.push(db.doc("workouts/"+_id).set(doc))});
+  if(D.rest&&D.rest[ok]!=null){const m={...D.rest};if(m[nk]==null)m[nk]=m[ok];if(nk!==ok)delete m[ok];D.rest=m;if(db)jobs.push(db.doc("prefs/rest").set({map:m}))}
+  if(D.wnotes&&D.wnotes["e:"+ok]){const m={...D.wnotes};m["e:"+nk]=m["e:"+nk]?m["e:"+nk]+" / "+m["e:"+ok]:m["e:"+ok];if(nk!==ok)delete m["e:"+ok];D.wnotes=m;if(db)jobs.push(db.doc("prefs/wnotes").set({map:m}))}
+  if(D.ssmap&&Object.values(D.ssmap).some(a=>(a||[]).includes(ok))){const m={};Object.entries(D.ssmap).forEach(([k,a])=>m[k]=(a||[]).map(x=>x===ok?nk:x));D.ssmap=m;if(db)jobs.push(db.doc("prefs/supersets").set({map:m}))}
+  if(D.exswaps&&Object.entries(D.exswaps).some(([k,v])=>is(k)||is(typeof v==="string"?v:(v&&v.to)||""))){const m={};Object.entries(D.exswaps).forEach(([k,v])=>{const k2=is(k)?newN:k;m[k2]=typeof v==="string"?(is(v)?newN:v):(v&&is(v.to||"")?{...v,to:newN}:v)});D.exswaps=m;if(db)jobs.push(db.doc("prefs/swaps").set({map:m}))}
+  if(W&&W.exercises.some(e=>is(e.name)||(e.from&&is(e.from)))){W.exercises.forEach(e=>{if(is(e.name))e.name=newN;if(e.from&&is(e.from))e.from=newN});saveLive()}
+  try{await Promise.all(jobs)}catch(e){console.warn(e)}
+  try{renderStart();renderAnalytics();renderDay()}catch(e){}}
 
 /* ================= volume by muscle group ================= */
 function sessionExercises(w){let exs=(w.exercises||[]).filter(e=>(e.sets||[]).length);if(exs.length)return {exs,est:false};
