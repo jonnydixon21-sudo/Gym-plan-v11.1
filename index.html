@@ -515,6 +515,11 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
 .dlist{display:grid;gap:8px}
+body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;max-width:720px;margin:0 auto;z-index:70}.sdpage[hidden]{display:none}
+.sdhead{display:flex;align-items:center;gap:12px;position:sticky;top:calc(-12px - env(safe-area-inset-top,0px));background:var(--bg);padding:8px 0;z-index:1}.sdhead h2{margin:0}
+.sdw{background:var(--surface);border-radius:14px;padding:14px 16px;display:grid;gap:8px}.sdw h3{margin:0;font-size:1.1rem;text-transform:none;letter-spacing:0;color:var(--ink)}.sdw ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.sdw li{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:.93rem;border-bottom:1px solid var(--line);padding-bottom:6px}.sdw li:last-child{border-bottom:0;padding-bottom:0}
+.sdn{display:grid;gap:1px}.sdn small{color:var(--muted);font-size:.75rem}.sds{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.82rem;text-align:right;max-width:46%;flex:none}.sdsub{margin:8px 0 0}
 .acbox{position:absolute;z-index:60;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:grid}
 .acbox button{font:inherit;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 12px;color:var(--ink)}.acbox button:last-child{border-bottom:0}.acbox button b{color:var(--accent-ink)}.acbox button:active{background:var(--surface-2)}.dsum{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}.dsum textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;resize:vertical}
 .lastsum{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:grid;gap:4px}.lastsum p{margin:0;white-space:pre-wrap}.dx{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}.dxg{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.9rem}
@@ -2539,7 +2544,7 @@ function previewHTML(title){
 }
 function renderSplit(){try{renderSplitVol()}catch(e){console.warn(e)}const el=$("split-body");if(!el)return;$("split-card").hidden=!!W;const sp=splitKeys(),ni=(()=>{const t=TEMPLATES.find(x=>x.title===nextPlanned());const k=t?sp.indexOf(t.key):-1;return k<0?nextIndex():k})(),tt=k=>(TEMPLATES.find(t=>t.key===k)||{}).title||k;
   {const nx=TEMPLATES.find(x=>x.key===sp[ni]);$("split-next").textContent=nx?"Next: "+nx.title:""}
-  el.innerHTML=`<p class="note">The order your sessions run in. After the last one it starts again from the top. Rest days don't use one up: the next session waits for your next training day. You can add a session more than once.</p>
+  el.innerHTML=`<div class="row"><button class="btn small" type="button" id="sp-detail">Details view</button></div><p class="note">The order your sessions run in. After the last one it starts again from the top. Rest days don't use one up: the next session waits for your next training day. You can add a session more than once.</p>
   <div class="ed"><ol>${sp.map((k,i)=>`<li class="edcol"><div class="row between"><b>${i+1}. ${esc(tt(k))}</b>${i===ni?'<span class="pill good">Next</span>':""}</div><div class="edbtns"><button class="cog spcog" data-edit="${esc(tt(k))}" aria-label="Edit ${esc(tt(k))}" title="Edit this workout">${COG}</button><button data-spup="${i}" aria-label="Move up">↑</button><button data-spdn="${i}" aria-label="Move down">↓</button><button class="rm" data-sprm="${i}" aria-label="Remove from split">−</button></div></li>`).join("")}</ol>
   ${(()=>{const out=TEMPLATES.filter(t=>!sp.includes(t.key));return `<div class="spother"><span class="note">${out.length?"Workouts not in your split":"Edit a workout with its cog above."}</span><div class="row">${out.map(t=>`<button class="chip" type="button" data-edit="${esc(t.title)}">${COG} ${esc(t.title)}</button>`).join("")}<button class="chip" type="button" data-tplnew="1">+ New workout</button></div></div>`})()}
   <div class="row"><select id="sp-add" aria-label="Session to add">${TEMPLATES.map(t=>`<option value="${esc(t.key)}">${esc(t.title)}</option>`).join("")}</select><button class="btn" id="sp-addbtn">+ Add to split</button></div>
@@ -3064,7 +3069,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="23 Nov 2026";
+const APP_VERSION="24 Nov 2026";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -4641,6 +4646,27 @@ $("tadd").addEventListener("click",async e=>{const t=e.target.closest("button");
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box)close()});
   window.addEventListener("resize",place);window.addEventListener("scroll",place,{passive:true});
 })();
+/* ---------- split details view: every workout and its exercises on one read-only page ---------- */
+function splitDetailHTML(){const sp=splitKeys(),ss=D.ssmap||{},fmtG=g=>g.map(([n,r])=>`${n} × ${String(r).replace("-","–")}`).join(", then ");
+  const block=(k,num)=>{const base=TEMPLATES.find(t=>t.key===k);if(!base)return "";const t=tplOf(base.title),sets=t.ex.reduce((a,e)=>a+targets(e.groups).length,0),ssn=ss[k]||[];
+    return `<section class="sdw"><div class="row between"><h3>${num?num+". ":""}${esc(t.title)}</h3><span class="note">${t.ex.length} exercises · ${sets} sets</span></div><ol>${t.ex.map((e,i)=>{const rep=swapFor(e.name),name=rep||e.name,sup=ssn.includes(norm(name))&&i<t.ex.length-1;
+      return `<li><span class="sdn">${esc(name)}${rep?`<small>instead of ${esc(e.name)}</small>`:""}${sup?`<small>Superset with next</small>`:""}</span><span class="sds">${esc(fmtG(e.groups))}</span></li>`}).join("")}</ol></section>`};
+  const out=TEMPLATES.filter(t=>!sp.includes(t.key));
+  return `<div class="sdhead"><button class="btn small" type="button" id="sd-back">‹ Back</button><h2>Your split</h2></div>
+  <p class="note">View only. To change a workout, go back and use its cog in Split.</p>
+  ${sp.map((k,i)=>block(k,i+1)).join("")}
+  ${out.length?`<h3 class="sdsub">Not in your split</h3>${out.map(t=>block(t.key,0)).join("")}`:""}
+  <div class="row" style="margin-top:8px"><button class="btn" type="button" id="sd-back2">‹ Back to Training</button></div>`}
+var SD_PUSHED=false;
+function openSplitDetail(){let el=$("sd-page");if(!el){el=document.createElement("div");el.id="sd-page";el.className="med sdpage";el.setAttribute("role","dialog");el.setAttribute("aria-label","Split details");document.body.appendChild(el)}
+  el.innerHTML=splitDetailHTML();el.hidden=false;el.scrollTop=0;document.body.classList.add("sdopen");
+  try{history.pushState({sd:1},"");SD_PUSHED=true}catch(e){SD_PUSHED=false}}
+function closeSplitDetail(){const el=$("sd-page");if(el)el.hidden=true;document.body.classList.remove("sdopen")}
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#sp-detail,#sd-back,#sd-back2");if(!t)return;
+  if(t.id==="sp-detail"){openSplitDetail();return}
+  if(SD_PUSHED){SD_PUSHED=false;try{history.back()}catch(err){}}closeSplitDetail()});
+window.addEventListener("popstate",()=>{if($("sd-page")&&!$("sd-page").hidden){SD_PUSHED=false;closeSplitDetail()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("sd-page")&&!$("sd-page").hidden){if(SD_PUSHED){SD_PUSHED=false;try{history.back()}catch(err){}}closeSplitDetail()}});
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
