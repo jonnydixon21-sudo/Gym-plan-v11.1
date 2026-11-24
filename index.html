@@ -2645,7 +2645,7 @@ function renderLive(){
     ${ex.note?`<details><summary>Form cues</summary><p style="margin-top:6px">${esc(ex.note)}</p></details>`:""}
     <div class="sets"><div class="set hd"><span>Set</span><span>Previous</span><span style="text-align:center">kg</span><span style="text-align:center">Reps</span><span style="text-align:center">RIR</span><span style="text-align:center">Done</span></div>
     ${ex.sets.map((s,si)=>{const p=last&&last.sets[si];const pr=s.done&&+s.kg>0&&best>0&&e1rm(+s.kg,+s.reps)>best+0.01;
-      return `<div class="set${s.done?" done":""}${pr?" pr":""}"><span class="no">${si+1}</span><span class="prev">${p?(p.kg?`${p.kg}×${p.reps}`:`${p.reps} reps`)+(p.fail?" F":"")+(p.spot?" S":"")+(p.cheat?" C":""):"–"}<em>${esc(s.target||"")}</em></span><input inputmode="decimal" type="number" step="any" min="0" data-f="kg" data-ex="${ei}" data-s="${si}" value="${esc(s.kg)}"${s.auto?' class="autokg" title="Filled from last time"':""} placeholder="${p?p.kg:""}" aria-label="Set ${si+1} kg"><input inputmode="numeric" type="number" min="0" data-f="reps" data-ex="${ei}" data-s="${si}" value="${esc(s.reps)}" placeholder="${p?p.reps:rr(s.target).hi||""}" aria-label="Set ${si+1} reps"><select class="rir" data-f="rir" data-ex="${ei}" data-s="${si}" aria-label="Set ${si+1} reps in reserve">${["","0","1","2","3","4","5"].map(v=>`<option value="${v}" ${String(s.rir??"")===v?"selected":""}>${v===""?"–":v==="5"?"5+":v}</option>`).join("")}</select><button class="ok" data-ok="${ei}:${si}" aria-label="Set ${si+1} done" title="Tick when the set is done">✓</button></div>
+      return `<div class="set${s.done?" done":""}${pr?" pr":""}"><span class="no">${si+1}</span><span class="prev">${p?(p.kg?`${p.kg}×${p.reps}`:`${p.reps} reps`)+(p.fail?" F":"")+(p.spot?" S":"")+(p.cheat?" C":""):"–"}<em>${esc(s.target||"")}</em></span><input inputmode="decimal" type="number" step="any" min="0" data-f="kg" data-ex="${ei}" data-s="${si}" value="${esc(s.kg)}"${s.auto?' class="autokg" title="Filled from last time"':s.dropFrom!=null&&!s.done?` class="autokg" title="${s.dropPct}% lighter than ${s.dropFrom}kg"`:""} placeholder="${p?p.kg:""}" aria-label="Set ${si+1} kg"><input inputmode="numeric" type="number" min="0" data-f="reps" data-ex="${ei}" data-s="${si}" value="${esc(s.reps)}" placeholder="${p?p.reps:rr(s.target).hi||""}" aria-label="Set ${si+1} reps"><select class="rir" data-f="rir" data-ex="${ei}" data-s="${si}" aria-label="Set ${si+1} reps in reserve">${["","0","1","2","3","4","5"].map(v=>`<option value="${v}" ${String(s.rir??"")===v?"selected":""}>${v===""?"–":v==="5"?"5+":v}</option>`).join("")}</select><button class="ok" data-ok="${ei}:${si}" aria-label="Set ${si+1} done" title="Tick when the set is done">✓</button></div>
       <div class="setx${s.done?" done":""}"><label class="chkline"><input type="checkbox" data-sf="fail" data-ex="${ei}" data-s="${si}" ${s.fail?"checked":""}> Failed</label><label class="chkline"><input type="checkbox" data-sf="spot" data-ex="${ei}" data-s="${si}" ${s.spot?"checked":""}> Spotted</label><label class="chkline"><input type="checkbox" data-sf="cheat" data-ex="${ei}" data-s="${si}" ${s.cheat?"checked":""}> Cheat</label></div>`}).join("")}
     </div><div class="row"><button class="btn small" data-addset="${ei}">+ Add set</button>${ex.sets.length>1?`<button class="x" data-rmset="${ei}">Remove last set</button>`:""}</div></div>`}).join("")}
   <div class="card"><h3>Add exercise</h3><div class="form"><label class="field" for="w-addsel">From your list<select id="w-addsel"><option value="">Choose…</option>${opts}</select></label><label class="field" for="w-addnew">Or a new one<input id="w-addnew" data-exac="1" autocomplete="off" type="text" maxlength="60" placeholder="e.g. Cable crunch"></label></div><div class="row"><button class="btn" id="w-add">Add</button></div></div>
@@ -2661,7 +2661,7 @@ $("w-live").addEventListener("change",e=>{if(e.target.dataset.rest!==undefined&&
 $("w-live").addEventListener("input",e=>{
   if(e.target.dataset.wn){wnSet(e.target.dataset.wn,e.target.value);return}
   if(e.target.id==="w-notes"){W.notes=e.target.value;saveLive();return}
-  const f=e.target.dataset.f;if(!f||!W)return;const s=W.exercises[+e.target.dataset.ex].sets[+e.target.dataset.s];s[f]=e.target.value;saveLive();
+  const f=e.target.dataset.f;if(!f||!W)return;const s=W.exercises[+e.target.dataset.ex].sets[+e.target.dataset.s];s[f]=e.target.value;if(f==="kg"){delete s.auto;delete s.dropFrom;delete s.dropPct;e.target.classList.remove("autokg")}saveLive();
 });
 $("w-live").addEventListener("click",async e=>{
   if(!W)return;const t=e.target.closest("button")||e.target;
@@ -2694,7 +2694,14 @@ $("w-live").addEventListener("click",async e=>{
     s.done=true;
     {const kg=+s.kg,rp=+s.reps,hist=bestE1(ex.name);if(kg>0&&rp>0&&hist>0){const e=e1rm(kg,rp),prev=Math.max(hist,...ex.sets.filter((x,j)=>j!==si&&x.done&&+x.kg>0).map(x=>e1rm(+x.kg,+x.reps)));if(e>prev+0.01)setTimeout(()=>prPop(ex.name,kg,rp,e),50)}}
     // carry weight forward to the next empty set in the same rep range
-    const nx=ex.sets[si+1];if(nx&&!nx.done&&nx.kg===""&&nx.target===s.target)nx.kg=s.kg;{const rs=row.querySelector('[data-f="rir"]');if(rs)s.rir=rs.value}
+    {const rs=row.querySelector('[data-f="rir"]');if(rs)s.rir=rs.value}
+    /* next set in the same rep range: same weight if you got above the bottom of the range,
+       otherwise drop it: 25% at 0 reps in reserve (or Failed), 20% at 1+ or blank */
+    {const nx=ex.sets[si+1];if(nx&&!nx.done&&nx.target===s.target&&(nx.kg===""||nx.auto||nx.dropFrom!=null)){const lo=rr(s.target).lo,kg=+s.kg,rp=+s.reps;
+      if(kg>0&&lo&&rp<=lo){const zero=String(s.rir)==="0"||s.fail,pct=zero?25:20,inc=incFor(kg*(1-pct/100)),v=Math.max(inc,Math.round(kg*(1-pct/100)/inc)*inc);
+        nx.kg=String(+v.toFixed(2));nx.dropFrom=kg;nx.dropPct=pct;delete nx.auto;
+        {const msg=`${rp} reps is the bottom of ${s.target}: next set down ${pct}% to ${nx.kg}kg`;setTimeout(()=>{const tt=$("w-ss-toast");if(tt)tt.textContent=msg;setTimeout(()=>{const x=$("w-ss-toast");if(x&&x.textContent===msg)x.textContent=""},4500)},30)}}
+      else{nx.kg=s.kg;delete nx.auto;delete nx.dropFrom;delete nx.dropPct}}}
     if(s.auto)delete s.auto;
     saveLive();renderLive();{const nxt=W.exercises[ei+1];if(ex.ss&&nxt&&nxt.sets.some(x=>!x.done)){stopRest();{const tt=$("w-ss-toast");if(tt)tt.textContent="Superset: go straight to "+nxt.name;setTimeout(()=>{const x=$("w-ss-toast");if(x)x.textContent=""},3000)}document.querySelector(`.wex[data-ex="${ei+1}"]`)?.scrollIntoView({behavior:"smooth",block:"center"})}else startRest(restOf(ex,s.target))}return}
   if(t.dataset.addset){const ex=W.exercises[+t.dataset.addset],l=ex.sets[ex.sets.length-1];ex.sets.push({kg:l?l.kg:"",reps:"",target:l?l.target:"8-12",done:false});saveLive();renderLive();return}
@@ -3069,7 +3076,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="24 Nov 2026 (c)";
+const APP_VERSION="24 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
