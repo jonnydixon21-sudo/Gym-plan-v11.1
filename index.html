@@ -514,7 +514,7 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
-.dlist{display:grid;gap:8px}
+.dlist{display:grid;gap:8px}.autoadj{background:var(--surface);border-radius:12px;padding:12px 14px;display:grid;gap:10px;margin:10px 0}.autoadj .chkline span{display:grid;gap:2px}.autoadj small{font-weight:400}
 #gtoast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:80;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 14px;font-size:.88rem;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none}#gtoast.on{opacity:1;transform:none}
 .last7{margin:14px 0 6px}.calbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit}
 .calbtn svg{width:30px;height:30px;flex:none;fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round}.calbtn svg .f{fill:#34c759;stroke:none}.calbtn svg .f2{fill:#2f7cf6;stroke:none}
@@ -1020,6 +1020,7 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
     <div class="view" id="food-meals" hidden>
       <p class="note">All your meals. Tap the cog on a meal to change its foods or to assign it to your day shift, night shift or day off.</p>
       <div class="row"><button class="btn primary" id="nmeal-new">+ New meal</button><button class="btn" id="nfood-new">+ New food</button></div>
+      <div class="autoadj" id="autoadj"></div>
       <div class="mtools"><input id="mq" type="search" placeholder="Search meals or foods" aria-label="Search meals or foods" autocomplete="off"><div class="row" id="mf-chips"><button class="chip" data-mf="" aria-pressed="true">All</button><button class="chip" data-mf="day" aria-pressed="false">Day shift</button><button class="chip" data-mf="night" aria-pressed="false">Night shift</button><button class="chip" data-mf="off" aria-pressed="false">Day off</button><button class="chip" data-mf="none" aria-pressed="false">Not on a day</button></div></div>
       <div class="plans" id="plans"></div>
     </div>
@@ -2990,7 +2991,7 @@ function altList(id){const a=Object.entries(D.alts).filter(([,x])=>x.for===id);
   if(!a.length)return "";
   return `<div class="altlist"><span class="note">Alternatives</span>${a.map(([aid,x])=>`<div class="altrow"><div><b>${esc(x.name)}</b>${x.desc?`<small>${esc(x.desc)}</small>`:""}<span class="mono">${x.p}P · ${x.c}C · ${x.f}F · ${x.kcal} kcal</span></div><button class="x" data-delalt="${aid}" type="button">Delete</button></div>`).join("")}</div>`}
 const mealCard=m=>`<article class="meal${m.kind?" snack":""}" id="meal-${m.id}"><header><strong>${m.m}</strong>${m.tag?`<em>${m.tag}</em>`:""}<button class="cogm" data-medit="${m.id}" aria-label="Edit foods in ${m.m}" title="Edit foods and amounts">${COG}</button></header><p class="note usedin">${usedLabel(m.id)}</p><ul>${m.items.filter(([k],i)=>!isRemoved(k)&&itemActive(m.id,i,TODAY)).map(([k,a,l])=>`<li><span>${F[k].n}</span><span class="mono">${l||fmt(a,F[k].u)}</span></li>`).join("")}</ul>${altList(m.id)}${swaps[m.id]?`<div class="swap">${swaps[m.id]}</div>`:""}<footer><span>${macT(mealMac(m.id))}</span>${m.kind==="drink"?"":`<button class="btn small" data-swap="${m.id}" ${sample?"":"hidden"}>Swap</button>`}</footer></article>`;
-function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=mealsListHTML()}
+function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=mealsListHTML();try{renderAutoAdj()}catch(e){}}
 /* Meals tab: one entry per meal name. Meals with several versions (different amounts for different days) open to show each one. */
 var MQ="",MF="",MG_OPEN=new Set();
 function mealsListHTML(){const seen=new Set(),all=[...PLAN.T.meals,...PLAN.R.meals].filter(m=>!m.solo&&!seen.has(m.id)&&seen.add(m.id));
@@ -3127,7 +3128,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (g)";
+const APP_VERSION="25 Nov 2026 (h)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3221,7 +3222,7 @@ const foodOpts=sel=>{const g={};Object.keys(F).filter(k=>nutOf(k)).forEach(k=>(g
   return [...AISLES].filter(a=>g[a]).map(a=>`<optgroup label="${a}">${g[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}" ${k===sel?"selected":""}>${esc(F[k].n)}</option>`).join("")}</optgroup>`).join("")};
 const unitOf=k=>F[k]?(F[k].u===""?"each":F[k].u):"";
 function medTotal(){const t=[0,0,0,0];MED.items.forEach(i=>{const v=macroFor(i.k,+i.a||0);v.forEach((x,j)=>t[j]+=x)});return {kcal:t[0],p:t[1],c:t[2],f:t[3]}}
-function medOpen(id){const m=MEALS[id];if(!m)return;MED={id,name:m.m,orig:m.m,twins:[],assign:Object.fromEntries(CATS.map(c=>[c[0],{on:catState(id,c[0])!=="none",was:catState(id,c[0]),time:catTime(id,c[0]),time0:catTime(id,c[0])}])),items:m.items.map(([k,a,l])=>({k,a:String(a),l})),err:"",rebal:!!(planDoc().fitted||planDoc().targets)};medRender();$("med").hidden=false;document.body.style.overflow="hidden"}
+function medOpen(id){const m=MEALS[id];if(!m)return;MED={id,name:m.m,orig:m.m,twins:[],assign:Object.fromEntries(CATS.map(c=>[c[0],{on:catState(id,c[0])!=="none",was:catState(id,c[0]),time:catTime(id,c[0]),time0:catTime(id,c[0])}])),items:m.items.map(([k,a,l])=>({k,a:String(a),l})),err:"",rebal:planDoc().autoAdjust!==false};medRender();$("med").hidden=false;document.body.style.overflow="hidden"}
 function medClose(){MED=null;$("med").hidden=true;document.body.style.overflow=""}
 function medRender(){const d=MED,custom=!BASE_IDS.has(d.id);
   $("med").innerHTML=`<div class="ed med-in"><div class="row between"><h2>Edit meal</h2><button class="x" id="med-x">Close</button></div>
@@ -4151,6 +4152,14 @@ function rebalanceMeals(lock){const L_=new Set(lock),plans=[];
       if(na!==x.a){ch=true;changes.push({m:MEALS[id].m,k:x.k,from:x.a,to:na});items[x.i]=[x.k,na,autoLabel(x.k,na)].filter((q,j)=>j<2||q!==undefined)}});
     if(ch)meals[id]={...(P.meals[id]||{}),m:MEALS[id].m,items,...(MEALS[id].solo?{solo:true}:{})}});
   D.plan=PB;return {meals,changes}}
+/* Meals tab: auto-adjust switch and a one-tap fit */
+function renderAutoAdj(){const el=$("autoadj");if(!el)return;const on=planDoc().autoAdjust!==false;
+  el.innerHTML=`<label class="chkline"><input type="checkbox" id="aa-on" ${on?"checked":""}> <span><b>Auto-adjust portions</b><small class="note">When you change a meal, the other meals on those days resize so each day stays on your targets.</small></span></label>
+  <div class="row"><button class="btn small" type="button" id="aa-fit">Fit all my meals to my targets now</button><span class="note">${PLAN.T.kcal.toLocaleString("en-GB")} kcal · ${PLAN.T.p}P ${PLAN.T.c}C ${PLAN.T.f}F · change targets under Targets</span></div>`}
+document.addEventListener("change",async e=>{if(e.target.id!=="aa-on")return;const P=planDoc();P.autoAdjust=e.target.checked;D.plan=P;if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(err){}}gToast(e.target.checked?"Auto-adjust is on: changing a meal resizes the others on those days.":"Auto-adjust is off: changing a meal only changes that meal.",4000)});
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#aa-fit");if(!b)return;if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Tap again to resize every day plan";return}
+  b.disabled=true;b.textContent="Fitting…";fitPlanAll();const P=planDoc();P.fitted=true;D.plan=P;await savePlan();const r=fitReport(),far=r.rows.filter(x=>Math.abs(x.d.kcal)>100);
+  gToast(`Meals fitted. ${far.length?`Still short: ${far.map(x=>`${x.n} (${x.d.kcal>0?"+":"−"}${Math.round(Math.abs(x.d.kcal))} kcal)`).join(", ")}. Add a meal or snack there.`:`Every day is within ${Math.round(r.kcal)} kcal of target.`}`,9000);renderAutoAdj()});
 function gToast(msg,ms){let el=$("gtoast");if(!el){el=document.createElement("div");el.id="gtoast";el.setAttribute("role","status");document.body.appendChild(el)}el.textContent=msg;el.classList.add("on");clearTimeout(gToast.t);gToast.t=setTimeout(()=>el.classList.remove("on"),ms||6000)}
 /* how close each day plan lands after fitting */
 function fitReport(){const r=[];SLOTS.forEach(([s,n])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const x={kcal:0,p:0,c:0,f:0};sc.rows.forEach(rw=>{if(MEALS[rw[1]]){const m=mealMac(rw[1]);x.kcal+=m.kcal;x.p+=m.p;x.c+=m.c;x.f+=m.f}});
