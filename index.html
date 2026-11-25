@@ -514,7 +514,21 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
-.dlist{display:grid;gap:8px}input.tgro{background:var(--surface-2);color:var(--muted)}
+.dlist{display:grid;gap:8px}
+.calpage{position:fixed;inset:0;z-index:72;background:var(--surface);display:grid;grid-template-rows:auto auto auto minmax(0,1fr);padding-top:env(safe-area-inset-top,0px)}.calpage[hidden]{display:none}
+.calhead{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:12px 16px 6px}.calhead b{text-align:center;font-family:var(--f-display);font-size:1.15rem}
+.calx{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.1rem;color:var(--ink)}
+.calleg{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:2px 16px 8px}.calkey{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;position:relative;cursor:pointer}
+.calkey input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}.sw{width:14px;height:14px;border-radius:4px;display:inline-block;flex:none}
+.calwk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:4px 16px 6px;border-bottom:1px solid var(--line);font-size:.78rem;color:var(--muted);text-align:center}
+.calbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.calm h3{margin:16px 0 8px;font-size:1.05rem;text-transform:none;letter-spacing:0;color:var(--ink);display:flex;justify-content:space-between;align-items:baseline;gap:8px}.calm h3 .note{font-size:.76rem;font-weight:500}
+.calg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.calday{aspect-ratio:1;border:0;border-radius:10px;font:inherit;font-weight:600;font-size:.95rem;font-variant-numeric:tabular-nums;display:grid;place-items:center;padding:0}
+.calday.off{background:var(--surface-2);color:var(--muted)}.calday.fut{background:none;color:var(--muted);opacity:.5}
+.calday.today{box-shadow:0 0 0 2px var(--ink) inset}.calday.sel{outline:3px solid var(--ink);outline-offset:1px}
+.calsheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.15);padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:45%;overflow:auto;display:grid;gap:8px}.calsheet[hidden]{display:none}
+.callist{list-style:none;margin:0;padding:0;display:grid;gap:10px}.callist li{display:flex;gap:10px;align-items:flex-start}.callist li .sw{margin-top:5px}.callist li span:last-child{display:grid;gap:2px}.callist small{color:var(--muted);font-size:.8rem}input.tgro{background:var(--surface-2);color:var(--muted)}
 .edbar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:3}
 .edstat{font-size:.82rem;color:var(--muted)}.edstat.ok{color:var(--accent-ink);font-weight:600}.edstat.warn{color:var(--warn);font-weight:600}
 body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;max-width:720px;margin:0 auto;z-index:70}.sdpage[hidden]{display:none}
@@ -913,6 +927,7 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
     <div class="view" id="w-live" hidden></div>
 
     <details class="card fold" data-fold="past"><summary><h2>Past sessions</h2></summary>
+      <div class="row"><button class="btn small primary" type="button" id="cal-open">Calendar</button><span class="note">Gym, runs and rugby, day by day</span></div>
       <div class="sessions" id="sessions"></div>
     </details>
 
@@ -3107,7 +3122,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (c)";
+const APP_VERSION="25 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3359,7 +3374,7 @@ function rugbyEditHTML(date){const inf=dayInfo(date),r=inf.rugby,wd=pd(date).toL
   <label class="chkline"><input type="checkbox" id="rug-weekly" ${r.weekly?"checked":""}> Every ${wd}</label>`:`<p class="note">Pick Training or Match to add rugby to this day.</p>`}</div>`}
 function rugbyOf(date){const dd=D.days&&D.days[date]&&D.days[date].rugby;if(dd)return dd.none?null:{...dd,weekly:false};const w=D.rugby&&D.rugby.weekly&&D.rugby.weekly[pd(date).getDay()];return w?{...w,weekly:true}:null}
 function gymDay(d){const i=dayInfo(d);return i.type==="T"&&!(i.rugby&&i.rugby.noGym)}
-async function saveRugbyWeekly(wd,v){const wk={...((D.rugby&&D.rugby.weekly)||{})};if(v)wk[wd]=v;else delete wk[wd];D.rugby={weekly:wk};if(db){try{await db.doc("prefs/rugby").set(D.rugby)}catch(e){}}renderDayAll()}
+async function saveRugbyWeekly(wd,v){const wk={...((D.rugby&&D.rugby.weekly)||{})};if(v)wk[wd]={...v,from:(wk[wd]&&wk[wd].from)||v.from||TODAY};else delete wk[wd];D.rugby={weekly:wk};if(db){try{await db.doc("prefs/rugby").set(D.rugby)}catch(e){}}renderDayAll()}
 async function setRugby(date,patch){const cur=rugbyOf(date),wd=pd(date).getDay();
   if(patch.kind==="none"){if(cur&&cur.weekly){await saveDayDoc(date,{rugby:{none:true}})}else await saveDayDoc(date,{rugby:null});return}
   const next={kind:patch.kind??(cur?cur.kind:"training"),at:patch.at??(cur?cur.at:"19:00"),noGym:patch.noGym??(cur?cur.noGym:true)},weekly=patch.weekly??(cur?cur.weekly:false);
@@ -4774,6 +4789,57 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
   if(SD_PUSHED){SD_PUSHED=false;try{history.back()}catch(err){}}closeSplitDetail()});
 window.addEventListener("popstate",()=>{if($("sd-page")&&!$("sd-page").hidden){SD_PUSHED=false;closeSplitDetail()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("sd-page")&&!$("sd-page").hidden){if(SD_PUSHED){SD_PUSHED=false;try{history.back()}catch(err){}}closeSplitDetail()}});
+/* ---------- activity calendar: every past day coloured by what you did (gym, run, rugby) ---------- */
+const CAL_DEF={gym:"#34c759",run:"#2f7cf6",rugby:"#f5c518"},CAL_NAMES={gym:"Gym",run:"Run",rugby:"Rugby"};
+const calColors=()=>({...CAL_DEF,...(L.calColors||{})});
+function calInk(hex){const h=String(hex).replace("#","");if(h.length<6)return "#fff";const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return (0.299*r+0.587*g+0.114*b)>165?"#1a1a1a":"#fff"}
+function calRugbyDone(d){const r=typeof rugbyOf==="function"?rugbyOf(d):null;if(!r)return null;if(r.weekly&&d<(r.from||"2026-11-17"))return null;const st=((D.food[d]||{}).steps)||{};const ticked=Object.keys(st).some(k=>/rugby/.test(k)&&st[k]);return {r,ticked}}
+function calData(){const m={},add=(d,k,x)=>{const o=(m[d]=m[d]||{gym:[],run:[],rugby:null});o[k].push(x)};
+  D.workouts.forEach(w=>{if(w.date&&w.date<=TODAY)add(w.date,"gym",w)});(D.runs||[]).forEach(r=>{if(r.date&&r.date<=TODAY)add(r.date,"run",r)});
+  const dates=Object.keys(m).sort(),start=[dates[0],START.date,addDays(TODAY.slice(0,8)+"01",-59).slice(0,8)+"01"].filter(Boolean).sort()[0]||TODAY;
+  for(let d=start,i=0;d<=TODAY&&i<800;d=addDays(d,1),i++){const rg=calRugbyDone(d);if(rg){(m[d]=m[d]||{gym:[],run:[],rugby:null}).rugby=rg}}
+  return {m,start}}
+function calTile(d,info,col){const kinds=info?["gym","run","rugby"].filter(k=>k==="rugby"?!!info.rugby:info[k].length):[];
+  const fut=d>TODAY,today=d===TODAY;let bg="",ink="";
+  if(kinds.length===1){bg=col[kinds[0]];ink=calInk(bg)}
+  else if(kinds.length>1){const n=kinds.length,stops=kinds.map((k,i)=>`${col[k]} ${Math.round(i*100/n)}% ${Math.round((i+1)*100/n)}%`).join(",");bg=`linear-gradient(135deg,${stops})`;ink="#fff"}
+  return `<button type="button" class="calday${kinds.length?" on":fut?" fut":" off"}${today?" today":""}" data-cald="${d}" ${kinds.length?`style="background:${bg};color:${ink}"`:""} aria-label="${niceLong(d)}${kinds.length?": "+kinds.map(k=>CAL_NAMES[k]).join(", "):""}"${fut?" disabled":""}>${+d.slice(8)}</button>`}
+function calHTML(){const {m,start}=calData(),col=calColors();const months=[];let y=+start.slice(0,4),mo=+start.slice(5,7);const ey=+TODAY.slice(0,4),em=+TODAY.slice(5,7);
+  while(y<ey||(y===ey&&mo<=em)){months.push([y,mo]);mo++;if(mo>12){mo=1;y++}}
+  const MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const body=months.map(([y,mo])=>{const first=`${y}-${String(mo).padStart(2,"0")}-01`,lead=(pd(first).getDay()+6)%7,days=new Date(y,mo,0).getDate();
+    const cells=[...Array(lead)].map(()=>`<span></span>`).concat([...Array(days)].map((_,i)=>{const d=`${y}-${String(mo).padStart(2,"0")}-${String(i+1).padStart(2,"0")}`;return calTile(d,m[d],col)})).join("");
+    const cnt=k=>Object.entries(m).filter(([d,x])=>d.startsWith(first.slice(0,7))&&(k==="rugby"?!!x.rugby:x[k].length)).length;
+    return `<section class="calm" data-calm="${MN[mo-1]} ${y}"><h3>${MN[mo-1].slice(0,3)}${mo===1||y!==ey?" "+y:""}<span class="note">${["gym","run","rugby"].map(k=>cnt(k)?`${cnt(k)} ${CAL_NAMES[k].toLowerCase()}`:"").filter(Boolean).join(" · ")}</span></h3><div class="calg">${cells}</div></section>`}).join("");
+  return `<div class="calhead"><button class="calx" type="button" id="cal-x" aria-label="Close">✕</button><b id="cal-title">${MN[em-1]} ${ey}</b><button class="btn small" type="button" id="cal-today">Today</button></div>
+  <div class="calleg">${["gym","run","rugby"].map(k=>`<label class="calkey"><span class="sw" style="background:${col[k]}"></span>${CAL_NAMES[k]}<input type="color" data-calc="${k}" value="${col[k]}" aria-label="Colour for ${CAL_NAMES[k]}"></label>`).join("")}<span class="note">Tap a colour to change it</span></div>
+  <div class="calwk">${["M","T","W","T","F","S","S"].map(x=>`<span>${x}</span>`).join("")}</div>
+  <div class="calbody" id="cal-body">${body}</div><div class="calsheet" id="cal-sheet" hidden></div>`}
+function calDayHTML(d){const {m}=calData(),x=m[d]||{gym:[],run:[],rugby:null},col=calColors();const L_=[];
+  x.gym.forEach(w=>{const sets=(w.exercises||[]).reduce((a,e)=>a+(e.sets||[]).length,0);L_.push(`<li><span class="sw" style="background:${col.gym}"></span><span><b>${esc(w.title)}</b><small>${[w.minutes?w.minutes+" min":"",sets?sets+(sets===1?" set":" sets"):"",w.rpe?"rated "+w.rpe+"/10":""].filter(Boolean).join(" · ")}</small>${w.summary?`<small>${esc(w.summary)}</small>`:""}</span></li>`)});
+  x.run.forEach(r=>L_.push(`<li><span class="sw" style="background:${col.run}"></span><span><b>${esc(typeof rtLabel==="function"?rtLabel(r.kind):"Run")}</b><small>${esc(r.km?runLine(r):"")}</small>${r.note?`<small>${esc(r.note)}</small>`:""}</span></li>`));
+  if(x.rugby)L_.push(`<li><span class="sw" style="background:${col.rugby}"></span><span><b>${esc(rugbyLabel(x.rugby.r))}</b><small>${x.rugby.ticked?"Ticked off on the day":"On your plan"}${x.rugby.r.at?" · "+esc(x.rugby.r.at):""}</small></span></li>`);
+  return `<div class="row between"><b>${niceLong(d)}</b><button class="x" type="button" id="cal-sheet-x">Close</button></div>${L_.length?`<ul class="callist">${L_.join("")}</ul>`:`<p class="note">Nothing logged this day.</p>`}`}
+var CAL_PUSHED=false;
+function calSetTitle(){const b=$("cal-body"),t=$("cal-title");if(!b||!t)return;const top=b.getBoundingClientRect().top+40;let cur=null;b.querySelectorAll(".calm").forEach(s=>{if(s.getBoundingClientRect().top<=top)cur=s});if(!cur)cur=b.querySelector(".calm");if(cur)t.textContent=cur.dataset.calm}
+function calToToday(smooth){const b=$("cal-body"),el=b&&b.querySelector(`[data-cald="${TODAY}"]`);if(el){const sec=el.closest(".calm");b.scrollTo({top:Math.max(0,sec.offsetTop+sec.offsetHeight-b.clientHeight+12),behavior:smooth?"smooth":"auto"})}calSetTitle()}
+function openCal(){let el=$("cal-page");if(!el){el=document.createElement("div");el.id="cal-page";el.className="calpage";el.setAttribute("role","dialog");el.setAttribute("aria-label","Activity calendar");document.body.appendChild(el)}
+  el.innerHTML=calHTML();el.hidden=false;document.body.classList.add("sdopen");$("cal-body").addEventListener("scroll",calSetTitle,{passive:true});requestAnimationFrame(()=>calToToday(false));
+  try{history.pushState({cal:1},"");CAL_PUSHED=true}catch(e){CAL_PUSHED=false}}
+function closeCal(){const el=$("cal-page");if(el)el.hidden=true;document.body.classList.remove("sdopen")}
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#cal-open,#cal-x,#cal-today,[data-cald],#cal-sheet-x");if(!t)return;
+  if(t.id==="cal-open"){openCal();return}
+  if(t.id==="cal-x"){if(CAL_PUSHED){CAL_PUSHED=false;try{history.back()}catch(err){}}closeCal();return}
+  if(t.id==="cal-today"){calToToday(true);return}
+  if(t.id==="cal-sheet-x"){$("cal-sheet").hidden=true;return}
+  if(t.dataset.cald){const s=$("cal-sheet");s.innerHTML=calDayHTML(t.dataset.cald);s.hidden=false;document.querySelectorAll("#cal-page .calday.sel").forEach(x=>x.classList.remove("sel"));t.classList.add("sel")}});
+document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.calc;if(!k)return;L.calColors={...(L.calColors||{}),[k]:e.target.value};saveL();
+  const b=$("cal-body"),top=b?b.scrollTop:0,sheet=$("cal-sheet"),sh=sheet&&!sheet.hidden?sheet.innerHTML:null;$("cal-page").innerHTML=calHTML();const nb=$("cal-body");nb.addEventListener("scroll",calSetTitle,{passive:true});nb.scrollTop=top;calSetTitle();
+  if(sh){const ns=$("cal-sheet");ns.innerHTML=sh;ns.hidden=false}
+  const inp=document.querySelector(`[data-calc="${k}"]`);if(inp)inp.value=e.target.value});
+window.addEventListener("popstate",()=>{if($("cal-page")&&!$("cal-page").hidden){CAL_PUSHED=false;closeCal()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("cal-page")&&!$("cal-page").hidden){if(CAL_PUSHED){CAL_PUSHED=false;try{history.back()}catch(err){}}closeCal()}});
+
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
