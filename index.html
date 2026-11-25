@@ -515,7 +515,8 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
 .dlist{display:grid;gap:8px}
-.calbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit}
+#gtoast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:80;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 14px;font-size:.88rem;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none}#gtoast.on{opacity:1;transform:none}
+.last7{margin:14px 0 6px}.calbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit}
 .calbtn svg{width:30px;height:30px;flex:none;fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round}.calbtn svg .f{fill:#34c759;stroke:none}.calbtn svg .f2{fill:#2f7cf6;stroke:none}
 .calbtn span:not(.calarr){display:grid;gap:1px;flex:1}.calbtn b{font-family:var(--f-display);font-size:1.02rem}.calbtn small{color:var(--muted);font-size:.8rem}.calarr{font-size:1.5rem;color:var(--accent-ink);line-height:1}
 .calpage{position:fixed;inset:0;z-index:72;background:var(--surface);display:grid;grid-template-rows:auto auto auto minmax(0,1fr);padding-top:env(safe-area-inset-top,0px)}.calpage[hidden]{display:none}
@@ -929,8 +930,9 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
 
     <div class="view" id="w-live" hidden></div>
 
-    <details class="card fold" data-fold="past"><summary><h2>Past 7 sessions</h2></summary>
+    <details class="card fold" data-fold="past"><summary><h2>Past sessions</h2></summary>
       <button class="calbtn" type="button" id="cal-open"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><rect x="7" y="13" width="3" height="3" rx=".6" class="f"/><rect x="14" y="13" width="3" height="3" rx=".6" class="f2"/></svg><span><b>Calendar view</b><small>Every gym session, run and rugby day</small></span><span class="calarr" aria-hidden="true">›</span></button>
+      <h3 class="last7">Last 7</h3>
       <div class="sessions" id="sessions"></div>
     </details>
 
@@ -3125,7 +3127,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (e)";
+const APP_VERSION="25 Nov 2026 (f)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3219,7 +3221,7 @@ const foodOpts=sel=>{const g={};Object.keys(F).filter(k=>nutOf(k)).forEach(k=>(g
   return [...AISLES].filter(a=>g[a]).map(a=>`<optgroup label="${a}">${g[a].sort((x,y)=>F[x].n.localeCompare(F[y].n)).map(k=>`<option value="${k}" ${k===sel?"selected":""}>${esc(F[k].n)}</option>`).join("")}</optgroup>`).join("")};
 const unitOf=k=>F[k]?(F[k].u===""?"each":F[k].u):"";
 function medTotal(){const t=[0,0,0,0];MED.items.forEach(i=>{const v=macroFor(i.k,+i.a||0);v.forEach((x,j)=>t[j]+=x)});return {kcal:t[0],p:t[1],c:t[2],f:t[3]}}
-function medOpen(id){const m=MEALS[id];if(!m)return;MED={id,name:m.m,orig:m.m,twins:[],assign:Object.fromEntries(CATS.map(c=>[c[0],{on:catState(id,c[0])!=="none",was:catState(id,c[0]),time:catTime(id,c[0]),time0:catTime(id,c[0])}])),items:m.items.map(([k,a,l])=>({k,a:String(a),l})),err:""};medRender();$("med").hidden=false;document.body.style.overflow="hidden"}
+function medOpen(id){const m=MEALS[id];if(!m)return;MED={id,name:m.m,orig:m.m,twins:[],assign:Object.fromEntries(CATS.map(c=>[c[0],{on:catState(id,c[0])!=="none",was:catState(id,c[0]),time:catTime(id,c[0]),time0:catTime(id,c[0])}])),items:m.items.map(([k,a,l])=>({k,a:String(a),l})),err:"",rebal:!!(planDoc().fitted||planDoc().targets)};medRender();$("med").hidden=false;document.body.style.overflow="hidden"}
 function medClose(){MED=null;$("med").hidden=true;document.body.style.overflow=""}
 function medRender(){const d=MED,custom=!BASE_IDS.has(d.id);
   $("med").innerHTML=`<div class="ed med-in"><div class="row between"><h2>Edit meal</h2><button class="x" id="med-x">Close</button></div>
@@ -3231,6 +3233,7 @@ function medRender(){const d=MED,custom=!BASE_IDS.has(d.id);
   <button class="btn" id="nf-open">+ New food</button>
   ${(()=>{const tw=Object.values(MEALS).filter(m=>m.id!==d.id&&norm(m.m)===norm(d.orig));return tw.length?`<div class="edcol"><span class="note"><b>Other meals with the same name.</b> These are separate, so changing this one only changes the days above. Tick any you want to copy these foods to:</span>${tw.map(m=>`<label class="chkline"><input type="checkbox" data-mtwin="${m.id}" ${d.twins.includes(m.id)?"checked":""}> ${esc(usedLabel(m.id).replace("On: ",""))}</label>`).join("")}</div>`:""})()}
   <p class="mono" id="med-tot"></p>
+  <label class="chkline"><input type="checkbox" id="med-rebal" ${d.rebal?"checked":""}> Rebalance my other meals so each day stays on my targets</label>
   <p class="note" id="med-err" style="color:#d9534f">${esc(d.err)}</p>
   <div class="row"><button class="btn primary" id="med-save">Save</button><button class="btn ghost" id="med-cancel">Cancel</button>${BASE_IDS.has(d.id)?`<button class="btn ghost small" id="med-reset">Reset to original</button>`:""}<button class="btn ghost small" id="med-del">Remove meal</button></div><p class="note">Remove meal takes it off every day plan and out of your Meals list. You can put it back from the Meals tab.</p></div>`;
   medTot()}
@@ -3243,13 +3246,17 @@ async function medSave(){const d=MED,name=d.name.trim();
     const o=orig[i];items.push([it.k,a,o&&o[0]===it.k&&o[1]===a?o[2]:autoLabel(it.k,a)].filter((x,j)=>j<2||x!==undefined))}
   for(const c of CATS){const a=d.assign[c[0]];if(a.on&&!/^\d\d:\d\d$/.test(a.time)){d.err=`Set a time for ${c[1]}.`;return medRender()}}
   const P=planDoc();P.sched={...P.sched};
-  CATS.forEach(c=>{const a=d.assign[c[0]],changed=(a.on!==(a.was!=="none"))||(a.on&&a.was==="some")||(a.on&&a.time!==a.time0);if(!changed)return;
+  CATS.forEach(c=>{const a=d.assign[c[0]],changed=a.touched&&((a.on!==(a.was!=="none"))||(a.on&&a.was==="some")||(a.on&&a.time!==a.time0));if(!changed)return;
     catPlans(c[0]).forEach(([sl,ty])=>{const cur=SCHED[sl][ty],rows=dcl(cur.rows).filter(r=>r[1]!==d.id);if(a.on)insertRow(rows,a.time,d.id);P.sched[sl+":"+ty]={sum:cur.sum,note:cur.note,wake:WAKE[sl][ty],rows}})});
-  P.meals={...P.meals,[d.id]:{m:name,items}};d.twins.forEach(id=>{if(MEALS[id])P.meals[id]={m:name,items:dcl(items)}});D.plan=P;medClose();await savePlan()}
+  P.meals={...P.meals,[d.id]:{m:name,items}};d.twins.forEach(id=>{if(MEALS[id])P.meals[id]={m:name,items:dcl(items)}});D.plan=P;
+  let note="";if(d.rebal){applyPlan();const before=fitReport(),r=rebalanceMeals([d.id,...d.twins]);if(r.changes.length){const P2=planDoc();P2.meals={...P2.meals,...r.meals};D.plan=P2;applyPlan();const after=fitReport();
+      const nm=k=>(F[k]?F[k].n.replace(/^(Tesco|Per4m|Mission|McCoys)\s+/i,"").replace(/\s*\(.*\)/,""):k).toLowerCase();
+      note=`Other meals rebalanced: ${r.changes.slice(0,4).map(c=>`${c.m} ${nm(c.k)} ${c.from}→${c.to}${unitOf(c.k)}`).join(", ")}${r.changes.length>4?` and ${r.changes.length-4} more`:""}. Each day is now within ${Math.round(after.kcal)} kcal of target.`}}
+  medClose();await savePlan();if(note)gToast(note,9000)}
 $("med").addEventListener("input",e=>{if(!MED)return;const t=e.target;
   if(t.id==="med-name")MED.name=t.value;
   if(t.dataset.ma!==undefined){const i=+t.dataset.ma;MED.items[i].a=t.value;const v=macroFor(MED.items[i].k,parseFloat(t.value)||0);const el=$("med").querySelector(`[data-mm="${i}"]`);if(el)el.textContent=nmac({kcal:v[0],p:v[1],c:v[2],f:v[3]});medTot()}});
-$("med").addEventListener("change",e=>{if(!MED)return;const t=e.target;if(t.dataset.asg){const a=MED.assign[t.dataset.asg];a.on=t.checked;if(a.on&&!a.time)a.time="12:00";medRender();return}if(t.dataset.ast){MED.assign[t.dataset.ast].time=t.value;return}if(t.dataset.mtwin){const id=t.dataset.mtwin;MED.twins=t.checked?[...new Set([...MED.twins,id])]:MED.twins.filter(x=>x!==id);return}if(t.dataset.mk!==undefined){const it=MED.items[+t.dataset.mk];it.k=t.value;it.l=undefined;medRender()}});
+$("med").addEventListener("change",e=>{if(!MED)return;const t=e.target;if(t.id==="med-rebal"){MED.rebal=t.checked;return}if(t.dataset.asg){const a=MED.assign[t.dataset.asg];a.on=t.checked;a.touched=true;if(a.on&&!a.time)a.time="12:00";medRender();return}if(t.dataset.ast){MED.assign[t.dataset.ast].time=t.value;MED.assign[t.dataset.ast].touched=true;return}if(t.dataset.mtwin){const id=t.dataset.mtwin;MED.twins=t.checked?[...new Set([...MED.twins,id])]:MED.twins.filter(x=>x!==id);return}if(t.dataset.mk!==undefined){const it=MED.items[+t.dataset.mk];it.k=t.value;it.l=undefined;medRender()}});
 $("med").addEventListener("click",async e=>{if(!MED)return;const t=e.target.closest("button");if(!t)return;
   if(t.id==="med-x"||t.id==="med-cancel"){medClose();return}
   if(t.id==="med-save"){await medSave();return}
@@ -3304,7 +3311,7 @@ function fitCarbs(meals,t,targetKcal){const done=new Set();
 async function tgSave(fit){const g=window.TGD;
   for(const t of ["T","R"]){const x=g[t];if(!(x.kcal>=1200&&x.kcal<=7000&&x.p>=0&&x.c>=0&&x.f>=0)){$("tg-msg").textContent="Check the numbers: calories should be between 1,200 and 7,000.";return}}
   const lb=bodyLb();if(g.rule&&lb)["T","R"].forEach(t=>Object.assign(g[t],macrosFor(g[t].kcal,lb)));
-  const P=planDoc();P.targets={T:{kcal:+g.T.kcal,p:+g.T.p,c:+g.T.c,f:+g.T.f},R:{kcal:+g.R.kcal,p:+g.R.p,c:+g.R.c,f:+g.R.f}};P.macroRule=!!g.rule;
+  const P=planDoc();P.targets={T:{kcal:+g.T.kcal,p:+g.T.p,c:+g.T.c,f:+g.T.f},R:{kcal:+g.R.kcal,p:+g.R.p,c:+g.R.c,f:+g.R.f}};P.macroRule=!!g.rule;if(fit)P.fitted=true;
   D.plan=P;applyPlan();
   if(fit)fitPlanAll();
   await savePlan();window.TGD=null;renderTargets();
@@ -4109,6 +4116,27 @@ function fitPlanAll(){let P=planDoc();const plans=[];
       if(nid!==id)g.us.forEach(u=>{const pl=plans[u.pi],key=pl.s+":"+pl.t;(newRows[key]=newRows[key]||{pl,map:{}}).map[pl.rows[u.ri].ri]=nid})})});
   Object.values(newRows).forEach(({pl,map})=>{const sc=SCHED[pl.s][pl.t];sched[pl.s+":"+pl.t]={rows:sc.rows.map((r,ri)=>{const nr=dcl(r);if(map[ri])nr[1]=map[ri];return nr}),sum:sc.sum,note:sc.note||"",wake:WAKE[pl.s][pl.t]}});
   P.meals=meals;P.sched=sched;D.plan=P;applyPlan()}
+/* After you change a meal, nudge the portions in the other meals on the same days so each day stays on its targets.
+   It never makes new versions of meals: a meal shared with other days takes a middle path that keeps those days close too. */
+function rebalanceMeals(lock){const L_=new Set(lock),plans=[];
+  SLOTS.forEach(([s])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const ids=sc.rows.map(r=>r[1]).filter(id=>MEALS[id]);if(ids.length)plans.push({ids,tg:PLAN[t]})}));
+  const affected=plans.filter(p=>p.ids.some(id=>L_.has(id)));if(!affected.length)return {meals:{},changes:[]};
+  /* only meals that are used solely on the affected days move, so every other day stays exactly as it is */
+  const onlyAffected=id=>plans.every(p=>!p.ids.includes(id)||affected.includes(p));
+  const varIds=new Set(affected.flatMap(p=>p.ids).filter(id=>!L_.has(id)&&!NO_SCALE[id]&&onlyAffected(id))),its=[],byMeal={};
+  varIds.forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!v||isRemoved(k))return;const f=F[k];if(!(f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0))return;const c=fitCat(v);if(!c)return;
+    const x={id,i,k,a,amt:a,per:v.map(q=>q/a),cat:c,min:Math.min(a,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,a*0.6)),max:k==="oil"?Math.max(a*2,10):a*1.6};its.push(x);(byMeal[id]=byMeal[id]||[]).push(x)}));
+  const scope=plans.filter(p=>p.ids.some(id=>byMeal[id]));
+  const base=(p,j)=>p.ids.reduce((s,id)=>{if(byMeal[id]){const vi=new Set(byMeal[id].map(x=>x.i));return s+MEALS[id].items.reduce((a,[k],i)=>a+(vi.has(i)||!IM[id][i]||isRemoved(k)?0:IM[id][i][j]),0)}return s+mealMac(id)[["kcal","p","c","f"][j]]},0);
+  const tot=(p,j)=>base(p,j)+p.ids.reduce((s,id)=>s+(byMeal[id]||[]).reduce((a,x)=>a+x.amt*x.per[j],0),0);
+  const catSum=(p,j,c)=>p.ids.reduce((s,id)=>s+(byMeal[id]||[]).filter(x=>x.cat===c).reduce((a,x)=>a+x.amt*x.per[j],0),0),J={p:1,f:3,c:2};
+  for(let n=0;n<20;n++)for(const c of ["p","f","c"]){const j=J[c];const ratio=scope.map(p=>{const cs=catSum(p,j,c);return cs>0?Math.min(2,Math.max(0.5,(cs+(p.tg[c]-tot(p,j)))/cs)):null});
+    its.filter(x=>x.cat===c).forEach(x=>{const rs=scope.map((p,pi)=>p.ids.includes(x.id)?ratio[pi]:null).filter(r=>r!=null);if(!rs.length)return;const g=Math.exp(rs.reduce((a,r)=>a+Math.log(r),0)/rs.length);x.amt=Math.min(x.max,Math.max(x.min,x.amt*Math.pow(g,0.85)))})}
+  const P=planDoc(),meals={},changes=[];Object.keys(byMeal).forEach(id=>{const items=dcl(MEALS[id].items);let ch=false;byMeal[id].forEach(x=>{const step=x.k==="oil"?1:x.k==="pot"||x.a>=300?10:5,na=Math.max(step,Math.round(x.amt/step)*step);
+      if(na!==x.a){ch=true;changes.push({m:MEALS[id].m,k:x.k,from:x.a,to:na});items[x.i]=[x.k,na,autoLabel(x.k,na)].filter((q,j)=>j<2||q!==undefined)}});
+    if(ch)meals[id]={...(P.meals[id]||{}),m:MEALS[id].m,items,...(MEALS[id].solo?{solo:true}:{})}});
+  return {meals,changes}}
+function gToast(msg,ms){let el=$("gtoast");if(!el){el=document.createElement("div");el.id="gtoast";el.setAttribute("role","status");document.body.appendChild(el)}el.textContent=msg;el.classList.add("on");clearTimeout(gToast.t);gToast.t=setTimeout(()=>el.classList.remove("on"),ms||6000)}
 /* how close each day plan lands after fitting */
 function fitReport(){const r=[];SLOTS.forEach(([s,n])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const x={kcal:0,p:0,c:0,f:0};sc.rows.forEach(rw=>{if(MEALS[rw[1]]){const m=mealMac(rw[1]);x.kcal+=m.kcal;x.p+=m.p;x.c+=m.c;x.f+=m.f}});
   if(x.kcal)r.push({s,t,n:n+(t==="T"?" training":" rest"),d:{kcal:x.kcal-PLAN[t].kcal,p:x.p-PLAN[t].p,c:x.c-PLAN[t].c,f:x.f-PLAN[t].f}})}));
