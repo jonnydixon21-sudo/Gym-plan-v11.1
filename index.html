@@ -3127,7 +3127,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (f)";
+const APP_VERSION="25 Nov 2026 (g)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3284,7 +3284,7 @@ function renderTargets(){const el=$("tg-card");if(!el)return;
   ${["T","R"].map(t=>`<div class="tgb"><h3>${PLAN[t].label}</h3><div class="tgrow">${[["kcal","Calories"],["p","Protein g"],["c","Carbs g"],["f","Fat g"]].map(([f,n])=>`<label class="note">${n}<input inputmode="numeric" data-tg="${t}:${f}" value="${TGD[t][f]}" ${rule&&f!=="kcal"?"readonly class=\"tgro\"":""}></label>`).join("")}</div>
   <details class="fold sub"><summary class="note" style="cursor:pointer">What my meals add up to</summary><div class="tablewrap"><table><thead><tr><th>Day plan</th><th class="n">kcal</th><th class="n">P</th><th class="n">C</th><th class="n">F</th></tr></thead><tbody>${sum(t)}</tbody></table></div></details></div>`).join("")}
   ${weekTotalsHTML()}
-  <div class="row"><button class="btn primary" id="tg-fit">Save and fit all my meals</button><button class="btn" id="tg-save">Save targets only</button><button class="btn ghost small" id="tg-reset">Reset</button></div>
+  <div class="row"><button class="btn primary" id="tg-fit">Save and fit all my meals</button><button class="btn" id="tg-save">Save targets only</button><button class="btn ghost small" id="tg-reset">Reset</button>${planDoc().fitBase&&Object.keys(planDoc().fitBase).length?`<button class="btn ghost small" id="tg-unfit">Put portions back to before fitting</button>`:""}</div>
   <p class="note" id="tg-msg" aria-live="polite">"Fit all my meals" resizes the portions in every day plan: chicken, mince, whey and other protein foods towards your protein; oil, nuts and butter towards your fat; rice, potatoes, oats, bread and fruit towards your carbs. Overnight oats and counted items (eggs, wraps, bananas) stay as they are.</p>`}
 /* Week totals: the next 7 days of the rota, each day's target vs what its day plan's meals add up to */
 function weekTotals(){const days=[...Array(7)].map((_,i)=>addDays(TODAY,i)),tg={kcal:0,p:0,c:0,f:0},ml={kcal:0,p:0,c:0,f:0},cnt={day:0,night:0,off:0,T:0,R:0};
@@ -3316,8 +3316,8 @@ async function tgSave(fit){const g=window.TGD;
   if(fit)fitPlanAll();
   await savePlan();window.TGD=null;renderTargets();
   if(!fit){$("tg-msg").textContent="Saved.";return}
-  const r=fitReport(),off=r.rows.filter(x=>Math.abs(x.d.f)>8).length;
-  $("tg-msg").textContent=`Saved, and every day plan has been resized. Each one is now within ${Math.round(r.kcal)} kcal, ${Math.round(r.p)}g protein, ${Math.round(r.c)}g carbs and ${Math.round(r.f)}g fat of its target.${off?` Fat is furthest out on ${off} day plan${off>1?"s":""}: add a fat source (oil, nuts, eggs, cheese) to a meal there if you want it closer.`:""}${FIT_BIG.length?` Portions got a lot bigger on ${FIT_BIG.join(", ")}: those days have few meals for your calories, so add a meal or snack there to spread it out.`:""} Open "What my meals add up to" to see each day.`}
+  const r=fitReport(),far=r.rows.filter(x=>Math.abs(x.d.kcal)>100),near=r.rows.filter(x=>Math.abs(x.d.kcal)<=100),mx=k=>Math.round(Math.max(0,...near.map(x=>Math.abs(x.d[k]))));
+  $("tg-msg").textContent=`Saved, and your day plans have been resized. ${near.length===r.rows.length?"Every day is":`${near.length} of ${r.rows.length} days ${near.length===1?"is":"are"}`} within ${mx("kcal")} kcal, ${mx("p")}g protein and ${mx("c")}g carbs of target.${far.length?` Still short: ${far.map(x=>`${x.n} (${x.d.kcal>0?"+":"−"}${Math.round(Math.abs(x.d.kcal))} kcal)`).join(", ")}. Those portions are already at their limits${FIT_BIG.length?" and those days have few meals":""}, so add a meal or snack there to close the gap.`:FIT_BIG.length?` Portions got a lot bigger on ${FIT_BIG.join(", ")}: add a meal or snack there to spread it out.`:""} Open "What my meals add up to" to see each day.`}
 function renderDays(){const el=$("days-ed");if(!el)return;
   if(!PED||(!PED.dirty&&(PED.rows.length!==SCHED[PED.slot][PED.type].rows.length||JSON.stringify(PED.rows.map(r=>r[1]))!==JSON.stringify(SCHED[PED.slot][PED.type].rows.map(r=>r[1])))))pedLoad(PED?PED.slot:"day",PED?PED.type:"T");
   renderTargets();
@@ -3356,6 +3356,10 @@ document.addEventListener("change",async e=>{if(!(e.target.closest&&e.target.clo
     PED.rows[i][1]=t.value;renderDays()}});
 document.addEventListener("click",async e=>{if(!(e.target.closest&&e.target.closest("#food-days,#pane-targets")))return;const t=e.target.closest("button");if(!t)return;
   if(t.id==="tg-save"){tgSave(false);return}if(t.id==="tg-fit"){tgSave(true);return}
+  if(t.id==="tg-unfit"){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again to put portions back";return}
+    const P=planDoc(),fb=P.fitBase||{},meals={...P.meals};let n=0;Object.entries(fb).forEach(([key,a])=>{const [id,i]=[key.slice(0,key.lastIndexOf(":")),+key.slice(key.lastIndexOf(":")+1)];const m=MEALS[id];if(!m||!m.items[i])return;
+      const items=(meals[id]&&meals[id].items?dcl(meals[id].items):dcl(m.items));if(!items[i]||items[i][1]===a)return;const k=items[i][0];items[i]=[k,a,autoLabel(k,a)].filter((q,j)=>j<2||q!==undefined);meals[id]={...(meals[id]||{}),m:m.m,items,...(m.solo?{solo:true}:{})};n++});
+    P.meals=meals;delete P.fitBase;delete P.fitted;D.plan=P;await savePlan();window.TGD=null;renderTargets();$("tg-msg").textContent=n?`Put ${n} portion${n>1?"s":""} back to how they were before fitting.`:"Nothing to put back.";return}
   if(t.id==="tg-reset"){const P=planDoc();delete P.targets;D.plan=P;window.TGD=null;await savePlan();$("tg-msg").textContent="Targets reset to the originals.";return}
   if(!PED)return;
   if(t.dataset.pes||t.dataset.pet){if(PED.dirty&&!confirm("Discard your unsaved changes to this day?"))return;pedLoad(t.dataset.pes||PED.slot,t.dataset.pet||PED.type);renderDays();return}
@@ -4087,6 +4091,15 @@ const macroRuleOn=()=>planDoc().macroRule!==false;
    meal if the days want roughly the same portions; otherwise each group of days gets its own version of it (same name, shown together under Meals).
    Fixed meals (overnight oats) and counted items (eggs, wraps, bananas) stay as they are. */
 const FIT_MIN={whey:15,chicken:100,mince:100,oil:3};var FIT_BIG=[];
+/* Hard limits per portion so fitting can never run away, however many times it's pressed */
+function fitCap(k,cat){const n=((F[k]&&F[k].n)||k).toLowerCase();
+  if(k==="oil"||/\boil\b/.test(n))return 20;if(/butter(?!.*nut)/.test(n))return 30;if(/peanut butter|nut butter/.test(n))return 50;if(/nut|almond|cashew|seed/.test(n))return 60;
+  if(/whey|protein powder|casein/.test(n))return 60;if(/chicken|mince|beef|steak|turkey|salmon|fish|pork|lamb/.test(n))return 300;
+  if(k==="cor"||/cream of rice/.test(n))return 150;if(/rice|basmati|pasta|noodle|couscous|quinoa/.test(n))return 200;if(/oat/.test(n))return 150;
+  if(/potato/.test(n))return 900;if(/bread|sourdough|bagel|wrap|toast/.test(n))return 200;if(/honey|jam|syrup/.test(n))return 40;
+  return cat==="f"?50:cat==="p"?300:350}
+/* the amount a portion is measured against: what it was before it was first fitted, so repeat fits don't keep growing it */
+function fitAnchor(P,id,i,a,src){P.fitBase=P.fitBase||{};const k=id+":"+i;if(P.fitBase[k]==null)P.fitBase[k]=src!=null&&P.fitBase[src+":"+i]!=null?P.fitBase[src+":"+i]:a;return P.fitBase[k]}
 function fitCat(v){return v[1]*4/v[0]>=0.45?"p":v[3]*9/v[0]>=0.5?"f":v[2]*4/v[0]>=0.55?"c":null}
 function fitPlanAll(){let P=planDoc();const plans=[];
   SLOTS.forEach(([s])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const rows=sc.rows.map((r,ri)=>({r,ri})).filter(x=>MEALS[x.r[1]]);if(rows.length)plans.push({s,t,rows,tg:PLAN[t]})}));
@@ -4094,7 +4107,8 @@ function fitPlanAll(){let P=planDoc();const plans=[];
   plans.forEach(pl=>{const its=[];let fixed=[0,0,0,0];
     pl.rows.forEach(({r},ri)=>{const id=r[1];MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!v||isRemoved(k))return;const f=F[k];
       const c=!NO_SCALE[id]&&f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0?fitCat(v):null;
-      if(c)its.push({ri,id,i,k,a,amt:a,per:v.map(q=>q/a),cat:c,min:Math.min(a,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,a*0.5)),max:k==="oil"?Math.max(15,a*3):Math.max(a,a*1.8)});else fixed=fixed.map((q,j)=>q+v[j])})});
+      if(c){const an=fitAnchor(P,id,i,a,id.replace(/_(day|n1|n2|off1|off)[TR]$/,"")),cap=fitCap(k,c),mx=Math.min(cap,k==="oil"?Math.max(15,an*3):an*1.8),mn=Math.min(mx,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,an*0.5));
+        its.push({ri,id,i,k,a,amt:Math.min(mx,Math.max(mn,a)),per:v.map(q=>q/a),cat:c,min:mn,max:mx})}else fixed=fixed.map((q,j)=>q+v[j])})});
     const tot=j=>fixed[j]+its.reduce((s,x)=>s+x.amt*x.per[j],0),J={p:1,f:3,c:2};
     for(let n=0;n<24;n++)for(const c of ["p","f","c"]){const j=J[c],free=its.filter(x=>x.cat===c);if(!free.length)continue;
       const need=pl.tg[c]-tot(j);if(Math.abs(need)<0.5)continue;
@@ -4112,7 +4126,7 @@ function fitPlanAll(){let P=planDoc();const plans=[];
     groups.forEach((g,gi)=>{const items=dcl(MEALS[id].items);g.v.forEach((x,q)=>{const avg=g.us.reduce((s,u)=>s+vec(u.pi,u.ri)[q].amt,0)/g.us.length,step=x.k==="oil"?1:x.k==="pot"||x.a>=300?10:5,na=Math.max(step,Math.round(avg/step)*step);
         items[x.i]=[x.k,na,autoLabel(x.k,na)].filter((q2,j)=>j<2||q2!==undefined)});
       const pl0=plans[g.us[0].pi],nid=gi===0?id:(id.replace(/_[a-z0-9]+[TR]$/,"")+"_"+pl0.s+pl0.t).replace(/[^A-Za-z0-9_]/g,"");
-      meals[nid]={...(P.meals[id]||{}),m:MEALS[id].m,items,...(MEALS[id].solo?{solo:true}:{})};
+      meals[nid]={...(P.meals[id]||{}),m:MEALS[id].m,items,...(MEALS[id].solo?{solo:true}:{})};if(nid!==id)items.forEach((_,i)=>{if(P.fitBase&&P.fitBase[id+":"+i]!=null&&P.fitBase[nid+":"+i]==null)P.fitBase[nid+":"+i]=P.fitBase[id+":"+i]});
       if(nid!==id)g.us.forEach(u=>{const pl=plans[u.pi],key=pl.s+":"+pl.t;(newRows[key]=newRows[key]||{pl,map:{}}).map[pl.rows[u.ri].ri]=nid})})});
   Object.values(newRows).forEach(({pl,map})=>{const sc=SCHED[pl.s][pl.t];sched[pl.s+":"+pl.t]={rows:sc.rows.map((r,ri)=>{const nr=dcl(r);if(map[ri])nr[1]=map[ri];return nr}),sum:sc.sum,note:sc.note||"",wake:WAKE[pl.s][pl.t]}});
   P.meals=meals;P.sched=sched;D.plan=P;applyPlan()}
@@ -4123,19 +4137,20 @@ function rebalanceMeals(lock){const L_=new Set(lock),plans=[];
   const affected=plans.filter(p=>p.ids.some(id=>L_.has(id)));if(!affected.length)return {meals:{},changes:[]};
   /* only meals that are used solely on the affected days move, so every other day stays exactly as it is */
   const onlyAffected=id=>plans.every(p=>!p.ids.includes(id)||affected.includes(p));
-  const varIds=new Set(affected.flatMap(p=>p.ids).filter(id=>!L_.has(id)&&!NO_SCALE[id]&&onlyAffected(id))),its=[],byMeal={};
+  const varIds=new Set(affected.flatMap(p=>p.ids).filter(id=>!L_.has(id)&&!NO_SCALE[id]&&onlyAffected(id))),its=[],byMeal={},PB=planDoc();
   varIds.forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!v||isRemoved(k))return;const f=F[k];if(!(f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0))return;const c=fitCat(v);if(!c)return;
-    const x={id,i,k,a,amt:a,per:v.map(q=>q/a),cat:c,min:Math.min(a,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,a*0.6)),max:k==="oil"?Math.max(a*2,10):a*1.6};its.push(x);(byMeal[id]=byMeal[id]||[]).push(x)}));
+    const an=fitAnchor(PB,id,i,a),cap=fitCap(k,c),mx=Math.min(cap,k==="oil"?Math.max(15,an*3):an*1.8),mn=Math.min(mx,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,an*0.5));
+    const x={id,i,k,a,amt:Math.min(mx,Math.max(mn,a)),per:v.map(q=>q/a),cat:c,min:mn,max:mx};its.push(x);(byMeal[id]=byMeal[id]||[]).push(x)}));
   const scope=plans.filter(p=>p.ids.some(id=>byMeal[id]));
   const base=(p,j)=>p.ids.reduce((s,id)=>{if(byMeal[id]){const vi=new Set(byMeal[id].map(x=>x.i));return s+MEALS[id].items.reduce((a,[k],i)=>a+(vi.has(i)||!IM[id][i]||isRemoved(k)?0:IM[id][i][j]),0)}return s+mealMac(id)[["kcal","p","c","f"][j]]},0);
   const tot=(p,j)=>base(p,j)+p.ids.reduce((s,id)=>s+(byMeal[id]||[]).reduce((a,x)=>a+x.amt*x.per[j],0),0);
   const catSum=(p,j,c)=>p.ids.reduce((s,id)=>s+(byMeal[id]||[]).filter(x=>x.cat===c).reduce((a,x)=>a+x.amt*x.per[j],0),0),J={p:1,f:3,c:2};
   for(let n=0;n<20;n++)for(const c of ["p","f","c"]){const j=J[c];const ratio=scope.map(p=>{const cs=catSum(p,j,c);return cs>0?Math.min(2,Math.max(0.5,(cs+(p.tg[c]-tot(p,j)))/cs)):null});
     its.filter(x=>x.cat===c).forEach(x=>{const rs=scope.map((p,pi)=>p.ids.includes(x.id)?ratio[pi]:null).filter(r=>r!=null);if(!rs.length)return;const g=Math.exp(rs.reduce((a,r)=>a+Math.log(r),0)/rs.length);x.amt=Math.min(x.max,Math.max(x.min,x.amt*Math.pow(g,0.85)))})}
-  const P=planDoc(),meals={},changes=[];Object.keys(byMeal).forEach(id=>{const items=dcl(MEALS[id].items);let ch=false;byMeal[id].forEach(x=>{const step=x.k==="oil"?1:x.k==="pot"||x.a>=300?10:5,na=Math.max(step,Math.round(x.amt/step)*step);
+  const P=PB,meals={},changes=[];Object.keys(byMeal).forEach(id=>{const items=dcl(MEALS[id].items);let ch=false;byMeal[id].forEach(x=>{const step=x.k==="oil"?1:x.k==="pot"||x.a>=300?10:5,na=Math.max(step,Math.round(x.amt/step)*step);
       if(na!==x.a){ch=true;changes.push({m:MEALS[id].m,k:x.k,from:x.a,to:na});items[x.i]=[x.k,na,autoLabel(x.k,na)].filter((q,j)=>j<2||q!==undefined)}});
     if(ch)meals[id]={...(P.meals[id]||{}),m:MEALS[id].m,items,...(MEALS[id].solo?{solo:true}:{})}});
-  return {meals,changes}}
+  D.plan=PB;return {meals,changes}}
 function gToast(msg,ms){let el=$("gtoast");if(!el){el=document.createElement("div");el.id="gtoast";el.setAttribute("role","status");document.body.appendChild(el)}el.textContent=msg;el.classList.add("on");clearTimeout(gToast.t);gToast.t=setTimeout(()=>el.classList.remove("on"),ms||6000)}
 /* how close each day plan lands after fitting */
 function fitReport(){const r=[];SLOTS.forEach(([s,n])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const x={kcal:0,p:0,c:0,f:0};sc.rows.forEach(rw=>{if(MEALS[rw[1]]){const m=mealMac(rw[1]);x.kcal+=m.kcal;x.p+=m.p;x.c+=m.c;x.f+=m.f}});
