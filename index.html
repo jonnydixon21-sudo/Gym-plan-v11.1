@@ -2679,7 +2679,7 @@ function renderLive(){
     const g=groupOf(ex),alts=g?ALTG[g].x.filter(a=>norm(a[0])!==norm(ex.name)):[],orig=ex.from||ex.name;
     const ai=AI_ALTS[ei]||[];
     const panel=SWAP_EX===ei?`<div class="exalts"><b>${g?`Alternatives · ${esc(ALTG[g].m)}`:"Alternatives"}</b>
-      <label class="field" style="flex-direction:row;display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw-always" style="width:20px;height:20px"> Tick first to always use your pick instead of ${esc(orig)}</label>
+      <label class="field" style="flex-direction:row;display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw-always" style="width:20px;height:20px"> Tick first to change ${esc(W.title)} so it always uses your pick instead of ${esc(orig)}</label>
       ${alts.map(a=>`<button class="exalt" data-pickalt="${ei}" data-name="${esc(a[0])}"><b>${esc(a[0])}</b><span>${esc(a[1])}</span>${a[2]?'<span class="pill good">Easy on the knee</span>':""}</button>`).join("")}
       ${ai.map(a=>`<button class="exalt" data-pickalt="${ei}" data-name="${esc(a.name)}"><b>${esc(a.name)}</b><span>${esc(a.why||"")}</span></button>`).join("")}
       ${(()=>{const pi=exInfo(ex.name);if(!pi)return "";const done=new Set(D.workouts.flatMap(w=>(w.exercises||[]).map(e=>norm(e.name))));
@@ -2730,7 +2730,11 @@ $("w-live").addEventListener("click",async e=>{
     const tp=TEMPLATES.flatMap(x=>x.ex).find(x=>norm(x.name)===norm(name));
     ex.name=name;ex.from=back?undefined:orig;ex.note=back&&tp?tp.note:(a?a[1]:(FULL_CUES[name]||(tp&&tp.note)||""));
     if(!ex.from)delete ex.from;
-    if(always){const map={...D.exswaps};if(back)delete map[orig];else map[orig]=name;D.exswaps=map;if(db){try{await db.doc("prefs/swaps").set({map})}catch(err){}}}
+    /* "always" changes this workout itself, so Split, Details view and Start a workout all show the same thing */
+    if(always){const tp0=TEMPLATES.find(x=>x.title===W.title);if(tp0){const cur=tplOf(tp0.title),prog=D.program||{};const ex2=cur.ex.map(e=>norm(e.name)===norm(orig)||norm(e.name)===norm(ex.from||"")?{...e,name,note:ex.note||""}:e);
+      D.program={...prog,days:{...(prog.days||{}),[tp0.key]:ex2},log:[...(prog.log||[]),{date:TODAY,text:`${W.title}: ${orig} changed to ${name}`}]};applyNames();if(db){try{await db.doc("prefs/program").set(D.program)}catch(err){}}
+      if(typeof D.exswaps[orig]==="string"){const map={...D.exswaps};delete map[orig];D.exswaps=map;if(db){try{await db.doc("prefs/swaps").set({map})}catch(err){}}}
+      ex.from=undefined;delete ex.from}}
     SWAP_EX=null;saveLive();renderLive();return}
   if(t.id==="sw-ai"){const ei=+t.dataset.ex,ex=W.exercises[ei];t.disabled=true;t.textContent="Thinking…";
     try{const r=await sample.json(`Suggest 4 gym exercise alternatives to "${ex.from||ex.name}" that train the same muscles, for someone in a commercial gym doing ${SETUP.mode==="cut"?"fat loss":SETUP.mode==="maintain"?"maintaining weight":"a slow bulk"} while building or keeping muscle${SETUP.injuries?". Injuries to work around: "+SETUP.injuries:""}. Prefer machines and cables that are easy to progress. Don't include "${ex.name}". Return JSON: [{"name":string,"why":string}] with "why" under 15 words.`,{modelTier:"quick"});
@@ -3128,7 +3132,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (h)";
+const APP_VERSION="25 Nov 2026 (i)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -4936,7 +4940,10 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
   db.doc("prefs/daily").onSnapshot(s=>{D.daily=s.exists?s.data():null;applyDaily();renderToday()},()=>{});
   db.doc("prefs/goals").onSnapshot(s=>{D.goals=s.exists?s.data():null;renderGoals();renderProgress()},()=>{});
   db.doc("prefs/rota").onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&d.days&&JSON.stringify(d)!==JSON.stringify(L.rota||null)){L.rota=d;saveL();applyRotaDef(d);applyRunPlan();try{renderDayAll();renderRun();renderStart()}catch(e){}}},()=>{});
-  db.doc("prefs/swaps").onSnapshot(s=>{D.exswaps=(s.exists&&s.data().map)||{};if(W)renderLive()},()=>{});
+  db.doc("prefs/swaps").onSnapshot(s=>{D.exswaps=(s.exists&&s.data().map)||{};
+    /* old-style "always" swaps applied to every workout with that exercise, overriding what you saved in Split. Drop them: Split is the source of truth. */
+    if(Object.values(D.exswaps).some(v=>typeof v==="string")){const map={};Object.entries(D.exswaps).forEach(([k,v])=>{if(typeof v!=="string")map[k]=v});D.exswaps=map;db.doc("prefs/swaps").set({map}).catch(()=>{})}
+    if(W)renderLive();else{try{renderStart()}catch(e){}}},()=>{});
   db.collection("runs").onSnapshot(q=>{D.runs=q.docs.map(x=>({...x.data(),_id:x.id}));renderRun();renderDay()},()=>{});
   db.doc("prefs/runplan").onSnapshot(s=>{D.runplan=s.exists?s.data():null;applyRunPlan();renderRun();renderDayAll()},()=>{});
   db.doc("prefs/plan").onSnapshot(s=>{D.plan=s.exists?s.data():null;applyPlan();renderPlanViews()},()=>{});
