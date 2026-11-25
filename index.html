@@ -2852,25 +2852,30 @@ setInterval(()=>{if(!W&&SCRLOCK)releaseAwake()},5000);
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#pv-start,[data-ok],#w-live")&&W!==undefined)setTimeout(()=>{if(W)keepAwake()},50)},true);
 /* lock-screen and Apple Watch alerts go through the free ntfy app: the app asks ntfy to send a notification when the rest ends */
 function ntfyTopic(){if(!L.ntfyTopic){const a=new Uint8Array(6);(crypto.getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*256));L.ntfyTopic="gymrest-"+[...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,10);saveL()}return L.ntfyTopic}
-function ntfySend(delaySec,msg){if(!L.ntfyOn)return;const q=new URLSearchParams({title:"Rest over",priority:"high",tags:"muscle"});if(delaySec>=10)q.set("delay",Math.round(delaySec)+"s");
-  try{fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic())}?${q}`,{method:"POST",mode:"no-cors",body:msg||"Time for your next set"}).catch(()=>{})}catch(e){}}
+/* Rest alerts all share one ntfy sequence ID ("rest"): a new rest replaces the one still waiting, and stopping a rest early cancels it before it's delivered. */
+var NTFY_PENDING=false;
+function ntfySend(delaySec,msg,test){if(!L.ntfyOn)return;const q=new URLSearchParams({title:test?"Rest alerts":"Rest over",priority:"high",tags:"muscle"});if(delaySec>=10)q.set("delay",Math.round(delaySec)+"s");
+  const path=test?"":"/rest";NTFY_PENDING=!test&&delaySec>=10;
+  try{fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic())}${path}?${q}`,{method:"POST",mode:"no-cors",body:msg||"Time for your next set"}).catch(()=>{})}catch(e){}}
+function ntfyCancel(){if(!L.ntfyOn||!NTFY_PENDING)return;NTFY_PENDING=false;try{fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic())}/rest/delete`,{mode:"no-cors"}).catch(()=>{})}catch(e){}}
 function renderNtfy(){const el=$("ntfy-body");if(!el)return;const t=ntfyTopic();
   el.innerHTML=`<p class="note">The app can't buzz your phone or watch while the screen is locked, so it uses the free <b>ntfy</b> app for this. When a rest timer starts, ntfy sends a notification at the moment it ends. iPhone notifications show on your Apple Watch automatically.</p>
   <ol class="ntfy-steps"><li>Install <b>ntfy</b> from the App Store and allow notifications.</li><li>In ntfy, tap <b>+</b>, type this topic, then <b>Subscribe</b>:<div class="row" style="flex-wrap:nowrap;margin-top:6px"><code class="mono ntopic">${esc(t)}</code><button class="btn small" type="button" id="ntfy-copy">Copy</button></div></li><li>Turn it on below and tap <b>Send a test</b>.</li></ol>
   <label class="chkline"><input type="checkbox" id="ntfy-on" ${L.ntfyOn?"checked":""}> Send rest alerts to my phone and watch</label>
   <div class="row"><button class="btn small" type="button" id="ntfy-test">Send a test</button><span class="toast" id="ntfy-msg" aria-live="polite"></span></div>
-  <p class="note">If you skip a rest early, its alert still arrives, so just ignore it. Keep the topic to yourself; it's how ntfy knows where to send your alerts.</p>`}
+  <p class="note">If you start your next set early, skip the rest or change its time, the waiting alert is cancelled or moved to match. Keep the topic to yourself; it's how ntfy knows where to send your alerts.</p>`}
 document.addEventListener("change",e=>{if(e.target.id!=="ntfy-on")return;L.ntfyOn=e.target.checked;saveL()});
 document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest("#ntfy-copy,#ntfy-test");if(!t)return;
   if(t.id==="ntfy-copy"){try{await navigator.clipboard.writeText(ntfyTopic());flash("ntfy-msg","Topic copied")}catch(err){flash("ntfy-msg","Press and hold the topic to copy it")}return}
-  if(!L.ntfyOn){flash("ntfy-msg","Tick the box above first");return}ntfySend(0,"Test from your gym app: rest alerts are working");flash("ntfy-msg","Sent. It should arrive in a few seconds.")});
+  if(!L.ntfyOn){flash("ntfy-msg","Tick the box above first");return}ntfySend(0,"Test from your gym app: rest alerts are working",true);flash("ntfy-msg","Sent. It should arrive in a few seconds.")});
 function startRest(sec){keepAwake();try{const ex=W&&W.exercises.find(x=>x.sets.some(st=>!st.done));ntfySend(sec,ex?"Next: "+ex.name:"Time for your next set")}catch(e){}try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}
   restLen=sec;restEnd=Date.now()+sec*1000;$("rest").hidden=false;$("rest").classList.remove("end");clearInterval(restI);restI=setInterval(tickRest,250);tickRest()}
 function tickRest(){const left=(restEnd-Date.now())/1000;$("rest-t").textContent=mmss(left);$("rest-fill").style.width=Math.max(0,left/restLen*100)+"%";
-  if(left<=0){clearInterval(restI);$("rest").classList.add("end");$("rest-t").textContent="Go";beep();document.body.classList.remove("restflash");void document.body.offsetWidth;document.body.classList.add("restflash");setTimeout(()=>document.body.classList.remove("restflash"),2600);setTimeout(()=>{if(restEnd<=Date.now())$("rest").hidden=true},6000)}}
-function stopRest(){clearInterval(restI);$("rest").hidden=true}
-$("rest-m").addEventListener("click",()=>{restEnd-=15000;tickRest()});
-$("rest-p").addEventListener("click",()=>{restEnd+=15000;restLen+=15;if($("rest").classList.contains("end")){$("rest").classList.remove("end");clearInterval(restI);restI=setInterval(tickRest,250)}tickRest()});
+  if(left<=0){clearInterval(restI);NTFY_PENDING=false;$("rest").classList.add("end");$("rest-t").textContent="Go";beep();document.body.classList.remove("restflash");void document.body.offsetWidth;document.body.classList.add("restflash");setTimeout(()=>document.body.classList.remove("restflash"),2600);setTimeout(()=>{if(restEnd<=Date.now())$("rest").hidden=true},6000)}}
+function stopRest(){if(restEnd>Date.now()+1500)ntfyCancel();clearInterval(restI);$("rest").hidden=true}
+function ntfyResched(){const left=(restEnd-Date.now())/1000;if(left>=10){const ex=W&&W.exercises.find(x=>x.sets.some(st=>!st.done));ntfySend(left,ex?"Next: "+ex.name:"Time for your next set")}else ntfyCancel()}
+$("rest-m").addEventListener("click",()=>{restEnd-=15000;tickRest();ntfyResched()});
+$("rest-p").addEventListener("click",()=>{restEnd+=15000;restLen+=15;if($("rest").classList.contains("end")){$("rest").classList.remove("end");clearInterval(restI);restI=setInterval(tickRest,250)}tickRest();ntfyResched()});
 $("rest-x").addEventListener("click",stopRest);
 
 /* ---------- PHOTOS ---------- */
@@ -3132,7 +3137,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (i)";
+const APP_VERSION="25 Nov 2026 (j)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
