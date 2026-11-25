@@ -515,6 +515,9 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
 .dlist{display:grid;gap:8px}
+.calbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit}
+.calbtn svg{width:30px;height:30px;flex:none;fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round}.calbtn svg .f{fill:#34c759;stroke:none}.calbtn svg .f2{fill:#2f7cf6;stroke:none}
+.calbtn span:not(.calarr){display:grid;gap:1px;flex:1}.calbtn b{font-family:var(--f-display);font-size:1.02rem}.calbtn small{color:var(--muted);font-size:.8rem}.calarr{font-size:1.5rem;color:var(--accent-ink);line-height:1}
 .calpage{position:fixed;inset:0;z-index:72;background:var(--surface);display:grid;grid-template-rows:auto auto auto minmax(0,1fr);padding-top:env(safe-area-inset-top,0px)}.calpage[hidden]{display:none}
 .calhead{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:12px 16px 6px}.calhead b{text-align:center;font-family:var(--f-display);font-size:1.15rem}
 .calx{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.1rem;color:var(--ink)}
@@ -926,8 +929,8 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
 
     <div class="view" id="w-live" hidden></div>
 
-    <details class="card fold" data-fold="past"><summary><h2>Past sessions</h2></summary>
-      <div class="row"><button class="btn small primary" type="button" id="cal-open">Calendar</button><span class="note">Gym, runs and rugby, day by day</span></div>
+    <details class="card fold" data-fold="past"><summary><h2>Past 7 sessions</h2></summary>
+      <button class="calbtn" type="button" id="cal-open"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><rect x="7" y="13" width="3" height="3" rx=".6" class="f"/><rect x="14" y="13" width="3" height="3" rx=".6" class="f2"/></svg><span><b>Calendar view</b><small>Every gym session, run and rugby day</small></span><span class="calarr" aria-hidden="true">›</span></button>
       <div class="sessions" id="sessions"></div>
     </details>
 
@@ -2435,8 +2438,8 @@ function renderGym(){
     $("ex-note").textContent=bw?"Best reps each session (bodyweight).":"Estimated 1-rep max from your best set each session: weight × (1 + reps ÷ 30). A heavier set of 8 and a lighter set of 12 compare fairly. Rising on a bulk means the extra food is going into muscle."}
   else lineChart($("ch-lift"),[],[],{unit:"kg"});
   $("ex-list").innerHTML=keys.length?keys.map(k=>{const s=S[k],l=s.pts[s.pts.length-1],tt=trend(s.pts);return `<button class="ex" data-lift="${esc(k)}" aria-pressed="${k===L.lift}"><span><b>${esc(s.name)}</b><small>${s.pts.length} session${s.pts.length>1?"s":""} · PB ${(()=>{const b=s.pts.reduce((m,p)=>p.y>m.y?p:m,s.pts[0]);return (b.set.kg?b.set.kg+"kg × "+b.set.reps:b.set.reps+" reps")+" ("+nice(b.date)+")"})()}</small></span><span>${tt?`<span class="pill ${tt==="up"?"good":tt==="flat"?"warn":"bad"}">${tt==="up"?"↑":tt==="flat"?"→":"↓"}</span>`:""}</span></button>`}).join(""):"";
-  const ses=[...D.workouts].sort((a,b)=>a.date<b.date?1:-1);
-  $("sessions").innerHTML=ses.length?ses.map(w=>`<details><summary><span>${esc(w.title)}</span><span class="mono" style="color:var(--muted)">${niceLong(w.date)}</span></summary><ul>${(w.exercises||[]).map(e=>`<li><span>${esc(e.name)}</span><span>${(e.sets||[]).map(s=>(s.kg?`${s.kg}×${s.reps}`:`${s.reps}`)+(s.fail?" F":"")+(s.spot?" S":"")+(s.cheat?" C":"")).join(" · ")}</span></li>`).join("")}</ul><div class="row" style="margin-top:8px"><button class="x" data-del="${esc(w._id)}">Delete session</button></div></details>`).join(""):`<div class="empty">No sessions yet. Finish a session or import one from Setgraph.</div>`;
+  const ses=[...D.workouts].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(a._id<b._id?1:-1)).slice(0,7);
+  $("sessions").innerHTML=ses.length?ses.map(w=>`<details><summary><span>${esc(w.title)}</span><span class="mono" style="color:var(--muted)">${niceLong(w.date)}</span></summary><ul>${(w.exercises||[]).map(e=>`<li><span>${esc(e.name)}</span><span>${(e.sets||[]).map(s=>(s.kg?`${s.kg}×${s.reps}`:`${s.reps}`)+(s.fail?" F":"")+(s.spot?" S":"")+(s.cheat?" C":"")).join(" · ")}</span></li>`).join("")}</ul><div class="row" style="margin-top:8px"><button class="x" data-del="${esc(w._id)}">Delete session</button></div></details>`).join("")+(D.workouts.length>7?`<p class="note">${D.workouts.length-7} older session${D.workouts.length-7>1?"s":""}: tap a day in Calendar view to see them.</p>`:""):`<div class="empty">No sessions yet. Finish a session or import one from Setgraph.</div>`;
 }
 $("ex-list").addEventListener("click",e=>{const b=e.target.closest(".ex");if(!b)return;L.lift=b.dataset.lift;saveL();renderGym()});
 $("sessions").addEventListener("click",async e=>{const id=e.target.dataset.del;if(!id||!db)return;
@@ -3122,7 +3125,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (d)";
+const APP_VERSION="25 Nov 2026 (e)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
