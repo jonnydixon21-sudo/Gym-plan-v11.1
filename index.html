@@ -514,7 +514,7 @@ body.restflash::after{content:"Rest over · next set";position:fixed;inset:0;z-i
 .restbar.end .rest-in .note,.restbar.end .rest-in .btn{color:var(--on-accent);border-color:var(--on-accent)}
 .summary{display:grid;gap:12px}
 .drate{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:6px}.dpb{background:var(--accent-soft);border-radius:12px;padding:12px}.dstuck{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:grid;gap:4px}
-.dlist{display:grid;gap:8px}
+.dlist{display:grid;gap:8px}input.tgro{background:var(--surface-2);color:var(--muted)}
 .edbar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:3}
 .edstat{font-size:.82rem;color:var(--muted)}.edstat.ok{color:var(--accent-ink);font-weight:600}.edstat.warn{color:var(--warn);font-weight:600}
 body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;max-width:720px;margin:0 auto;z-index:70}.sdpage[hidden]{display:none}
@@ -3107,7 +3107,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026 (b)";
+const APP_VERSION="25 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -3250,14 +3250,17 @@ function mealOptsHtml(sel){const ids=Object.keys(MEALS).filter(id=>!MEALS[id].so
   return ids.map(id=>`<option value="${id}" ${id===sel?"selected":""}>${esc(MEALS[id].m)} · ${mealMac(id).kcal} kcal${usedIn[id]?" · "+usedIn[id]:""}</option>`).join("")+`<option value="__new">+ New meal…</option>`}
 function pedTotals(){const t={kcal:0,p:0,c:0,f:0};PED.rows.forEach(r=>{if(MEALS[r[1]]){const m=mealMac(r[1]);t.kcal+=m.kcal;t.p+=m.p;t.c+=m.c;t.f+=m.f}});return t}
 function renderTargets(){const el=$("tg-card");if(!el)return;
-  if(!window.TGD)window.TGD={T:{...PLAN.T},R:{...PLAN.R}};
+  if(!window.TGD){window.TGD={T:{...PLAN.T},R:{...PLAN.R},rule:macroRuleOn()};const lb=bodyLb();if(TGD.rule&&lb)["T","R"].forEach(t=>Object.assign(TGD[t],macrosFor(TGD[t].kcal,lb)))}
+  const lb=bodyLb(),rule=TGD.rule&&!!lb;
   const sum=(t)=>SLOTS.map(([s,n])=>{const x={kcal:0,p:0,c:0,f:0};SCHED[s][t].rows.forEach(r=>{if(MEALS[r[1]]){const m=mealMac(r[1]);x.kcal+=m.kcal;x.p+=m.p;x.c+=m.c;x.f+=m.f}});return `<tr><td>${n}</td><td class="n">${x.kcal}</td><td class="n">${x.p}</td><td class="n">${x.c}</td><td class="n">${x.f}</td></tr>`}).join("");
-  el.innerHTML=`<h2>Calories and macros</h2><p class="note">Your daily targets for the plan. Change calories, protein or fat and carbs fill the gap (carbs = what's left). Change carbs and calories follow.</p>
-  ${["T","R"].map(t=>`<div class="tgb"><h3>${PLAN[t].label}</h3><div class="tgrow">${[["kcal","Calories"],["p","Protein g"],["c","Carbs g"],["f","Fat g"]].map(([f,n])=>`<label class="note">${n}<input inputmode="numeric" data-tg="${t}:${f}" value="${TGD[t][f]}"></label>`).join("")}</div>
+  el.innerHTML=`<h2>Calories and macros</h2>
+  <label class="chkline"><input type="checkbox" id="tg-rule" ${rule?"checked":""} ${lb?"":"disabled"}> Set macros from my calories: protein 1g and fat 0.3g per lb of body weight, carbs the rest</label>
+  <p class="note">${lb?(rule?`Using ${Math.round(lb)} lb${unitW()==="lb"?"":` (${f1(lb/2.20462)}kg)`} from your weight trend: <b>${Math.round(lb)}g protein</b> and <b>${Math.round(lb*0.3)}g fat</b> a day. Just enter calories and carbs fill the rest.`:"Your own numbers: change calories, protein or fat and carbs fill the gap. Change carbs and calories follow."):"Log your weight on Today to use the 1g/lb formula. Until then, set your own numbers."}</p>
+  ${["T","R"].map(t=>`<div class="tgb"><h3>${PLAN[t].label}</h3><div class="tgrow">${[["kcal","Calories"],["p","Protein g"],["c","Carbs g"],["f","Fat g"]].map(([f,n])=>`<label class="note">${n}<input inputmode="numeric" data-tg="${t}:${f}" value="${TGD[t][f]}" ${rule&&f!=="kcal"?"readonly class=\"tgro\"":""}></label>`).join("")}</div>
   <details class="fold sub"><summary class="note" style="cursor:pointer">What my meals add up to</summary><div class="tablewrap"><table><thead><tr><th>Day plan</th><th class="n">kcal</th><th class="n">P</th><th class="n">C</th><th class="n">F</th></tr></thead><tbody>${sum(t)}</tbody></table></div></details></div>`).join("")}
   ${weekTotalsHTML()}
-  <div class="row"><button class="btn primary" id="tg-save">Save targets</button><button class="btn" id="tg-fit">Save and fit my meals</button><button class="btn" id="tg-fitp">Save and fit protein too</button><button class="btn ghost small" id="tg-reset">Reset</button></div>
-  <p class="note" id="tg-msg" aria-live="polite">"Fit" scales the rice, potato, cream of rice and other carb portions in each day plan so each day lands on your calorie target. Protein and fat come from the foods you choose, so edit those meals if they're off (the table shows what each day adds up to).</p>`}
+  <div class="row"><button class="btn primary" id="tg-fit">Save and fit all my meals</button><button class="btn" id="tg-save">Save targets only</button><button class="btn ghost small" id="tg-reset">Reset</button></div>
+  <p class="note" id="tg-msg" aria-live="polite">"Fit all my meals" resizes the portions in every day plan: chicken, mince, whey and other protein foods towards your protein; oil, nuts and butter towards your fat; rice, potatoes, oats, bread and fruit towards your carbs. Overnight oats and counted items (eggs, wraps, bananas) stay as they are.</p>`}
 /* Week totals: the next 7 days of the rota, each day's target vs what its day plan's meals add up to */
 function weekTotals(){const days=[...Array(7)].map((_,i)=>addDays(TODAY,i)),tg={kcal:0,p:0,c:0,f:0},ml={kcal:0,p:0,c:0,f:0},cnt={day:0,night:0,off:0,T:0,R:0};
   days.forEach(d=>{const inf=dayInfo(d),t=PLAN[inf.type]||PLAN.T;["kcal","p","c","f"].forEach(k=>tg[k]+=+t[k]||0);
@@ -3282,10 +3285,14 @@ function fitCarbs(meals,t,targetKcal){const done=new Set();
     ids.forEach(id=>done.add(id))})}
 async function tgSave(fit){const g=window.TGD;
   for(const t of ["T","R"]){const x=g[t];if(!(x.kcal>=1200&&x.kcal<=7000&&x.p>=0&&x.c>=0&&x.f>=0)){$("tg-msg").textContent="Check the numbers: calories should be between 1,200 and 7,000.";return}}
-  const P=planDoc();P.targets={T:{kcal:+g.T.kcal,p:+g.T.p,c:+g.T.c,f:+g.T.f},R:{kcal:+g.R.kcal,p:+g.R.p,c:+g.R.c,f:+g.R.f}};
+  const lb=bodyLb();if(g.rule&&lb)["T","R"].forEach(t=>Object.assign(g[t],macrosFor(g[t].kcal,lb)));
+  const P=planDoc();P.targets={T:{kcal:+g.T.kcal,p:+g.T.p,c:+g.T.c,f:+g.T.f},R:{kcal:+g.R.kcal,p:+g.R.p,c:+g.R.c,f:+g.R.f}};P.macroRule=!!g.rule;
   D.plan=P;applyPlan();
-  if(fit){const meals={...P.meals};["T","R"].forEach(t=>fitCarbs(meals,t,PLAN[t].kcal));P.meals=meals;D.plan=P}
-  await savePlan();window.TGD=null;renderTargets();$("tg-msg").textContent=fit?"Saved, and the carb portions in your meals now match your calories.":"Saved."}
+  if(fit)fitPlanAll();
+  await savePlan();window.TGD=null;renderTargets();
+  if(!fit){$("tg-msg").textContent="Saved.";return}
+  const r=fitReport(),off=r.rows.filter(x=>Math.abs(x.d.f)>8).length;
+  $("tg-msg").textContent=`Saved, and every day plan has been resized. Each one is now within ${Math.round(r.kcal)} kcal, ${Math.round(r.p)}g protein, ${Math.round(r.c)}g carbs and ${Math.round(r.f)}g fat of its target.${off?` Fat is furthest out on ${off} day plan${off>1?"s":""}: add a fat source (oil, nuts, eggs, cheese) to a meal there if you want it closer.`:""}${FIT_BIG.length?` Portions got a lot bigger on ${FIT_BIG.join(", ")}: those days have few meals for your calories, so add a meal or snack there to spread it out.`:""} Open "What my meals add up to" to see each day.`}
 function renderDays(){const el=$("days-ed");if(!el)return;
   if(!PED||(!PED.dirty&&(PED.rows.length!==SCHED[PED.slot][PED.type].rows.length||JSON.stringify(PED.rows.map(r=>r[1]))!==JSON.stringify(SCHED[PED.slot][PED.type].rows.map(r=>r[1])))))pedLoad(PED?PED.slot:"day",PED?PED.type:"T");
   renderTargets();
@@ -3306,8 +3313,9 @@ function renderDays(){const el=$("days-ed");if(!el)return;
   <div class="row"><button class="btn primary" id="pe-save">Save this day</button><button class="btn ghost small" id="pe-reset">Reset this day to original</button></div></div>`}
 function pedUpdateTot(){}
 document.addEventListener("input",e=>{if(!(e.target.closest&&e.target.closest("#food-days,#pane-targets")))return;const t=e.target;
-  if(t.dataset.tg){const [ty,f]=t.dataset.tg.split(":"),g=window.TGD[ty],v=parseFloat(t.value)||0;g[f]=v;
-    if(f==="c")g.kcal=Math.round(4*g.p+4*g.c+9*g.f);else g.c=Math.max(0,Math.round((g.kcal-4*g.p-9*g.f)/4));
+  if(t.dataset.tg){const [ty,f]=t.dataset.tg.split(":"),g=window.TGD[ty],v=parseFloat(t.value)||0;g[f]=v;const lb=bodyLb();
+    if(window.TGD.rule&&lb){if(f!=="kcal")return;Object.assign(g,macrosFor(v,lb))}
+    else if(f==="c")g.kcal=Math.round(4*g.p+4*g.c+9*g.f);else g.c=Math.max(0,Math.round((g.kcal-4*g.p-9*g.f)/4));
     ["kcal","p","c","f"].forEach(k=>{if(k!==f){const inp=document.querySelector(`[data-tg="${ty}:${k}"]`);if(inp)inp.value=g[k]}});return}
   if(!PED)return;
   if(t.id==="pe-sum"){PED.sum=t.value;PED.dirty=true}else if(t.id==="pe-note"){PED.note=t.value;PED.dirty=true}else if(t.id==="pe-wake"){PED.wake=t.value;PED.dirty=true}
@@ -4044,11 +4052,55 @@ function fitProtein(meals,t,targetP){const done=new Set();
     if(!scal||total<=targetP+5)return;const f=Math.min(1,Math.max(0.5,(targetP-(total-scal))/scal));
     its.forEach(([id,i,k,a])=>{const step=k==="whey"?5:10,na=Math.max(step,Math.round(a*f/step)*step);const cur=(meals[id]&&meals[id].items)||dcl(MEALS[id].items);cur[i]=[k,na,autoLabel(k,na)].filter((x,j)=>j<2||x!==undefined);meals[id]={m:MEALS[id].m,items:cur}});
     ids.forEach(id=>done.add(id))})}
+/* Macro rule: protein 1g per lb of body weight, fat 0.3g per lb, carbs fill the rest of the calories */
+function bodyLb(){let w=null;try{w=weightTrend().cur}catch(e){}if(w==null){const c=[...D.checkins].filter(c=>num(c.weight)!=null).sort((a,b)=>a.date<b.date?1:-1)[0];w=c?num(c.weight):num(SETUP.startWeight)}
+  if(!(w>0))return null;return unitW()==="lb"?w:w*2.20462}
+function macrosFor(kcal,lb){const p=Math.round(lb),f=Math.round(lb*0.3),c=Math.max(0,Math.round((kcal-4*p-9*f)/4));return {kcal:Math.round(kcal),p,c,f}}
+const macroRuleOn=()=>planDoc().macroRule!==false;
+/* Fit every day plan to its targets. Each day plan is solved on its own: protein foods scale together towards protein, fat foods (oil, nuts, butter)
+   towards fat, carb foods (rice, potatoes, oats, bread, fruit) towards carbs, within sensible limits. A meal used on several kinds of day stays one
+   meal if the days want roughly the same portions; otherwise each group of days gets its own version of it (same name, shown together under Meals).
+   Fixed meals (overnight oats) and counted items (eggs, wraps, bananas) stay as they are. */
+const FIT_MIN={whey:15,chicken:100,mince:100,oil:3};var FIT_BIG=[];
+function fitCat(v){return v[1]*4/v[0]>=0.45?"p":v[3]*9/v[0]>=0.5?"f":v[2]*4/v[0]>=0.55?"c":null}
+function fitPlanAll(){let P=planDoc();const plans=[];
+  SLOTS.forEach(([s])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const rows=sc.rows.map((r,ri)=>({r,ri})).filter(x=>MEALS[x.r[1]]);if(rows.length)plans.push({s,t,rows,tg:PLAN[t]})}));
+  /* 1. solve each day plan on its own */
+  plans.forEach(pl=>{const its=[];let fixed=[0,0,0,0];
+    pl.rows.forEach(({r},ri)=>{const id=r[1];MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!v||isRemoved(k))return;const f=F[k];
+      const c=!NO_SCALE[id]&&f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0?fitCat(v):null;
+      if(c)its.push({ri,id,i,k,a,amt:a,per:v.map(q=>q/a),cat:c,min:Math.min(a,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,a*0.5)),max:k==="oil"?Math.max(15,a*3):Math.max(a,a*1.8)});else fixed=fixed.map((q,j)=>q+v[j])})});
+    const tot=j=>fixed[j]+its.reduce((s,x)=>s+x.amt*x.per[j],0),J={p:1,f:3,c:2};
+    for(let n=0;n<24;n++)for(const c of ["p","f","c"]){const j=J[c],free=its.filter(x=>x.cat===c);if(!free.length)continue;
+      const need=pl.tg[c]-tot(j);if(Math.abs(need)<0.5)continue;
+      const mov=free.filter(x=>need>0?x.amt<x.max-1e-6:x.amt>x.min+1e-6),pool=mov.reduce((s,x)=>s+x.amt*x.per[j],0);if(pool<=0)continue;
+      const g=(pool+need)/pool;mov.forEach(x=>{x.amt=Math.min(x.max,Math.max(x.min,x.amt*g))})}
+    pl.its=its;pl.big=its.some(x=>x.cat!=="f"&&x.a>=50&&x.amt>=x.a*1.45)});
+  FIT_BIG=plans.filter(pl=>pl.big).map(pl=>{const n=(SLOTS.find(x=>x[0]===pl.s)||[])[1]||pl.s;return `${n} ${pl.t==="T"?"training":"rest"} (${pl.rows.length} meals)`});
+  /* 2. meals shared between day plans: keep one version where the portions agree (within about 6%), otherwise one version per group of days */
+  const uses={};plans.forEach((pl,pi)=>pl.rows.forEach(({r},ri)=>{(uses[r[1]]=uses[r[1]]||[]).push({pi,ri})}));
+  const meals={...P.meals},sched={...(P.sched||{})},newRows={};
+  const vec=(pi,ri)=>plans[pi].its.filter(x=>x.ri===ri);
+  const close=(a,b)=>a.length===b.length&&a.every((x,q)=>Math.abs(x.amt-b[q].amt)<=0.06*Math.max(x.amt,b[q].amt)+2);
+  Object.entries(uses).forEach(([id,us])=>{if(!us.some(u=>vec(u.pi,u.ri).length))return;
+    const groups=[];us.forEach(u=>{const v=vec(u.pi,u.ri),g=groups.find(g=>close(g.v,v));if(g){g.us.push(u)}else groups.push({v,us:[u]})});
+    groups.forEach((g,gi)=>{const items=dcl(MEALS[id].items);g.v.forEach((x,q)=>{const avg=g.us.reduce((s,u)=>s+vec(u.pi,u.ri)[q].amt,0)/g.us.length,step=x.k==="oil"?1:x.k==="pot"||x.a>=300?10:5,na=Math.max(step,Math.round(avg/step)*step);
+        items[x.i]=[x.k,na,autoLabel(x.k,na)].filter((q2,j)=>j<2||q2!==undefined)});
+      const pl0=plans[g.us[0].pi],nid=gi===0?id:(id.replace(/_[a-z0-9]+[TR]$/,"")+"_"+pl0.s+pl0.t).replace(/[^A-Za-z0-9_]/g,"");
+      meals[nid]={...(P.meals[id]||{}),m:MEALS[id].m,items,...(MEALS[id].solo?{solo:true}:{})};
+      if(nid!==id)g.us.forEach(u=>{const pl=plans[u.pi],key=pl.s+":"+pl.t;(newRows[key]=newRows[key]||{pl,map:{}}).map[pl.rows[u.ri].ri]=nid})})});
+  Object.values(newRows).forEach(({pl,map})=>{const sc=SCHED[pl.s][pl.t];sched[pl.s+":"+pl.t]={rows:sc.rows.map((r,ri)=>{const nr=dcl(r);if(map[ri])nr[1]=map[ri];return nr}),sum:sc.sum,note:sc.note||"",wake:WAKE[pl.s][pl.t]}});
+  P.meals=meals;P.sched=sched;D.plan=P;applyPlan()}
+/* how close each day plan lands after fitting */
+function fitReport(){const r=[];SLOTS.forEach(([s,n])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const x={kcal:0,p:0,c:0,f:0};sc.rows.forEach(rw=>{if(MEALS[rw[1]]){const m=mealMac(rw[1]);x.kcal+=m.kcal;x.p+=m.p;x.c+=m.c;x.f+=m.f}});
+  if(x.kcal)r.push({s,t,n:n+(t==="T"?" training":" rest"),d:{kcal:x.kcal-PLAN[t].kcal,p:x.p-PLAN[t].p,c:x.c-PLAN[t].c,f:x.f-PLAN[t].f}})}));
+  const mx=k=>Math.max(...r.map(x=>Math.abs(x.d[k])));return {rows:r,kcal:mx("kcal"),p:mx("p"),f:mx("f"),c:mx("c")}}
 async function tgSaveProtein(){const g=window.TGD;if(!g)return;const P=planDoc();P.targets={T:{kcal:+g.T.kcal,p:+g.T.p,c:+g.T.c,f:+g.T.f},R:{kcal:+g.R.kcal,p:+g.R.p,c:+g.R.c,f:+g.R.f}};D.plan=P;applyPlan();
   let meals={...P.meals};["T","R"].forEach(t=>fitProtein(meals,t,PLAN[t].p));P.meals=meals;D.plan=P;applyPlan();
   meals={...P.meals};["T","R"].forEach(t=>fitCarbs(meals,t,PLAN[t].kcal));P.meals=meals;D.plan=P;await savePlan();window.TGD=null;renderTargets();
   $("tg-msg").textContent="Saved. Protein portions (chicken, mince, skyr, whey) were trimmed towards your protein target, and carbs were then fitted to your calories. Check the table to see each day."}
 document.addEventListener("click",e=>{if(e.target.closest("#tg-fitp"))tgSaveProtein()});
+document.addEventListener("change",e=>{if(e.target.id!=="tg-rule"||!window.TGD)return;TGD.rule=e.target.checked;const lb=bodyLb();if(TGD.rule&&lb)["T","R"].forEach(t=>Object.assign(TGD[t],macrosFor(TGD[t].kcal,lb)));renderTargets()});
 
 /* ================= barcode on Today: log a packaged food ================= */
 let XS=null;
@@ -4442,7 +4494,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
 var SU=null;
 function suDefaults(){const w=SETUP.units&&SETUP.units.w||"kg";return {split:null,sessions:"3",meals:"starter",step:0,name:SETUP.name||"",w,l:SETUP.units&&SETUP.units.l||(w==="lb"?"in":"cm"),mode:SETUP.mode||"bulk",weight:SETUP.startWeight??"",goal:SETUP.goalWeight??"",start:TODAY,rota:null,day1:TODAY,kcal:"",protein:"",fit:true}}
 function suSuggest(){const s=SU,wt=parseFloat(String(s.weight).replace(",","."));if(!(wt>0))return null;const kg=s.w==="lb"?wt/2.20462:wt,maint=kg*32,k=Math.round((maint+(s.mode==="bulk"?250:s.mode==="cut"?-450:0))/10)*10;
-  return {kcal:k,protein:Math.round(kg*(s.mode==="cut"?2.2:2.0)/5)*5}}
+  return {kcal:k,protein:Math.round(kg*2.20462),fat:Math.round(kg*2.20462*0.3),lb:kg*2.20462}}
 const SU_ROTAS=[["224","2 days, 2 nights, 4 off"],["4d4o","4 days, 4 off"],["4n4o","4 nights, 4 off"],["mf","Mon–Fri days, weekends off"],["none","No shifts: every day the same"]];
 function suRota(k){const P=k==="224"?defaultRota():k==="4d4o"?PRESETS[1][1]():k==="4n4o"?PRESETS[2][1]():k==="mf"?PRESETS[3][1]():{start:TODAY,days:[{type:"off",train:"T"}]};return {...P,start:k==="mf"?mondayOf(SU.day1||TODAY):(SU.day1||TODAY)}}
 function openSetup(again){SU=suDefaults();if(again){SU.again=true;SU.fit=false;SU.rota="keep";SU.split="keep";SU.meals="keep"}let el=$("setup");if(!el){el=document.createElement("div");el.id="setup";el.className="setup";el.setAttribute("data-nounit","");document.body.appendChild(el)}renderSetup()}
@@ -4462,7 +4514,7 @@ function renderSetup(){const el=$("setup");if(!el||!SU)return;const s=SU,ch=(k,v
     `<h2>Your work pattern</h2><p class="note">Meals, training days and timings follow this. Pick the closest one; you can build your own under Schedule → Custom pattern.</p>
      <div class="row">${s.again?ch("rota","keep","Keep my current pattern"):""}${SU_ROTAS.map(([k,n])=>ch("rota",k,n)).join("")}</div>
      ${s.rota&&s.rota!=="none"&&s.rota!=="mf"&&s.rota!=="keep"?`<label class="note">Day 1 of the pattern (your first ${s.rota==="4n4o"?"night":"day"} shift) falls on<input type="date" id="su-day1" data-suf="day1" value="${esc(s.day1)}"></label>`:""}`,
-    `<h2>Calories and protein</h2><p class="note">${sg?`A starting point for you: about ${sg.kcal.toLocaleString("en-GB")} kcal and ${sg.protein}g protein a day. Adjust it if you know your numbers; the app suggests changes once it sees your weight trend.`:"Enter your daily calories and protein, or tap Skip to use a starting point."}</p>
+    `<h2>Calories and protein</h2><p class="note">${sg?`A starting point for you: about ${sg.kcal.toLocaleString("en-GB")} kcal a day. Protein is 1g per lb of body weight (${sg.protein}g), fat 0.3g per lb (${sg.fat}g) and carbs make up the rest. Change the calories if you know your number; the app suggests changes once it sees your weight trend.`:"Enter your daily calories and protein, or tap Skip to use a starting point."}</p>
      <div class="g2"><label class="note">Calories a day<input id="su-kcal" data-suf="kcal" inputmode="numeric" value="${esc(s.kcal||(sg?sg.kcal:""))}"></label><label class="note">Protein a day (g)<input id="su-protein" data-suf="protein" inputmode="numeric" value="${esc(s.protein||(sg?sg.protein:""))}"></label></div>
      <div><span class="note">Meals</span><div class="row">${ch("meals","starter","Simple starter meals")}${s.again?ch("meals","keep","Keep my current meals"):""}</div></div>
      ${s.meals==="starter"?`<p class="note">Everyday meals (oats, chicken and rice, yoghurt bowls, mince pasta, steak and potatoes, a shake after training) with portions sized to your calories. Edit, swap or replace any of them under Nutrition.</p>`:`<label class="chkline"><input type="checkbox" id="su-fit" ${s.fit?"checked":""}> Scale my current meals to these calories</label>`}`];
@@ -4495,9 +4547,10 @@ document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.c
     if(s.rota!=="keep")await saveRota(suRota(s.rota));
     const cal=logicalToday();if(L.profile&&!s.again)L.profile.startDate=cal,saveL();if(!s.again&&db&&w>0&&!D.checkins.some(c=>c.date===cal))await db.doc("checkins/"+cal).set({date:cal,weight:w,photos:[]});
     if(s.split&&s.split!=="keep"){const prog=splitProgram(s.split,s.sessions);D.program=prog;applyNames();if(db)await db.doc("prefs/program").set(prog)}
-    if(s.meals==="starter"){starterPlan(kcal,pr);await savePlan()}
-    else{const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-pr*4-f*9)/4)),T={kcal,p:pr,c,f};
-      const P=planDoc();P.targets={T,R:{...T}};D.plan=P;applyPlan();if(s.fit){const meals={...P.meals};["T","R"].forEach(x=>fitCarbs(meals,x,kcal));P.meals=meals;D.plan=P}await savePlan()}
+    const fat=sg.lb?Math.round(sg.lb*0.3):Math.round(kcal*0.25/9);
+    if(s.meals==="starter"){starterPlan(kcal,pr,fat);await savePlan()}
+    else{const c=Math.max(0,Math.round((kcal-pr*4-fat*9)/4)),T={kcal,p:pr,c,f:fat};
+      const P=planDoc();P.targets={T,R:{...T}};P.macroRule=!!sg.lb&&pr===sg.protein;D.plan=P;applyPlan();if(s.fit)fitPlanAll();await savePlan()}
     if(db&&s.mode!=="maintain"&&g>0&&w>0){const wg={id:"gw",type:"weight",mode:s.mode,target:g,startKg:w,by:null};const others=D.goals&&Array.isArray(D.goals.list)?D.goals.list.filter(x=>x.type!=="weight"):[];await db.doc("prefs/goals").set({list:[wg,...others]})}
   }catch(ex){console.warn(ex)}
   setTimeout(()=>location.reload(),300)});
@@ -4536,7 +4589,7 @@ const STARTER={oats:["Oats, whey and berries",[["oats",70],["whey",30],["berries
   pre:["Bagel thin, banana and jam",[["bagel",1],["banana",1],["jam",15]]],
   post:["Protein shake and banana",[["whey",35],["banana",1],["almondmilk",300]]]};
 const STARTER_DINNER={day:"pasta",n1:"wraps",n2:"steak",off1:"pasta",off:"steak"};
-function starterPlan(kcal,protein){const P=planDoc(),meals={},sched={},del=new Set(P.deleted||[]);
+function starterPlan(kcal,protein,fat){const P=planDoc(),meals={},sched={},del=new Set(P.deleted||[]);
   Object.keys(MEALS).filter(id=>!id.startsWith("g_")).forEach(id=>del.add(id));
   meals.g_pre={m:STARTER.pre[0],items:dcl(STARTER.pre[1])};meals.g_post={m:STARTER.post[0],items:dcl(STARTER.post[1])};NO_SCALE.g_pre=1;NO_SCALE.g_post=1;
   SLOTS.forEach(([s])=>["T","R"].forEach(t=>{const sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const ti=sc.rows.findIndex(r=>r[1]==="train");
@@ -4546,10 +4599,9 @@ function starterPlan(kcal,protein){const P=planDoc(),meals={},sched={},del=new S
       if(MEALS[r[1]].kind==="snack"&&ti>=0)return [r[0],i<ti?"g_pre":"g_post"];
       const role=roles[Math.min(k,roles.length-1)],id=t==="R"?`g_R_${role}`:`g_${s}_T_${k}`;k++;if(!meals[id])meals[id]={m:STARTER[role][0],items:dcl(STARTER[role][1])};return [r[0],id]}).filter(Boolean);
     sched[s+":"+t]={rows,sum:sc.sum,note:"",wake:WAKE[s][t]}}));
-  const f=Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-protein*4-f*9)/4)),T={kcal,p:protein,c,f};
+  const f=fat||Math.round(kcal*0.25/9),c=Math.max(0,Math.round((kcal-protein*4-f*9)/4)),T={kcal,p:protein,c,f};
   P.meals=meals;P.sched=sched;P.deleted=[...del];P.targets={T,R:{...T}};D.plan=P;applyPlan();
-  const m2={...P.meals};["T","R"].forEach(t=>fitCarbs(m2,t,kcal));P.meals=m2;D.plan=P;applyPlan();
-  const m3={...P.meals};["T","R"].forEach(t=>fitProtein(m3,t,protein));P.meals=m3;D.plan=P;return P}
+  fitPlanAll();return planDoc()}
 
 /* ---------- sets per muscle across the split (Training → Gym) ---------- */
 const GEN_OF={"Back":"Back","Traps":"Back","Chest":"Chest","Side/rear delts":"Shoulders","Front delts":"Shoulders","Biceps":"Biceps","Triceps":"Triceps","Quads":"Quads","Hamstrings":"Hamstrings","Glutes":"Glutes","Calves":"Calves","Adductors":"Adductors","Core":"Core"};
