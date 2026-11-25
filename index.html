@@ -1613,12 +1613,13 @@ function suggestion(){
   const t=D.targets||{},cur=weekAvgRange(addDays(TODAY,-6),TODAY),prev=weekAvgRange(addDays(TODAY,-13),addDays(TODAY,-7));
   const logged=new Set(D.checkins.filter(c=>c.date>=addDays(TODAY,-13)&&num(c.weight)!=null).map(c=>c.date)).size;
   if(cur==null||prev==null)return {msg:`Needs two full weeks of weigh-ins to judge the trend (4+ each week). You've logged ${logged} of the last 14 days.`,pill:["Collecting data","warn"]};
-  const P=PACE(),rate=cur-prev,pct=rate/cur*100,lo=(cur*P.lo/100).toFixed(2),hi=(cur*P.hi/100).toFixed(2),U=unitW(),tgt=`${pctTxt(P.lo)} to ${pctTxt(P.hi)} of body weight a week (${lo} to ${hi}${U})`;
+  const TR=weightTrend(),PS=paceStatus(TR.pct);if(TR.rate==null)return {msg:"Needs a week of weigh-ins to judge the trend.",pill:["Collecting data","warn"]};
+  const P=PS.P,rate=TR.rate,pct=TR.pct,cw=TR.cur,lo=(cw*P.lo/100).toFixed(2),hi=(cw*P.hi/100).toFixed(2),U=unitW(),tgt=`${pctTxt(P.lo)} to ${pctTxt(P.hi)} of body weight a week (${lo} to ${hi}${U})`;
   if(t.changed&&t.changed>addDays(TODAY,-14))return {rate,msg:`Last change was on ${nice(t.changed)}. Give it until ${nice(addDays(t.changed,14))} before changing again. Current rate ${f1(rate)}${U}/week.`,pill:["Waiting","warn"]};
-  const mv=`You're ${rate>=0?"gaining":"losing"} ${f1(Math.abs(rate))}${U} a week (${pct.toFixed(2)}%)`;
-  if(pct<P.lo)return {rate,msg:`${mv}, below your target of ${tgt}. Add 40g carbs on rest days (+160 kcal). The app scales up your rice, pasta and fruit portions for you.`,pill:[P.word==="cut"?"Losing too fast":"Too slow","bad"],apply:{restCarb:((+t.restCarb||0)+40)}};
-  if(pct>P.hi)return {rate,msg:`${mv}, above your target of ${tgt}. Cut 35g carbs on rest days (−140 kcal).`,pill:[P.word==="cut"?"Losing too slowly":"Too fast","bad"],apply:{restCarb:((+t.restCarb||0)-35)}};
-  return {rate,msg:`${mv}. That's on target, so no change.`,pill:["On target","good"]};
+  const mv=`You're ${rate>=0?"gaining":"losing"} ${f1(Math.abs(rate))}${U} a week (${pct>=0?"+":""}${pct.toFixed(2)}%)`;
+  if(PS.k==="low")return {rate,pct,msg:`${mv}, below your target of ${tgt}. Add 40g carbs on rest days (+160 kcal). The app scales up your rice, pasta and fruit portions for you.`,pill:[PS.label,"bad"],apply:{restCarb:((+t.restCarb||0)+40)}};
+  if(PS.k==="high")return {rate,pct,msg:`${mv}, above your target of ${tgt}. Cut 35g carbs on rest days (−140 kcal).`,pill:[PS.label,"bad"],apply:{restCarb:((+t.restCarb||0)-35)}};
+  return {rate,pct,msg:`${mv}. That's within your target of ${tgt}, so no change.`,pill:[PS.label,"good"]};
 }
 let SUG=null;
 function renderAdjust(){
@@ -1726,7 +1727,9 @@ function weekStats(){
   return {days,wNow,wPrev,weights,food,sleep,steps,sess,lifts,stalled,adh,sg,pDays,logged,
     sleepAvg:sl.length?sl.reduce((a,x)=>a+x.h,0)/sl.length:null,stepsAvg:st.length?Math.round(st.reduce((a,x)=>a+x.n,0)/st.length):null,startW:START.weight}
 }
-function statsForPrompt(W){return {
+function statsForPrompt(W){const TR=weightTrend(),PS=paceStatus(TR.pct);return {
+  goal:SETUP.mode==="cut"?"fat loss":SETUP.mode==="maintain"?"maintain weight":"slow bulk",weightTrendKgPerWeek:TR.rate!=null?+TR.rate.toFixed(2):null,weightTrendPctPerWeek:TR.pct!=null?+TR.pct.toFixed(2):null,
+  weightTargetPctPerWeek:PS.target,weightTrendVerdict:PS.k==="none"?"not enough data yet":PS.label,
   period:`${W.days[0]} to ${W.days[W.days.length-1]}`,startWeight:W.startW,weightAvgThisWeek:W.wNow&&+W.wNow.toFixed(1),weightAvgLastWeek:W.wPrev&&+W.wPrev.toFixed(1),latestWeight:W.weights.length?W.weights[W.weights.length-1].w:null,
   daysFoodLogged:W.logged,proteinTargetHitDays:W.pDays,dailyFood:W.food.map(f=>({date:f.d,protein:f.p,proteinTarget:f.pt,kcal:f.kcal,kcalTarget:f.kt,flexDay:f.flex})),flexDays:W.food.filter(f=>f.flex).map(f=>WD(f.d)+" "+f.d+" (+"+flexOf(f.d)+" kcal banked)"),
   sessions:W.sess.map(s=>s.title+" "+s.date),liftChanges:W.lifts.map(l=>({lift:l.name,changePct:+(l.ch*100).toFixed(1),bestSet:l.best.kg?`${l.best.kg}kg x ${l.best.reps}`:`${l.best.reps} reps`})),
@@ -1739,7 +1742,9 @@ function statsForPrompt(W){return {
   todayIs:WD(TODAY)+" "+TODAY+" (not counted: the day has only just started)"}}
 function fallbackScript(W){const dw=W.wNow!=null&&W.wPrev!=null?W.wNow-W.wPrev:null;
   return {intro:`Right${SETUP.name?" "+SETUP.name:""}, here's your week. ${W.days.length} days on the plan, ${W.sess.length} sessions in the gym, and you hit ${W.adh} percent of your daily basics.`,
-  weight:dw!=null?`Your average weight is ${W.wNow.toFixed(1)} kilos, ${dw<=0?"down":"up"} ${Math.abs(dw).toFixed(1)} on last week.`:`We need a full second week of weigh-ins before the trend means anything, so keep stepping on the scales every morning.`,
+  weight:(()=>{const TR=weightTrend(),PS=paceStatus(TR.pct);if(dw==null||TR.pct==null)return `We need a full second week of weigh-ins before the trend means anything, so keep stepping on the scales every morning.`;
+    const v=PS.k==="on"?`That's ${PS.P.word==="plan"?"steady, right where you want it":"right on your target of "+PS.target.replace(" a week","")+" a week"}.`:`That's ${PS.label.toLowerCase()}: your target is ${PS.target}.`;
+    return `Your average weight is ${W.wNow.toFixed(1)} kilos, ${dw<=0?"down":"up"} ${Math.abs(dw).toFixed(1)} on last week. Your trend is ${TR.pct>=0?"plus":"minus"} ${Math.abs(TR.pct).toFixed(2)} percent a week. ${v}`})(),
   food:`You logged food on ${W.logged} days and hit your protein target on ${W.pDays} of them.`,
   training:W.lifts.length?`${W.lifts.filter(l=>l.ch>0.015).length} lifts went up this week. ${W.lifts[0]?W.lifts[0].name+" was the standout.":""}`:`Not enough repeat sessions yet to compare lifts. That changes next week.`,
   recovery:W.sleepAvg!=null?`Sleep averaged ${W.sleepAvg.toFixed(1)} hours.${W.sleepAvg<7?" That's the one to work on.":" That's solid."}`:`Log your sleep hours from Garmin each day so we can see how recovery affects your training.`,
@@ -1766,7 +1771,7 @@ const PEN="#ff5a4a";
 function cvWeightPath(pts){if(pts.length<2)return "";const ws=pts.map(p=>p.w),lo=Math.min(...ws)-0.3,hi=Math.max(...ws)+0.3;return pts.map((p,i)=>(i?"L":"M")+(8+i/(pts.length-1)*284).toFixed(1)+" "+(10+(1-(p.w-lo)/(hi-lo))*90).toFixed(1)).join(" ")}
 function cvNotes(W,sc){const dw=W.wNow!=null&&W.wPrev!=null?W.wNow-W.wPrev:null,st=W.stalled[0];
   return {food:sc.foodNote||(W.logged<3?"tick every meal":W.pDays>=W.logged-1?`${W.pDays} out of ${W.logged}, class`:`only ${W.pDays} of ${W.logged}`),
-   weight:sc.weightNote||(dw==null?"need 2 weeks of data":dw>=0.2&&dw<=0.5?"right on target":dw<0.2?"too slow":"a bit quick"),
+   weight:sc.weightNote||(dw==null?"need 2 weeks of data":paceStatus(weightTrend().pct).short),
    train:sc.trainNote||(st&&st.alt?`swap → ${st.alt.toLowerCase()}, 4 wks`:W.lifts.filter(l=>l.ch>0.015).length?"getting stronger":"keep pushing"),
    sleep:sc.sleepNote||(W.sleepAvg==null?"log your sleep":W.sleepAvg<7?"fix this one":"spot on"),
    sleep2:W.sleepAvg!=null&&W.sleepAvg<7?"blinds + same bedtime":""}}
@@ -1817,7 +1822,7 @@ $("vid-next").addEventListener("click",()=>{if(!CV)return;clearTimeout(CV.t);CV.
 function renderVideoCard(){}
 /* ---------- weekly coach review: advice + programme changes ---------- */
 const COACH_BRIEF=`Who he is: ${SETUP.about||"Not filled in yet. Ask him about himself and his goals."} Name: ${SETUP.name||"not set"}. Injuries: ${SETUP.injuries||"none given"}. Food: ${SETUP.foodNotes||"no notes"}. Advice must be practical and sustainable for a normal busy life. No bodybuilding extremes: no peak weeks, no water or salt manipulation, no crash diets, no hours of cardio, no long supplement stacks, no bro-science.
-What the evidence says, so apply it: His goal is ${SETUP.mode==="cut"?"fat loss":SETUP.mode==="maintain"?"maintaining weight":"a slow bulk"}. Fat loss: 0.5-1% of bodyweight a week; bulk: 0.1-0.25% a week;  judged on the weekly average weight, not single weigh-ins; slower loss keeps more muscle. Protein of about 1.8-2.4g per kg every day matters most. Daily steps are the easiest way to burn more without hurting recovery. Consistency over the week beats a perfect day. Training: progressive overload on the same exercises (add reps, then weight); sets close to failure (0-2 reps left, 1-2 on knee-heavy leg work); roughly 10-20 hard sets per muscle per week with diminishing returns, and benefits per session levelling off at around 10 hard sets for one muscle; stretch-focused exercises (seated leg curls, overhead triceps, incline curls, cable laterals) grow muscle better; in a deficit, hold strength and volume rather than adding lots. Recovery: 7+ hours sleep; on night shifts keep the bigger carb meals before midnight and small protein-led meals in the early hours; last caffeine about 6 hours before sleep; blackout blinds and sunglasses on the drive home. For a skinny-fat person, strength going up while the weekly average weight drops slowly means it's working, even when the scale is slow.
+What the evidence says, so apply it: ${(()=>{const P=PACE(),t=pctTxt(P.lo)+" to "+pctTxt(P.hi)+" of bodyweight a week";return SETUP.mode==="cut"?`His goal is fat loss at ${t}, judged on the weekly average weight, not single weigh-ins; slower loss keeps more muscle. In a deficit, hold strength and volume rather than adding lots. Strength holding or going up while the weekly average drops slowly means it's working.`:SETUP.mode==="maintain"?`His goal is to maintain weight, within ${t}, judged on the weekly average weight. Strength going up at a steady weight means it's working.`:`His goal is a slow bulk at ${t}, judged on the weekly average weight, not single weigh-ins. Gaining faster than that mostly adds fat; no gain for two weeks means eat a little more. Strength going up while the weekly average creeps up slowly means it's working.`})()} Use weightTrendVerdict and weightTargetPctPerWeek from the numbers as the verdict on his weight; never use any other target range. Protein of about 1.8-2.4g per kg every day matters most. Daily steps help health and recovery${SETUP.mode==="cut"?" and are the easiest way to burn more":""}. Consistency over the week beats a perfect day. Training: progressive overload on the same exercises (add reps, then weight); sets close to failure (0-2 reps left, 1-2 on knee-heavy leg work); roughly 10-20 hard sets per muscle per week with diminishing returns, and benefits per session levelling off at around 10 hard sets for one muscle; stretch-focused exercises (seated leg curls, overhead triceps, incline curls, cable laterals) grow muscle better. Recovery: 7+ hours sleep; on night shifts keep the bigger carb meals before midnight and small protein-led meals in the early hours; last caffeine about 6 hours before sleep; blackout blinds and sunglasses on the drive home.
 Flex days: any day in flexDays (or marked flexDay) is a planned flex day he banked calories for in advance. It is left out of daysFoodLogged and proteinTargetHitDays. Never count it against him, never call it off plan, unlogged or a missed protein day. At most, say he used a flex day and it's already accounted for.`;
 
 function tplOf(title){const base=TEMPLATES.find(x=>x.title===title);if(!base)return null;const o=D.program&&D.program.days&&D.program.days[base.key];return o?{title,key:base.key,ex:o}:base}
@@ -2207,21 +2212,28 @@ async function saveCheckin(date,patch){
 function rolling(points){
   return points.map(p=>{const from=addDays(p.date,-6);const w=points.filter(q=>q.date>=from&&q.date<=p.date);return {date:p.date,y:w.reduce((a,b)=>a+b.y,0)/w.length}});
 }
+/* The single source for "how fast is weight moving": 7-day rolling average, change over the last week, as kg and % of body weight a week. */
+function weightTrend(){const pts=D.checkins.filter(c=>num(c.weight)!=null).map(c=>({date:c.date,y:num(c.weight)})).sort((a,b)=>a.date<b.date?-1:1),avg=rolling(pts);let rate=null;
+  if(avg.length>=2){const a=avg[avg.length-1],old=[...avg].reverse().find(p=>p.date<=addDays(a.date,-7))||avg[0];const days=(pd(a.date)-pd(old.date))/864e5;if(days>=4)rate=(a.y-old.y)/days*7}
+  const cur=avg.length?avg[avg.length-1].y:null,pct=rate!=null&&cur?rate/cur*100:null;return {pts,avg,rate,cur,pct}}
+/* The single verdict on that rate against your phase's target (PACE). */
+function paceStatus(pct){const P=PACE();if(pct==null)return {k:"none",label:"Need a week of data",short:"need 2 weeks of data",cls:"warn",P};
+  const k=pct<P.lo?"low":pct>P.hi?"high":"on";
+  const L_=P.word==="cut"?{low:["Losing faster than target","a bit quick"],high:["Losing slower than target","too slow"],on:["On target","right on target"]}
+    :P.word==="bulk"?{low:["Slower than target","too slow"],high:["Faster than target","a bit quick"],on:["On target","right on target"]}
+    :{low:["Drifting down","drifting down"],high:["Drifting up","drifting up"],on:["Holding steady","nice and steady"]};
+  return {k,label:L_[k][0],short:L_[k][1],cls:k==="on"?"good":"warn",P,target:`${pctTxt(P.lo)} to ${pctTxt(P.hi)} a week`}}
 function goalStat(avg,rate){const wg=typeof weightGoal==="function"&&weightGoal(),g=wg?wg.target:SETUP.goalWeight,cur=avg.length?avg[avg.length-1].y:null,k="To "+g+"kg";
   if(!g||cur==null)return stat(k,"–","Shows after a few weigh-ins");
-  const rem=g-cur;if(rem<=0)return stat(k,"Reached","Time to decide: hold here or keep going");
-  if(rate==null)return stat(k,f1(rem)+"kg to go","Needs a week of weigh-ins");
-  if(rate<=0.05)return stat(k,f1(rem)+"kg to go","Not gaining yet, so no date. Add food if this lasts a week");
-  const wk=rem/rate;if(wk>104)return stat(k,f1(rem)+"kg to go","Over 2 years at this pace");
+  const rem=g-cur,dir=rem>0?1:-1,left=Math.abs(rem);
+  if(left<0.05||(SETUP.mode!=="cut"&&rem<=0&&SETUP.mode!=="maintain")||(SETUP.mode==="cut"&&rem>=0))return stat(k,"Reached","Time to decide: hold here or keep going");
+  if(rate==null)return stat(k,f1(left)+"kg to go","Needs a week of weigh-ins");
+  const toward=rate*dir;if(toward<=0.05)return stat(k,f1(left)+"kg to go",dir>0?"Not gaining yet, so no date. Add food if this lasts a week":"Not losing yet, so no date. Trim food a little if this lasts a week");
+  const wk=left/toward;if(wk>104)return stat(k,f1(left)+"kg to go","Over 2 years at this pace");
   const d=new Date(Date.now()+wk*7*864e5).toLocaleDateString("en-GB",{month:"short",year:"numeric"});
-  return stat(k,d,`${f1(rem)}kg to go · about ${Math.round(wk)} weeks at +${f1(rate)}kg a week`)}
+  return stat(k,d,`${f1(left)}kg to go · about ${Math.round(wk)} weeks at ${rate>0?"+":"−"}${f1(Math.abs(rate))}kg a week`)}
 function renderProgress(){try{renderWeek();renderInjuries();renderGoals()}catch(e){console.error(e)}
-  const pts=D.checkins.filter(c=>num(c.weight)!=null).map(c=>({date:c.date,y:num(c.weight)})).sort((a,b)=>a.date<b.date?-1:1);
-  const avg=rolling(pts);
-  // rate over last 14 days of the rolling average
-  let rate=null;
-  if(avg.length>=2){const a=avg[avg.length-1],old=[...avg].reverse().find(p=>p.date<=addDays(a.date,-7))||avg[0];const days=(pd(a.date)-pd(old.date))/864e5;if(days>=4)rate=(a.y-old.y)/days*7;}
-  const curW=avg.length?avg[avg.length-1].y:null,pct=rate!=null&&curW?rate/curW*100:null;const PP=PACE(),rp=pct==null?["Need a week of data","warn"]:pct>=PP.lo&&pct<=PP.hi?["On target","good"]:pct<PP.lo?[PP.word==="cut"?"Losing faster than target":"Slower than target","warn"]:[PP.word==="cut"?"Losing slower than target":"Faster than target","warn"];
+  const TR=weightTrend(),pts=TR.pts,avg=TR.avg,rate=TR.rate,curW=TR.cur,pct=TR.pct,PS=paceStatus(pct),PP=PS.P,rp=[PS.label,PS.cls];
   const pdts=D.checkins.filter(c=>(c.photos||[]).length).map(c=>c.date).sort();const lastP=pdts[pdts.length-1];
   const dueIn=lastP?14-Math.round((pd(TODAY)-pd(lastP))/864e5):0;
   $("prog-stats").innerHTML=[
@@ -3095,7 +3107,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="25 Nov 2026";
+const APP_VERSION="25 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
