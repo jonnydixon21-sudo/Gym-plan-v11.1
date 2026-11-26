@@ -258,7 +258,7 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .rtrack{fill:none;stroke:var(--surface-2);stroke-width:7}.rfill{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dasharray .4s}
 .rmid{position:absolute;top:0;left:50%;transform:translateX(-50%);width:84px;max-width:100%;aspect-ratio:1;display:grid;place-content:center;line-height:1.05}.rmid b{font-size:.98rem;font-weight:700}.rmid small{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .rlab{font-size:.8rem;font-weight:700;margin-top:2px}.rof{font-size:.7rem;color:var(--muted)}.ring.over .rlab{color:var(--warn)}
-.nextup{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:12px 14px;border:0;border-radius:14px;background:#2d3a8c;color:#fff;text-align:left;font:inherit}
+.nextup{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:12px 14px;border:0;border-radius:14px;background:var(--accent);color:var(--on-accent);text-align:left;font:inherit}
 .nextup .nxt{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;flex:none}.nextup span:last-child{display:grid;gap:1px;min-width:0}.nextup small{opacity:.8;font-size:.78rem}.nextup b{font-size:1.02rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mbar{display:grid;gap:4px}
 .mbar .lab{display:flex;justify-content:space-between;font-size:.85rem}
@@ -2089,7 +2089,7 @@ function renderDay(){if(EDITING_TIME)return;if(typeof renderTadd==="function")re
   const kr=t.kcal/P.kcal,kst=kr>1.05?"over":kr>=0.95?"hit":kr>=0.5?"mid":"low";
   $("m-kcal").className="big mono "+kst;$("m-left").className="note mono "+kst;
   {const RC={kcal:"#2f7cf6",p:"#34c759",c:"#f5b800",f:"#ff7a45"},ring=(lab,k,v,tg,unit)=>{const r=v/(tg||1),pc=Math.min(1,r),C=2*Math.PI*30,over=r>1.05&&k!=="p";
-      return `<div class="ring${over?" over":""}" role="img" aria-label="${lab}: ${v.toLocaleString("en-GB")}${unit} of ${tg.toLocaleString("en-GB")}${unit}"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" class="rtrack"/><circle cx="36" cy="36" r="30" class="rfill" stroke="${RC[k]}" stroke-dasharray="${(pc*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 36 36)"/></svg>
+      return `<div class="ring${over?" over":""}" role="img" aria-label="${lab}: ${v.toLocaleString("en-GB")}${unit} of ${tg.toLocaleString("en-GB")}${unit}"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" class="rtrack"/>${pc>0.005?`<circle cx="36" cy="36" r="30" class="rfill" stroke="${RC[k]}" stroke-dasharray="${(pc*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 36 36)"/>`:""}</svg>
         <div class="rmid"><b class="mono">${v.toLocaleString("en-GB")}</b><small>${unit||"kcal"}</small></div><span class="rlab">${lab}${r>=0.95&&!over?' <span class="okmark">✓</span>':""}</span><span class="rof mono">of ${tg.toLocaleString("en-GB")}${unit}</span></div>`};
     $("mbars").innerHTML=ring("Calories","kcal",t.kcal,P.kcal,"")+ring("Protein","p",t.p,P.p,"g")+ring("Carbs","c",t.c,P.c,"g")+ring("Fat","f",t.f,P.f,"g")}
   // next item to eat = first unticked meal (only highlight today)
@@ -3149,7 +3149,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026 (b)";
+const APP_VERSION="26 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
