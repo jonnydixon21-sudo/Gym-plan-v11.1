@@ -117,6 +117,8 @@ details.fold.glance{border-bottom:1px solid var(--line);padding-bottom:10px;marg
 .btn.small{padding:4px 10px;font-size:.8rem}
 .chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.88rem}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.chip.tr-add{min-width:40px;padding:6px 12px;font-size:1.05rem;line-height:1}.chip.tr-add[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.tr-pick{margin:0 0 12px}.tr-pick label{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-weight:700}.tr-pick label:first-of-type{border-top:0}.tr-pick input{width:22px;height:22px;accent-color:var(--accent)}.tr-pick small{display:block;font-weight:400;color:var(--muted)}
 .field{display:grid;gap:4px;font-size:.8rem;color:var(--muted);font-weight:700;min-width:0}
 .field input,.field select,.field textarea,select.inline{font:inherit;font-size:.95rem;padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;min-width:0}
 .field input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
@@ -1459,7 +1461,8 @@ function dayInfo(date){
   const trow=(SCHED[slot]&&SCHED[slot][o0type(date,def)]&&SCHED[slot][o0type(date,def)].rows||[]).find(r=>r[1]==="run");
   const usual=slot===p.slot&&p.run?{run:p.run,at:p.runAt||"16:30",kind:p.runKind||"easy"}:trow?{run:trow[2]||(trow[3]==="speed"?"Speed run":"Easy run"),at:trow[0],kind:trow[3]==="speed"?"speed":"easy"}:null,ro=D.days[date]&&D.days[date].run;
   let rn=usual?{...usual}:null;if(ro)rn=ro.kind==="none"?null:{run:ro.label||(ro.kind==="speed"?"Speed run":"Easy run"),at:ro.at||"16:30",kind:ro.kind==="speed"?"speed":"easy"};
-  const r2=!ro&&slot===p.slot&&p.run2?p.run2:null,rug=typeof rugbyOf==="function"?rugbyOf(date):null;
+  const noRun=Array.isArray(L.trainOff)&&L.trainOff.includes("run");if(noRun)rn=null;
+  const r2=!noRun&&!ro&&slot===p.slot&&p.run2?p.run2:null,rug=typeof rugbyOf==="function"?rugbyOf(date):null;
   return {...p,slot,label,def,ot,idx:i,type,date,runUsual:usual,run:rn?rn.run:undefined,runAt:rn?rn.at:undefined,runKind:rn?rn.kind:undefined,run2:r2?r2.label:undefined,run2At:r2?r2.at:undefined,run2Kind:r2?r2.kind:undefined,rugby:rug,sched:SCHED[slot][type]};
 }
 const dayType=s=>dayInfo(s).type;
@@ -3140,24 +3143,37 @@ const NAV={today:[["today","view-today","Today"]],
 const LEGACY={gym:["training","gym"],run:["training","run"],library:["training","library"],lifts:["progress","lifts"],photos:["progress","photos"],coach:["progress","coach"],body:["progress","body"],food:["schedule","shifts"],
   shifts:["schedule","shifts"],days:["schedule","days"],rundays:["schedule","rundays"],meals:["nutrition","meals"],prep:["nutrition","prep"],shop:["nutrition","shop"],targets:["nutrition","targets"]};
 let NAV_BUILT=false;
+/* Training sections can be switched off with the + button (e.g. no running). Kept in L.trainOff; Gym can't be switched off. */
+const TR_INFO={gym:"Workouts, your split and past sessions",run:"Planned runs and run log. Off hides planned runs everywhere",library:"Browse and edit exercises"};
+const trOff=()=>Array.isArray(L.trainOff)?L.trainOff.filter(k=>k!=="gym"):[];
+function applyTrainVis(){const off=trOff();
+  document.querySelectorAll('#sec-training [data-sub]').forEach(b=>{b.hidden=off.includes(b.dataset.sub.split(":")[1])});
+  const rd=document.querySelector('[data-sub="schedule:rundays"]');if(rd)rd.hidden=off.includes("run");
+  const pk=$("tr-pick");if(pk)pk.querySelectorAll("input[data-tr]").forEach(i=>{i.checked=!off.includes(i.dataset.tr)})}
 function buildNav(){if(NAV_BUILT)return;NAV_BUILT=true;const host=$("view-today").parentNode;
   $("pane-targets").appendChild($("tg-card"));const rd=$("run-days").closest("details");rd.open=true;rd.classList.remove("fold");$("pane-rundays").appendChild(rd);
   Object.entries(NAV).forEach(([top,panes])=>{const sec=document.createElement("section");sec.className="view top";sec.id="sec-"+top;sec.hidden=true;
     if(panes.length>1)sec.innerHTML=`<div class="subtabs navsub" role="group" aria-label="${top} sections">${panes.map(([k,,n])=>`<button class="chip" type="button" data-sub="${top}:${k}" aria-pressed="false">${n}</button>`).join("")}</div>`;
+    if(top==="training"){const sb=sec.querySelector(".subtabs");sb.insertAdjacentHTML("beforeend",`<button class="chip tr-add" type="button" id="tr-add" aria-expanded="false" aria-controls="tr-pick" aria-label="Add or remove training sections" title="Add or remove training sections">+</button>`);
+      sb.insertAdjacentHTML("afterend",`<div class="card tr-pick" id="tr-pick" hidden><div class="row between"><h2>Training sections</h2><button class="btn small" type="button" id="tr-done">Done</button></div><p class="note">Tick what you want on the Training page. Turning one off doesn't delete anything; tick it again to bring it back.</p>${panes.map(([k,,n])=>`<label><input type="checkbox" data-tr="${k}"${k==="gym"?" checked disabled":""}><span>${n}<small>${TR_INFO[k]||""}${k==="gym"?" (always on)":""}</small></span></label>`).join("")}</div>`)}
     host.appendChild(sec);panes.forEach(([k,id])=>{const el=$(id);el.hidden=true;sec.appendChild(el)})});
+  applyTrainVis();
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tr-add,#tr-done");if(!b)return;const pk=$("tr-pick"),open=b.id==="tr-add"&&pk.hidden;pk.hidden=!open;$("tr-add").setAttribute("aria-expanded",String(open))});
+  document.addEventListener("change",e=>{const i=e.target;if(!i.dataset||!i.dataset.tr)return;const k=i.dataset.tr,off=trOff().filter(x=>x!==k);if(!i.checked)off.push(k);L.trainOff=off;saveL();applyTrainVis();
+    if(!$("sec-training").hidden)show("training",i.checked?k:undefined);try{if(typeof renderToday==="function")renderToday()}catch(er){}});
   const vf=$("view-food");if(vf)vf.remove();applyFolds();
   document.addEventListener("click",e=>{const b=e.target.closest("[data-sub]");if(!b)return;const [t,k]=b.dataset.sub.split(":");show(t,k);window.scrollTo({top:0})})}
 function show(tab,sub){buildNav();if(LEGACY[tab]){[tab,sub]=[LEGACY[tab][0],sub||LEGACY[tab][1]]}if(tab==="progress"&&!sub&&!(L.sub&&L.sub.progress))sub="body";if(!NAV[tab])tab="today";
   TABS.forEach(t=>{$("tab-"+t).setAttribute("aria-selected",t===tab);$("sec-"+t).hidden=t!==tab});
   document.body.dataset.tab=tab;{const ht=$("hero-tab"),tl=$("tab-"+tab).querySelector(".tl");if(ht)ht.textContent=tl?tl.textContent.replace(/\s*•$/,""):""}
-  const panes=NAV[tab];L.sub=L.sub||{};if(!sub||!panes.some(p=>p[0]===sub))sub=panes.some(p=>p[0]===L.sub[tab])?L.sub[tab]:panes[0][0];L.sub[tab]=sub;
-  panes.forEach(([k,id])=>{$(id).hidden=k!==sub});document.querySelectorAll(`#sec-${tab} [data-sub]`).forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.sub===tab+":"+sub)));
+  const off=tab==="training"?trOff():tab==="schedule"&&trOff().includes("run")?["rundays"]:[],panes=NAV[tab].filter(p=>!off.includes(p[0]));L.sub=L.sub||{};if(!sub||!panes.some(p=>p[0]===sub))sub=panes.some(p=>p[0]===L.sub[tab])?L.sub[tab]:panes[0][0];L.sub[tab]=sub;
+  NAV[tab].forEach(([k,id])=>{$(id).hidden=k!==sub});document.querySelectorAll(`#sec-${tab} [data-sub]`).forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.sub===tab+":"+sub)));
   L.tab=tab;saveL();if(sub==="body")try{renderWeek()}catch(e){}if(sub==="library")renderLibrary();if(sub==="lifts")renderAnalytics();if(sub==="days")renderDays();if(sub==="targets")renderTargets()}
 function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026 (f)";
+const APP_VERSION="26 Nov 2026 (g)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont",L.hfont||"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
