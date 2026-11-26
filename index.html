@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Gym Plan"><meta name="theme-color" content="#1e1f21"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>My Gym Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
 <style>
 /* Layout: gym-floor app. Dark first (black and white), one amber accent for "do this", cool blue for rest days.
    Condensed scoreboard headings, plain cards, bottom tab bar with icons on phones. */
@@ -62,6 +63,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 72px;display:grid;gap:18px}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+/* "Sport" headings: bold italic condensed, like a scoreboard */
+:root[data-hfont="sport"] :is(h1,h2,.whero b,.pv-t,.whead b,.calhead b,.sdw h3,.sdhead h2,.calbtn b){font-family:"Barlow Condensed",var(--f-display);font-style:italic;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+:root[data-hfont="sport"] h1{font-size:clamp(2.2rem,8vw,2.8rem);line-height:.98}:root[data-hfont="sport"] h2{font-size:1.4rem;line-height:1.05}:root[data-hfont="sport"] .htab{font-size:1.8rem}
+:root[data-hfont="sport"] .whero b{font-size:1.6rem}:root[data-hfont="sport"] details.fold.glance>summary h2{font-size:1.2rem}
 h1{font-size:clamp(1.9rem,6vw,2.4rem);font-weight:700;letter-spacing:-.015em;line-height:1.05}
 h2{font-size:1.2rem;font-weight:650;letter-spacing:-.005em}
 h3{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
@@ -1121,6 +1126,8 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
       <h3>Zoom</h3>
       <p class="note">Makes everything bigger or smaller on every screen.</p>
       <div class="row" id="zoom-chips"><button class="chip" data-z="0.9">90%</button><button class="chip" data-z="1">100%</button><button class="chip" data-z="1.1">110%</button><button class="chip" data-z="1.25">125%</button><button class="chip" data-z="1.4">140%</button></div>
+      <h3>Heading style</h3>
+      <div class="row" id="hf-chips"><button class="chip" data-hf="sport">Sport</button><button class="chip" data-hf="standard">Standard</button></div>
       <h3>Background</h3>
       <div class="row" id="th-chips"><button class="chip" data-th="">Match phone</button><button class="chip" data-th="light">Light</button><button class="chip" data-th="dark">Dark</button></div>
       <h3>Button colour</h3>
@@ -3150,9 +3157,10 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026 (d)";
+const APP_VERSION="26 Nov 2026 (e)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
+  r.setAttribute("data-hfont",L.hfont||"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
   document.querySelectorAll("[data-ac]").forEach(b=>{const on=b.dataset.ac===(L.accent||"");b.setAttribute("aria-pressed",String(on));if(on&&$("ac-name"))$("ac-name").textContent=b.title});
   document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===(L.theme||""))));
@@ -3187,6 +3195,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(t.dataset.z){L.zoom=+t.dataset.z;saveL();applyPrefs()}
   if(t.dataset.ac!==undefined&&t.closest("#ac-chips")){L.accent=t.dataset.ac;saveL();applyPrefs()}
   if(t.dataset.th!==undefined&&t.closest("#th-chips")){L.theme=t.dataset.th;saveL();applyPrefs()}
+  if(t.dataset.hf&&t.closest("#hf-chips")){L.hfont=t.dataset.hf;saveL();applyPrefs()}
   if(t.id==="bk-export")bkExport();
   if(t.id==="bk-restore")$("bk-file").click();
   if(t.id==="ics-btn"){const r=icsBuild(28);const ok=await deliverFile(new File([r.text],"my-gym-plan.ics",{type:"text/calendar"}));$("ics-msg").textContent=ok?`${r.n} events ready. Open the file and choose Add All.`:""}});
