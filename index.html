@@ -567,6 +567,7 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
 .nuttile[hidden]{display:none}.nuttile.span{grid-column:1/-1;min-height:0;grid-template-columns:auto 1fr;column-gap:14px;align-items:center}.nuttile.span svg{grid-row:1/3;margin:0}.hub .nutgrid{margin-top:14px}
 .trweek{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.trweek span{display:grid;gap:6px;justify-items:center;padding:6px 0;border-radius:10px}.trweek span.now{background:var(--surface-2)}
 .trweek small{font-size:.75rem;color:var(--muted)}.trweek i{display:flex;gap:3px;height:12px;align-items:center}.trweek i b{width:10px;height:10px;border-radius:50%}.trweek i em{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--line)}
+.trkey{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}.trkey span{display:inline-flex;align-items:center;gap:6px}.trkey b,.trkey em{width:10px;height:10px;border-radius:50%;display:inline-block}.trkey em{border:1.5px solid var(--line)}
 .prw{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.prw b{font-size:2.2rem;line-height:1}.prw b small{font-size:1rem;margin-left:3px;color:var(--muted)}.prw span{font-size:1rem}
 .scrow{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}.scd li{padding:8px 0}.scd .nm small.mono{min-width:4.6em}
 .nextup .chev{margin-left:auto}.nextup span b{display:block;font-size:1.1rem}.nextup span small{opacity:.85}
@@ -3249,12 +3250,14 @@ function renderTrHome(){const el=$("hs-training");if(!el)return;const cc=calColo
   let nd=null;for(let i=0;i<8;i++){const d=addDays(TODAY,i);if(gymDay(d)){nd=d;break}}
   const doneT=D.workouts.filter(w=>w.date===TODAY).sort((a,b)=>a._id<b._id?1:-1)[0],nw=nd?plannedWorkout(nd):null,when=d=>d===TODAY?"Today":d===addDays(TODAY,1)?"Tomorrow":`${WD(d)} ${nice(d)}`;
   const tpl=nw&&typeof tplOf==="function"?tplOf(nw):null,nex=tpl?tpl.ex.length:0;
+  const rugOn=Array.from({length:21},(_,i)=>addDays(TODAY,i-7)).some(d=>(cd[d]&&cd[d].rugby)||dayInfo(d).rugby);
   const last=Array.from({length:7},(_,i)=>addDays(TODAY,i-6)),g=last.filter(d=>cd[d]&&cd[d].gym.length).length,r=last.filter(d=>cd[d]&&cd[d].run.length).length;
   el.innerHTML=`<div class="card nutin">
     <div class="row between"><span><h2>${doneT?"Done today":"Next workout"}</h2><small class="note">${doneT?esc(doneT.title):nd?when(nd)+(nex?` · ${nex} exercises`:""):"No gym days in the next week"}</small></span></div>
     ${doneT?"":nw?`<button class="nextup" type="button" data-hubgo="training:gym${nd===TODAY?":"+esc(nw):""}"><span><b>${esc(nw)}</b><small>${nd===TODAY?"Tap to see it and start":"Open Gym to see it"}</small></span><span class="chev" aria-hidden="true" style="color:inherit">›</span></button>`:""}
     <div class="trweek" aria-label="Last 7 days">${last.map(d=>{const o=cd[d]||{gym:[],run:[]},dots=[o.gym.length?cc.gym:null,runOn&&o.run.length?cc.run:null,o.rugby?cc.rugby:null].filter(Boolean);
       return `<span class="${d===TODAY?"now":""}"><small>${WD(d).slice(0,1)}</small><i>${dots.map(c=>`<b style="background:${c}"></b>`).join("")||"<em></em>"}</i></span>`}).join("")}</div>
+    <div class="trkey" aria-label="Key">${[["gym",1],["run",runOn],["rugby",rugOn]].filter(x=>x[1]).map(([k])=>`<span><b style="background:${cc[k]}"></b>${CAL_NAMES[k]}</span>`).join("")}<span><em></em>Nothing logged</span></div>
     <p class="note">Last 7 days: ${g} gym session${g===1?"":"s"}${runOn?` · ${r} run${r===1?"":"s"}`:""}</p></div>`}
 /* Progress home: weight trend against your goal and pace */
 function renderPrHome(){const el=$("hs-progress");if(!el)return;const wt=weightTrend(),u=unitW(),ps=paceStatus(wt.pct);
