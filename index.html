@@ -3303,7 +3303,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026 (j)";
+const APP_VERSION="26 Nov 2026 (k)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont",L.hfont||"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
@@ -3368,7 +3368,44 @@ const autoLabel=(k,a)=>{const f=F[k];if(!f)return undefined;
   if(["basmati","rice","oats","pasta"].includes(k))return a+"g dry";
   if(k==="oil")return Math.round(a*1.1)+"ml";return undefined};
 function syncMeal(m){IM[m.id]=m.items.map(([k,a])=>macroFor(k,a));const t=IM[m.id].reduce((s,v)=>s.map((x,i)=>x+v[i]),[0,0,0,0]);m.t=`${t[1]}P · ${t[2]}C · ${t[3]}F · ${t[0]} kcal`}
-function applyPlan(){const P=D.plan||{};
+/* One copy of each meal: per-day portions are kept with that day plan (P.por) instead of as extra saved meals.
+   At run time each overridden row gets a hidden variant (MEALS[vid].of = the meal), so Today, shopping and totals work as before. */
+var VARIANT={};
+const oneMealOn=()=>{const P=D.plan||{};return P.oneMeal===undefined?IS_TRIAL:!!P.oneMeal};
+function compactPlan(P){
+  const del=new Set(P.deleted||[]),bm={};[...BASE.T,...BASE.R].forEach(m=>{if(!del.has(m.id))bm[m.id]=m});P.meals=P.meals||{};
+  const meal=id=>P.meals[id]||bm[id]||null,por=P.por=P.por||{},alias=P.alias=P.alias||{};
+  const keys=[];SLOTS.forEach(([s])=>["T","R"].forEach(t=>{if(BASE.SCHED[s]&&BASE.SCHED[s][t])keys.push(s+":"+t)}));
+  const rowsOf=k=>{const d=P.sched&&P.sched[k];if(d&&d.rows)return d.rows;const [s,t]=k.split(":");return BASE.SCHED[s][t].rows};
+  const same=(a,b)=>a.length===b.length&&a.every((x,i)=>x[0]===b[i][0]&&+x[1]===+b[i][1]);
+  const setPor=(k,pk,b,items)=>{const bi=(meal(b)||{items:[]}).items;por[k]=por[k]||{};
+    if(same(items,bi))delete por[k][pk];
+    else if(items.length===bi.length&&items.every((x,i)=>x[0]===bi[i][0])&&new Set(bi.map(x=>x[0])).size===bi.length)por[k][pk]={amt:Object.fromEntries(items.map(x=>[x[0],+x[1]]))};
+    else por[k][pk]={items:dcl(items).map(x=>x.slice(0,2))};if(!Object.keys(por[k]).length)delete por[k]};
+  /* 1. per-day versions written by fitting or the meal editor go back into that day's portions */
+  Object.keys(P.meals).forEach(id=>{const v=VARIANT[id];if(!v)return;const m=P.meals[id],b=meal(v.base);
+    if(b&&m.m&&norm(m.m)!==norm(b.m))P.meals[v.base]={...(P.meals[v.base]||{items:dcl(b.items)}),m:m.m};
+    setPor(v.key,v.pk,v.base,m.items||[]);delete P.meals[id]});
+  /* 2. meals with the same name are one meal: the version used on most days is kept, the others become that day's portions */
+  const uses={};keys.forEach(k=>rowsOf(k).forEach(r=>{uses[r[1]]=(uses[r[1]]||0)+1}));
+  const ids=[...Object.keys(bm),...Object.keys(P.meals).filter(id=>!bm[id])].filter(id=>!VARIANT[id]&&meal(id)&&!meal(id).solo&&meal(id).m),groups={},baseOf={};
+  ids.forEach(id=>{const k=norm(meal(id).m);(groups[k]=groups[k]||[]).push(id)});
+  Object.values(groups).forEach(g=>{if(g.length<2)return;const b=g.slice().sort((x,y)=>(uses[y]||0)-(uses[x]||0))[0];g.forEach(id=>{if(id!==b)baseOf[id]=b})});
+  const bOf=id=>VARIANT[id]?VARIANT[id].base:baseOf[id]||id;
+  keys.forEach(k=>{const rows=rowsOf(k),occ={},want=new Set();let rc=false;
+    const nr=rows.map(r=>{const id=r[1];if(!VARIANT[id]&&!meal(id))return r;const b=bOf(id),n=(occ[b]=(occ[b]||0)+1),pk=b+(n>1?"#"+n:"");want.add(pk);if(id===b)return r;
+      const v=VARIANT[id];if(!v||v.key!==k||v.pk!==pk)setPor(k,pk,b,v?MEALS[id].items:meal(id).items);rc=true;const x=dcl(r);x[1]=b;return x});
+    if(rc){const [s,t]=k.split(":"),d=(P.sched&&P.sched[k])||{sum:BASE.SCHED[s][t].sum,note:BASE.SCHED[s][t].note||"",wake:BASE.WAKE[s][t]};P.sched={...(P.sched||{}),[k]:{...d,rows:nr}}}
+    if(por[k]){Object.keys(por[k]).forEach(x=>{if(!want.has(x))delete por[k][x]});if(!Object.keys(por[k]).length)delete por[k]}});
+  Object.keys(baseOf).forEach(id=>{alias[id]=baseOf[id];delete P.meals[id];if(bm[id]&&!del.has(id))P.deleted=[...(P.deleted||[]),id]});
+  Object.keys(alias).forEach(id=>{if(baseOf[alias[id]])alias[id]=baseOf[alias[id]]})}
+function applyVariants(P){VARIANT={};
+  Object.entries(P.por||{}).forEach(([key,o])=>{const [s,t]=key.split(":"),sc=SCHED[s]&&SCHED[s][t];if(!sc)return;const occ={};
+    sc.rows.forEach(r=>{const b=r[1],bm=MEALS[b];if(!bm||bm.of)return;const n=(occ[b]=(occ[b]||0)+1),pk=b+(n>1?"#"+n:""),ov=o[pk];if(!ov)return;
+      const vid=b+"_"+s+t+(n>1?"_"+n:""),items=ov.items?dcl(ov.items).map(([k,a])=>[k,a,autoLabel(k,a)].filter((q,j)=>j<2||q!==undefined)):bm.items.map(it=>{const a=ov.amt&&ov.amt[it[0]];return a!=null&&a!==it[1]?[it[0],a,autoLabel(it[0],a)].filter((q,j)=>j<2||q!==undefined):dcl(it)});
+      const m={id:vid,m:bm.m,items,t:"",of:b};["solo","kind"].forEach(f=>{if(bm[f])m[f]=bm[f]});MEALS[vid]=m;syncMeal(m);VARIANT[vid]={base:b,key,pk};r[1]=vid})});
+  Object.entries(P.alias||{}).forEach(([old,b])=>{if(MEALS[old]||!MEALS[b]||MEALS[b].of)return;const m={id:old,m:MEALS[b].m,items:dcl(MEALS[b].items),t:"",of:b,alias:true};MEALS[old]=m;syncMeal(m)})}
+function applyPlan(){if(D.plan&&oneMealOn())compactPlan(D.plan);const P=D.plan||{};
   PLAN.T.meals.length=0;BASE.T.forEach(m=>PLAN.T.meals.push(dcl(m)));PLAN.R.meals.length=0;BASE.R.forEach(m=>PLAN.R.meals.push(dcl(m)));
   Object.keys(IM).forEach(k=>delete IM[k]);Object.entries(BASE.IM).forEach(([k,v])=>IM[k]=dcl(v));
   Object.keys(F).filter(k=>k.startsWith("x_")).forEach(k=>delete F[k]);Object.keys(FM).filter(k=>k.startsWith("x_")).forEach(k=>delete FM[k]);
@@ -3381,6 +3418,7 @@ function applyPlan(){const P=D.plan||{};
   const del=new Set(P.deleted||[]);
   if(del.size){[PLAN.T.meals,PLAN.R.meals].forEach(a=>{for(let i=a.length-1;i>=0;i--)if(del.has(a[i].id))a.splice(i,1)});del.forEach(id=>{delete MEALS[id];delete IM[id]});
     SLOTS.forEach(([s])=>["T","R"].forEach(t=>{if(SCHED[s]&&SCHED[s][t])SCHED[s][t].rows=SCHED[s][t].rows.filter(r=>!del.has(r[1]))}))}
+  applyVariants(P);
   ["T","R"].forEach(t=>{const g=(P.targets||{})[t]||BASE.TG[t];Object.assign(PLAN[t],{kcal:g.kcal,p:g.p,c:g.c,f:g.f})});
   pfFill();
 }
@@ -3391,8 +3429,9 @@ const usedIn=(()=>{const o={};SLOTS.forEach(([s,n])=>["T","R"].forEach(t=>BASE.S
 const COG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 const CATS=[["day","Day shift",["day"]],["night","Night shift",["n1","n2"]],["off","Day off",["off1","off"]]];
 const catPlans=c=>CATS.find(x=>x[0]===c)[2].flatMap(s=>["T","R"].filter(t=>SCHED[s]&&SCHED[s][t]).map(t=>[s,t]));
-function catState(id,c){const ps=catPlans(c),n=ps.filter(([s,t])=>SCHED[s][t].rows.some(r=>r[1]===id)).length;return n===0?"none":n===ps.length?"all":"some"}
-function catTime(id,c){for(const [s,t] of catPlans(c)){const r=SCHED[s][t].rows.find(r=>r[1]===id);if(r)return r[0]}return ""}
+const isMealOf=(r,id)=>r[1]===id||(MEALS[r[1]]&&MEALS[r[1]].of===id&&!(MEALS[id]&&MEALS[id].of));
+function catState(id,c){const ps=catPlans(c),n=ps.filter(([s,t])=>SCHED[s][t].rows.some(r=>isMealOf(r,id))).length;return n===0?"none":n===ps.length?"all":"some"}
+function catTime(id,c){for(const [s,t] of catPlans(c)){const r=SCHED[s][t].rows.find(r=>isMealOf(r,id));if(r)return r[0]}return ""}
 const catRank=id=>{const i=CATS.findIndex(c=>catState(id,c[0])!=="none");return i<0?9:i};
 function usedLabel(id){const o=CATS.filter(c=>catState(id,c[0])!=="none").map(c=>c[1]);return o.length?"On: "+o.join(", "):"Not assigned to a day yet"}
 function insertRow(rows,time,id,txt){const mins=t=>{const [h,m]=t.split(":").map(Number);return h*60+m};let prev=-1;const cum=rows.map(r=>{let m=mins(r[0]);while(m<prev)m+=1440;prev=m;return m});
@@ -3416,7 +3455,7 @@ function medRender(){const d=MED,custom=!BASE_IDS.has(d.id);
   <ol>${d.items.map((it,i)=>`<li class="edcol"><div class="edrow"><select data-mk="${i}" aria-label="Food ${i+1}">${foodOpts(it.k)}</select><div class="amt"><input data-ma="${i}" inputmode="decimal" value="${esc(it.a)}" aria-label="Amount"><span class="note">${unitOf(it.k)}</span></div></div><div class="edbtns"><span class="note mono" data-mm="${i}">${nmac({kcal:macroFor(it.k,+it.a||0)[0],p:macroFor(it.k,+it.a||0)[1],c:macroFor(it.k,+it.a||0)[2],f:macroFor(it.k,+it.a||0)[3]})}</span><button class="rm" data-mrm="${i}" aria-label="Remove food">−</button></div></li>`).join("")}</ol>
   <div class="row"><select id="med-addsel" aria-label="Food to add"><option value="">Add a food…</option>${foodOpts("")}</select><button class="btn" id="med-add">+ Add</button></div>
   <button class="btn" id="nf-open">+ New food</button>
-  ${(()=>{const tw=Object.values(MEALS).filter(m=>m.id!==d.id&&norm(m.m)===norm(d.orig));return tw.length?`<div class="edcol"><span class="note"><b>Other meals with the same name.</b> These are separate, so changing this one only changes the days above. Tick any you want to copy these foods to:</span>${tw.map(m=>`<label class="chkline"><input type="checkbox" data-mtwin="${m.id}" ${d.twins.includes(m.id)?"checked":""}> ${esc(usedLabel(m.id).replace("On: ",""))}</label>`).join("")}</div>`:""})()}
+  ${(()=>{const tw=Object.values(MEALS).filter(m=>m.id!==d.id&&!m.of&&norm(m.m)===norm(d.orig));return tw.length?`<div class="edcol"><span class="note"><b>Other meals with the same name.</b> These are separate, so changing this one only changes the days above. Tick any you want to copy these foods to:</span>${tw.map(m=>`<label class="chkline"><input type="checkbox" data-mtwin="${m.id}" ${d.twins.includes(m.id)?"checked":""}> ${esc(usedLabel(m.id).replace("On: ",""))}</label>`).join("")}</div>`:""})()}
   <p class="mono" id="med-tot"></p>
   <label class="chkline"><input type="checkbox" id="med-rebal" ${d.rebal?"checked":""}> Rebalance my other meals so each day stays on my targets</label>
   <p class="note" id="med-err" style="color:#d9534f">${esc(d.err)}</p>
@@ -3433,7 +3472,7 @@ async function medSave(){const d=MED,name=d.name.trim();
   const pre=d.rebal?fitReport():null;
   const P=planDoc();P.sched={...P.sched};
   CATS.forEach(c=>{const a=d.assign[c[0]],changed=a.touched&&((a.on!==(a.was!=="none"))||(a.on&&a.was==="some")||(a.on&&a.time!==a.time0));if(!changed)return;
-    catPlans(c[0]).forEach(([sl,ty])=>{const cur=SCHED[sl][ty],rows=dcl(cur.rows).filter(r=>r[1]!==d.id);if(a.on)insertRow(rows,a.time,d.id);P.sched[sl+":"+ty]={sum:cur.sum,note:cur.note,wake:WAKE[sl][ty],rows}})});
+    catPlans(c[0]).forEach(([sl,ty])=>{const cur=SCHED[sl][ty],rows=dcl(cur.rows).filter(r=>!isMealOf(r,d.id));if(a.on)insertRow(rows,a.time,d.id);P.sched[sl+":"+ty]={sum:cur.sum,note:cur.note,wake:WAKE[sl][ty],rows}})});
   P.meals={...P.meals,[d.id]:{m:name,items}};d.twins.forEach(id=>{if(MEALS[id])P.meals[id]={m:name,items:dcl(items)}});D.plan=P;
   let note="";if(d.rebal){applyPlan();const before=fitReport(),r=rebalanceMeals([d.id,...d.twins]);const P2=planDoc();P2.meals={...P2.meals,...r.meals};D.plan=P2;applyPlan();const after=fitReport();
       /* a day this edit pushed off target that the other meals can't make up without doubling (or halving) */
@@ -3462,7 +3501,7 @@ $("med").addEventListener("click",async e=>{if(!MED)return;const t=e.target.clos
 let PED=null;
 function pedLoad(slot,type){const s=SCHED[slot][type];PED={slot,type,sum:s.sum||"",note:s.note||"",wake:WAKE[slot][type],rows:dcl(s.rows).map(r=>r[1]==="run"?[r[0],"run",r[2]||"",r[3]||"easy"]:[r[0],r[1],r[2]||""]),dirty:false}}
 const rowKind=id=>["work","info","train","run"].includes(id)?id:"meal";
-function mealOptsHtml(sel){const ids=Object.keys(MEALS).filter(id=>!MEALS[id].solo||id===sel).sort((a,b)=>(usedIn[a]||"zz").localeCompare(usedIn[b]||"zz")||MEALS[a].m.localeCompare(MEALS[b].m));
+function mealOptsHtml(sel){const ids=Object.keys(MEALS).filter(id=>(!MEALS[id].solo&&!MEALS[id].of)||id===sel).sort((a,b)=>(usedIn[a]||"zz").localeCompare(usedIn[b]||"zz")||MEALS[a].m.localeCompare(MEALS[b].m));
   return ids.map(id=>`<option value="${id}" ${id===sel?"selected":""}>${esc(MEALS[id].m)} · ${mealMac(id).kcal} kcal${usedIn[id]?" · "+usedIn[id]:""}</option>`).join("")+`<option value="__new">+ New meal…</option>`}
 function pedTotals(){const t={kcal:0,p:0,c:0,f:0};PED.rows.forEach(r=>{if(MEALS[r[1]]){const m=mealMac(r[1]);t.kcal+=m.kcal;t.p+=m.p;t.c+=m.c;t.f+=m.f}});return t}
 function renderTargets(){const el=$("tg-card");if(!el)return;
@@ -4361,7 +4400,9 @@ function rebalanceMeals(lock){const L_=new Set(lock),plans=[];
 /* Meals tab: auto-adjust switch and a one-tap fit */
 function renderAutoAdj(){const el=$("autoadj");if(!el)return;const on=planDoc().autoAdjust!==false;
   el.innerHTML=`<label class="chkline"><input type="checkbox" id="aa-on" ${on?"checked":""}> <span><b>Auto-adjust portions</b><small class="note">When you change a meal, the other meals on those days resize so each day stays on your targets.</small></span></label>
+  <label class="chkline"><input type="checkbox" id="om-on" ${oneMealOn()?"checked":""}> <span><b>One copy of each meal</b><small class="note">Fitting changes portions for each day without saving extra copies of the meal.</small></span></label>
   <div class="row"><button class="btn small" type="button" id="aa-fit">Fit all my meals to my targets now</button><span class="note">${PLAN.T.kcal.toLocaleString("en-GB")} kcal · ${PLAN.T.p}P ${PLAN.T.c}C ${PLAN.T.f}F · change targets under Targets</span></div>`}
+document.addEventListener("change",async e=>{if(e.target.id!=="om-on")return;const P=planDoc();P.oneMeal=e.target.checked;D.plan=P;await savePlan();gToast(e.target.checked?"One copy of each meal: extra versions are folded into each day's portions.":"Fitting can make separate versions of a meal again.",4000)});
 document.addEventListener("change",async e=>{if(e.target.id!=="aa-on")return;const P=planDoc();P.autoAdjust=e.target.checked;D.plan=P;if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(err){}}gToast(e.target.checked?"Auto-adjust is on: changing a meal resizes the others on those days.":"Auto-adjust is off: changing a meal only changes that meal.",4000)});
 document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#aa-fit");if(!b)return;if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Tap again to resize every day plan";return}
   b.disabled=true;b.textContent="Fitting…";fitPlanAll();const P=planDoc();P.fitted=true;D.plan=P;await savePlan();const r=fitReport(),far=r.rows.filter(x=>Math.abs(x.d.kcal)>100&&!FIT_STUCK.some(y=>y.s===x.s&&y.t===x.t));renderAutoAdj();
