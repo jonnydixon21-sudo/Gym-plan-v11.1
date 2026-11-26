@@ -3157,7 +3157,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026 (e)";
+const APP_VERSION="26 Nov 2026 (f)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont",L.hfont||"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
@@ -3208,6 +3208,13 @@ const SLOTS=[["day","Day shift"],["n1","Night 1"],["n2","Night 2"],["off1","Off,
 const BASE={T:dcl(PLAN.T.meals),R:dcl(PLAN.R.meals),IM:dcl(IM),SCHED:dcl(SCHED),WAKE:dcl(WAKE),
   TG:{T:{kcal:PLAN.T.kcal,p:PLAN.T.p,c:PLAN.T.c,f:PLAN.T.f},R:{kcal:PLAN.R.kcal,p:PLAN.R.p,c:PLAN.R.c,f:PLAN.R.f}}};
 const BASE_IDS=new Set([...BASE.T,...BASE.R].map(m=>m.id));
+var IS_TRIAL=false;/* the trial build sets this to true */
+/* Trial copies set up before starter meals existed still used the original owner's meals. Swap them for starter meals sized to that person's own targets, once. Their own meals are kept. */
+function trialMealFix(){if(!IS_TRIAL||!L.profile||L.trialMealsFixed)return;L.trialMealsFixed=1;saveL();
+  const usesBase=SLOTS.some(([s])=>["T","R"].some(t=>SCHED[s]&&SCHED[s][t]&&SCHED[s][t].rows.some(r=>BASE_IDS.has(r[1])&&MEALS[r[1]])));if(!usesBase)return;
+  const own=Object.entries(((D.plan||{}).meals)||{}).filter(([id])=>!BASE_IDS.has(id)&&!id.startsWith("g_")),T=PLAN.T;
+  starterPlan(T.kcal,T.p,T.f);const P=planDoc();own.forEach(([id,m])=>{P.meals[id]=m});P.deleted=(P.deleted||[]).filter(id=>!own.some(o=>o[0]===id));D.plan=P;
+  savePlan().then(()=>{try{gToast("Your meals have been swapped for starter meals sized to your own targets. Change any of them under Nutrition.",9000)}catch(e){}})}
 const nutOf=k=>{const m=FM[k];return m?[m.kcal,m.p,m.c,m.f]:NUT_EXTRA[k]||null};
 const macroFor=(k,a)=>{const n=nutOf(k);return n?n.map(x=>Math.round(x*a)):[0,0,0,0]};
 const autoLabel=(k,a)=>{const f=F[k];if(!f)return undefined;
@@ -4982,7 +4989,7 @@ if(L.place&&Date.now()-L.place.t<36e5&&L.place.y>0){const y=L.place.y;requestAni
     if(W)renderLive();else{try{renderStart()}catch(e){}}},()=>{});
   db.collection("runs").onSnapshot(q=>{D.runs=q.docs.map(x=>({...x.data(),_id:x.id}));renderRun();renderDay()},()=>{});
   db.doc("prefs/runplan").onSnapshot(s=>{D.runplan=s.exists?s.data():null;applyRunPlan();renderRun();renderDayAll()},()=>{});
-  db.doc("prefs/plan").onSnapshot(s=>{D.plan=s.exists?s.data():null;applyPlan();renderPlanViews()},()=>{});
+  db.doc("prefs/plan").onSnapshot(s=>{D.plan=s.exists?s.data():null;applyPlan();renderPlanViews();try{trialMealFix()}catch(e){console.warn(e)}},()=>{});
   db.doc("prefs/program").onSnapshot(s=>{D.program=s.exists?s.data():null;applyNames();renderProgSugs();if(!W)renderStart()},()=>{});
   db.doc("prefs/progsugs").onSnapshot(s=>{D.progSugs=s.exists?s.data():null;renderProgSugs()},()=>{});
   db.doc("prefs/research").onSnapshot(s=>{D.research=s.exists?s.data():null;renderProgSugs()},()=>{});
