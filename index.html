@@ -253,6 +253,13 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .kcal{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .kcal .big{font-family:var(--f-display);font-size:2.9rem;font-weight:600;line-height:1;letter-spacing:-.02em}
 .mbars{display:grid;gap:10px}
+.rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px}
+.ring{position:relative;display:grid;justify-items:center;gap:2px;text-align:center}.ring svg{width:100%;max-width:84px;aspect-ratio:1;display:block}
+.rtrack{fill:none;stroke:var(--surface-2);stroke-width:7}.rfill{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dasharray .4s}
+.rmid{position:absolute;top:0;left:50%;transform:translateX(-50%);width:84px;max-width:100%;aspect-ratio:1;display:grid;place-content:center;line-height:1.05}.rmid b{font-size:.98rem;font-weight:700}.rmid small{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.rlab{font-size:.8rem;font-weight:700;margin-top:2px}.rof{font-size:.7rem;color:var(--muted)}.ring.over .rlab{color:var(--warn)}
+.nextup{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:12px 14px;border:0;border-radius:14px;background:#2d3a8c;color:#fff;text-align:left;font:inherit}
+.nextup .nxt{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;flex:none}.nextup span:last-child{display:grid;gap:1px;min-width:0}.nextup small{opacity:.8;font-size:.78rem}.nextup b{font-size:1.02rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mbar{display:grid;gap:4px}
 .mbar .lab{display:flex;justify-content:space-between;font-size:.85rem}
 .mbar .lab b{font-weight:700}
@@ -793,9 +800,10 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
     </div>
 
     <div class="card" id="macro-card">
-      <div class="row between"><h2>Macros</h2><span class="note mono" id="m-left"></span></div>
-      <div class="kcal"><span class="big mono" id="m-kcal">0</span><span class="note mono" id="m-kcal-t"></span></div>
-      <div class="mbars" id="mbars"></div>
+      <div class="row between"><h2>At a glance</h2><span class="note mono" id="m-left"></span></div>
+      <span id="m-kcal" hidden></span><span id="m-kcal-t" hidden></span>
+      <div class="rings" id="mbars"></div>
+      <button type="button" class="nextup" id="m-next" hidden></button>
     </div>
 
     <div class="card">
@@ -2080,7 +2088,10 @@ function renderDay(){if(EDITING_TIME)return;if(typeof renderTadd==="function")re
   $("m-left").textContent=left>=0?`${left.toLocaleString()} kcal left`:`${(-left).toLocaleString()} kcal over`;
   const kr=t.kcal/P.kcal,kst=kr>1.05?"over":kr>=0.95?"hit":kr>=0.5?"mid":"low";
   $("m-kcal").className="big mono "+kst;$("m-left").className="note mono "+kst;
-  $("mbars").innerHTML=[["Protein","p",P.p,false],["Carbs","c",P.c,true],["Fat","f",P.f,true]].map(([n,k,tg,capped])=>{const v=t[k],r=v/tg,pc=Math.min(100,r*100);const st=capped&&r>1.08?"over":r>=0.95?"hit":r>=0.5?"mid":"low";return `<div class="mbar ${st}"><div class="lab"><b>${n}${st==="hit"?' <span class="okmark">✓</span>':""}</b><span class="mono">${v}g / ${tg}g</span></div><div class="track" role="progressbar" aria-label="${n}" aria-valuemin="0" aria-valuemax="${tg}" aria-valuenow="${v}"><div class="fill" style="width:${pc}%"></div></div></div>`}).join("");
+  {const RC={kcal:"#2f7cf6",p:"#34c759",c:"#f5b800",f:"#ff7a45"},ring=(lab,k,v,tg,unit)=>{const r=v/(tg||1),pc=Math.min(1,r),C=2*Math.PI*30,over=r>1.05&&k!=="p";
+      return `<div class="ring${over?" over":""}" role="img" aria-label="${lab}: ${v.toLocaleString("en-GB")}${unit} of ${tg.toLocaleString("en-GB")}${unit}"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" class="rtrack"/><circle cx="36" cy="36" r="30" class="rfill" stroke="${RC[k]}" stroke-dasharray="${(pc*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 36 36)"/></svg>
+        <div class="rmid"><b class="mono">${v.toLocaleString("en-GB")}</b><small>${unit||"kcal"}</small></div><span class="rlab">${lab}${r>=0.95&&!over?' <span class="okmark">✓</span>':""}</span><span class="rof mono">of ${tg.toLocaleString("en-GB")}${unit}</span></div>`};
+    $("mbars").innerHTML=ring("Calories","kcal",t.kcal,P.kcal,"")+ring("Protein","p",t.p,P.p,"g")+ring("Carbs","c",t.c,P.c,"g")+ring("Fat","f",t.f,P.f,"g")}
   // next item to eat = first unticked meal (only highlight today)
   const sw=log.swaps||{},steps=log.steps||{},tov=log.times||{};
   const rkey=(id,txt)=>id==="info"||id==="work"?"s-"+String(txt).toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,30):id;
@@ -2120,6 +2131,7 @@ function renderDay(){if(EDITING_TIME)return;if(typeof renderTadd==="function")re
     return card(id,{time,name:esc(mealTitle(VIEW,id)),next:next&&next[1]===id},next&&next[1]===id?"now":"");
   }).join("")+((log.extras||[]).length?`<li><time></time><span class="dot"></span><div class="body"><div class="xlist">${log.extras.map((x,i)=>`<div><span><b>${esc(x.name)}</b> <span class="mono note">${x.kcal} kcal · ${x.p}P ${x.c}C ${x.f}F</span></span><button class="x" data-xrm="${i}">Remove</button></div>`).join("")}</div></div></li>`:"");
   {const sn=scaleNote(VIEW);$("eat-adj").hidden=!sn;$("eat-adj").textContent=sn}
+  renderNextUp();
   $("eat-count").textContent=`${done}/${total} done`;$("eat-count").className="note mono"+(total&&done===total?" hit":done?" prog":"");
   $("d-prev").disabled=false;$("d-next").disabled=VIEW>=addDays(TODAY,7);
   $("eat").querySelectorAll("input,button.food").forEach(i=>i.disabled=!db);
@@ -3137,7 +3149,7 @@ function goTo(a,b){if(a==="food"&&b)return show(b);show(a,b)}
 TABS.forEach(t=>$("tab-"+t).addEventListener("click",()=>{show(t);window.scrollTo({top:0})}));
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026";
+const APP_VERSION="26 Nov 2026 (b)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
@@ -4904,6 +4916,15 @@ document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset
 window.addEventListener("popstate",()=>{if($("cal-page")&&!$("cal-page").hidden){CAL_PUSHED=false;closeCal()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("cal-page")&&!$("cal-page").hidden){if(CAL_PUSHED){CAL_PUSHED=false;try{history.back()}catch(err){}}closeCal()}});
 
+/* At a glance: the next thing on today's plan you haven't ticked */
+function renderNextUp(){const el=$("m-next");if(!el)return;if(VIEW!==TODAY){el.hidden=true;return}
+  const now=new Date(),nm=now.getHours()*60+now.getMinutes(),lis=[...document.querySelectorAll("#eat > li")].filter(li=>!li.classList.contains("done")&&li.querySelector("time input,time .tlab"));
+  const tOf=li=>{const i=li.querySelector("time input");const v=i?i.value:"";const [h,m]=v.split(":").map(Number);return isNaN(h)?null:h*60+m};
+  const pick=lis.find(li=>{const t=tOf(li);return t!=null&&t>=nm-30})||lis[0];if(!pick){el.hidden=true;return}
+  const nameEl=pick.querySelector(".mhead b, .gotrain b, label.step b"),sub=pick.querySelector(".mhead .mac, .gotrain small");
+  const name=nameEl?nameEl.childNodes[0].textContent.trim():"",tm=pick.querySelector("time .tlab");if(!name){el.hidden=true;return}
+  el.innerHTML=`<span class="nxt mono">${esc(tm?tm.textContent:"")}</span><span><small>Next up</small><b>${esc(name)}</b>${sub?`<small>${esc(sub.textContent)}</small>`:""}</span>`;el.hidden=false;el.dataset.li=[...document.querySelectorAll("#eat > li")].indexOf(pick)}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#m-next");if(!b)return;const li=document.querySelectorAll("#eat > li")[+b.dataset.li];if(li)li.scrollIntoView({behavior:"smooth",block:"center"})});
 /* ---------- boot ---------- */
 $("c-date").value=TODAY;$("p-date").value=TODAY;
 function renderAll(){renderToday();renderProgress();renderGym();renderPhotos();renderAdjust();renderReviews();renderRecs();renderVideoCard()}
