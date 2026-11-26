@@ -3306,7 +3306,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="26 Nov 2026 (k)";
+const APP_VERSION="26 Nov 2026 (l)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont",L.hfont||"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
@@ -4403,7 +4403,7 @@ function rebalanceMeals(lock){const L_=new Set(lock),plans=[];
 /* Meals tab: auto-adjust switch and a one-tap fit */
 function renderAutoAdj(){const el=$("autoadj");if(!el)return;const on=planDoc().autoAdjust!==false;
   el.innerHTML=`<label class="chkline"><input type="checkbox" id="aa-on" ${on?"checked":""}> <span><b>Auto-adjust portions</b><small class="note">When you change a meal, the other meals on those days resize so each day stays on your targets.</small></span></label>
-  <label class="chkline"><input type="checkbox" id="om-on" ${oneMealOn()?"checked":""}> <span><b>One copy of each meal</b><small class="note">Fitting changes portions for each day without saving extra copies of the meal.</small></span></label>
+  ${IS_TRIAL||planDoc().oneMeal!==undefined?`<label class="chkline"><input type="checkbox" id="om-on" ${oneMealOn()?"checked":""}> <span><b>One copy of each meal</b><small class="note">Fitting changes portions for each day without saving extra copies of the meal.</small></span></label>`:""}
   <div class="row"><button class="btn small" type="button" id="aa-fit">Fit all my meals to my targets now</button><span class="note">${PLAN.T.kcal.toLocaleString("en-GB")} kcal · ${PLAN.T.p}P ${PLAN.T.c}C ${PLAN.T.f}F · change targets under Targets</span></div>`}
 document.addEventListener("change",async e=>{if(e.target.id!=="om-on")return;const P=planDoc();P.oneMeal=e.target.checked;D.plan=P;await savePlan();gToast(e.target.checked?"One copy of each meal: extra versions are folded into each day's portions.":"Fitting can make separate versions of a meal again.",4000)});
 document.addEventListener("change",async e=>{if(e.target.id!=="aa-on")return;const P=planDoc();P.autoAdjust=e.target.checked;D.plan=P;if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(err){}}gToast(e.target.checked?"Auto-adjust is on: changing a meal resizes the others on those days.":"Auto-adjust is off: changing a meal only changes that meal.",4000)});
