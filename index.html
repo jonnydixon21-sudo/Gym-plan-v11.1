@@ -485,7 +485,7 @@ li.lifted{position:relative;z-index:30;box-shadow:0 14px 30px rgba(0,0,0,.25);tr
 li.justmoved{outline:2px solid var(--good);outline-offset:-1px}
 body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 .eatplus{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.plusbtn{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
-.plusbtn[aria-expanded="true"]{transform:rotate(45deg)}.eatpmenu{display:flex;gap:8px;flex-wrap:wrap}.eatpmenu[hidden]{display:none}
+.plusbtn[aria-expanded="true"]{transform:rotate(45deg)}.eatpmenu{display:flex;gap:8px;flex-wrap:wrap}.eatpmenu[hidden]{display:none}.eatpmenu [hidden]{display:none}
 .xrow{display:grid;gap:8px}.xhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.xadjp{margin:0}
 .eatfoot>details[hidden]{display:none}
 .eatfoot{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-start;margin-top:10px}.eatfoot>details{flex:1 1 0;min-width:0}.eatfoot>details[open]{flex-basis:100%;order:2}
@@ -858,7 +858,7 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
       <p class="note" id="eat-adj" hidden></p>
       <ol class="eat" id="eat"></ol>
       <div class="eatplus"><button type="button" class="plusbtn" id="eat-plus" aria-expanded="false" aria-controls="eat-pmenu" aria-label="Add something to this day">+</button>
-        <div class="eatpmenu" id="eat-pmenu" hidden><button type="button" class="btn small" data-eatopen="extra">Ate something not on the plan</button><button type="button" class="btn small" data-eatopen="tadd">Add to today's plan</button></div></div>
+        <div class="eatpmenu" id="eat-pmenu" hidden><button type="button" class="btn small" data-eatopen="extra">Ate something not on the plan</button><button type="button" class="btn small" data-eatopen="tadd">Add to today's plan</button><button type="button" class="btn small" data-tlrun="1">Log a run I did</button></div></div>
       <div class="eatfoot"><details class="extra" id="xadd" hidden>
         <summary>Ate something not on the plan?</summary>
         <div id="x-recent" class="xrecent"></div>
@@ -2296,9 +2296,12 @@ $("pm-add").addEventListener("click",()=>{const id=$("pm-meal").value,q=num($("p
   $("pm-meal").value="";$("pm-qty").value="1";$("pm-mac").textContent="";flash("pm-toast","Added")});
 /* the + under Today's plan opens one of the two panels; closing a panel tucks it away again */
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#eat-plus,[data-eatopen]");if(!t)return;
-  if(t.id==="eat-plus"){const m=$("eat-pmenu"),open=m.hidden;m.hidden=!open;t.setAttribute("aria-expanded",String(open));if(!open){["xadd","tadd"].forEach(id=>{$(id).open=false})}return}
-  const d=$(t.dataset.eatopen==="tadd"?"tadd":"xadd"),o=$(t.dataset.eatopen==="tadd"?"xadd":"tadd");o.open=false;d.open=true;$("eat-pmenu").hidden=true;$("eat-plus").setAttribute("aria-expanded","false");d.scrollIntoView({block:"nearest"})});
-["xadd","tadd"].forEach(id=>$(id).addEventListener("toggle",()=>{$(id).hidden=!$(id).open}));
+  if(t.id==="eat-plus"){const m=$("eat-pmenu"),anyOpen=!m.hidden||$("xadd").open||$("tadd").open;
+    if(anyOpen){m.hidden=true;["xadd","tadd"].forEach(id=>{$(id).open=false})}else m.hidden=false;eatPlusSync();return}
+  const d=$(t.dataset.eatopen==="tadd"?"tadd":"xadd"),o=$(t.dataset.eatopen==="tadd"?"xadd":"tadd");o.open=false;d.open=true;$("eat-pmenu").hidden=true;eatPlusSync();d.scrollIntoView({block:"nearest"})});
+/* the + shows as an x whenever the menu or one of its panels is open */
+function eatPlusSync(){const b=$("eat-plus");if(b)b.setAttribute("aria-expanded",String(!$("eat-pmenu").hidden||$("xadd").open||$("tadd").open))}
+["xadd","tadd"].forEach(id=>$(id).addEventListener("toggle",()=>{$(id).hidden=!$(id).open;eatPlusSync()}));
 pmFill();document.addEventListener("toggle",e=>{if(e.target.matches&&e.target.matches(".eatfoot>details.extra:not(#tadd)")&&e.target.open)pmFill()},true);
 $("x-add").addEventListener("click",()=>{setTimeout(()=>{if(!$("x-name").value){XS=null;xsRender();$("xs-code").value=""}},50);
   const name=$("x-name").value.trim(),kcal=Math.round(num($("x-kcal").value)||0);
@@ -3355,7 +3358,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (f)";
+const APP_VERSION="27 Nov 2026 (g)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont","sport");
@@ -3790,7 +3793,7 @@ document.addEventListener("click",async e=>{if(!(e.target.closest&&e.target.clos
 /* Today: did I train? */
 let TL={gym:false};
 function renderTrainLog(){const el=$("train-log");if(!el)return;const rs=D.runs.filter(r=>r.date===VIEW);
-  el.innerHTML=`<button class="btn small" type="button" data-tlrun="1">${rs.length?"Log another run":"Log a run"}</button>`;
+  el.innerHTML="";{const b=document.querySelector('#eat-pmenu [data-tlrun]');if(b){b.textContent=rs.length?"Log another run":"Log a run I did";b.hidden=trOff().includes("run")}}
   $("run-done").innerHTML=rs.map(r=>`<div class="tldone">✓ ${runTitle(r)} · ${esc(runLine(r))} <button class="x" data-tlrundel="${r._id}">Undo</button></div>`).join("")}
 document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;
   if(t.dataset.tlg==="open"){TL.gym=true;renderTrainLog();return}
@@ -3798,7 +3801,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(t.dataset.tlg==="save"){const title=$("tl-gsel").value||"Gym session",id=VIEW+"-"+title.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,30)+"-q"+(Date.now()%10000);
     TL.gym=false;if(db){try{await db.doc("workouts/"+id).set({date:VIEW,title,exercises:[],source:"quick"})}catch(err){}}return}
   if(t.dataset.tlundo){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again";return}if(db){try{await db.doc("workouts/"+t.dataset.tlundo).delete()}catch(err){}}return}
-  if(t.dataset.tlrun){runOpen({date:VIEW,kind:dayInfo(VIEW).runKind||"easy"});return}
+  if(t.dataset.tlrun){$("eat-pmenu").hidden=true;eatPlusSync();runOpen({date:VIEW,kind:dayInfo(VIEW).runKind||"easy"});return}
   if(t.dataset.tlrundel){if(t.dataset.c!=="1"){t.dataset.c="1";t.textContent="Tap again";return}if(db){try{await db.doc("runs/"+t.dataset.tlrundel).delete()}catch(err){}}return}});
 
 /* ---------- new food ---------- */
