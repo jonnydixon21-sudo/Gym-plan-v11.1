@@ -118,6 +118,7 @@ details.fold.glance{border-bottom:1px solid var(--line);padding:6px 0 8px;margin
 .chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.88rem}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .mfix{font-size:.88rem}.mfix small{display:block;font-weight:400}
+.chgbtn{margin-top:6px;justify-self:start}.chgbox{display:grid;gap:6px;margin-top:8px}.chgbox select{font:inherit;padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
 .chip.tr-add{min-width:40px;padding:6px 12px;font-size:1.05rem;line-height:1}.chip.tr-add[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
 .tr-pick{margin:0 0 12px}.tr-pick label{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-weight:700}.tr-pick label:first-of-type{border-top:0}.tr-pick input{width:22px;height:22px;accent-color:var(--accent)}.tr-pick small{display:block;font-weight:400;color:var(--muted)}
 .field{display:grid;gap:4px;font-size:.8rem;color:var(--muted);font-weight:700;min-width:0}
@@ -3173,7 +3174,8 @@ function renderRota(){
     const m=MEALS[id];if(!m)return "";const al=effAlt(ROTA_SEL,id),alts=Object.entries(D.alts).filter(([,a])=>a.for===id);
     const mac=al?`${al.p}P · ${al.c}C · ${al.f}F · ${al.kcal} kcal`:macT(mealMac(id,ROTA_SEL));
     const opts=alts.length?`<div class="opts" role="group" aria-label="Which version of ${esc(m.m)}">${[["plan",m.short||"Plan meal"],...alts.map(([aid,a])=>[aid,a.short||a.name])].map(([k,n])=>`<button type="button" class="opt" data-rpick="${id}:${k}" aria-pressed="${al?al.id===k:k==="plan"}">${esc(n)}</button>`).join("")}</div>`:"";
-    return `<li class="k-meal"><time>${time}</time><span class="dot"></span><div class="what"><strong>${esc(mealTitle(ROTA_SEL,id))}</strong><span>${al?esc(al.name):mealParts(id,ROTA_SEL).map(x=>F[x.it[0]].n.replace(/\s*\(.*\)/,"")+(x.scaled?` ${fmt(x.it[1],"g")}`:"")).join(", ")}</span><span class="mono">${mac}</span>${al&&al.desc?`<span class="why">${esc(al.desc)}</span>`:""}${al&&al.isDefault?`<span class="why">Your usual on early training days</span>`:""}${opts}</div></li>`}).join("");
+    const ck=time+"|"+id,chg=OPEN_CHG.has(ck)?`<div class="chgbox"><label class="field">Change to (${esc(nice(ROTA_SEL))} only)<select data-rchgsel="${esc(ck)}"><option value="">Pick a meal…</option>${mealOptsHtml("").replace(/<option value="__new">.*?<\/option>/,"")}</select></label><button type="button" class="x" data-rchg="${esc(ck)}">Cancel</button></div>`:`<button type="button" class="btn small chgbtn" data-rchg="${esc(ck)}">Change</button>`;
+    return `<li class="k-meal"><time>${time}</time><span class="dot"></span><div class="what"><strong>${esc(mealTitle(ROTA_SEL,id))}</strong><span>${al?esc(al.name):mealParts(id,ROTA_SEL).map(x=>F[x.it[0]].n.replace(/\s*\(.*\)/,"")+(x.scaled?` ${fmt(x.it[1],"g")}`:"")).join(", ")}</span><span class="mono">${mac}</span>${al&&al.desc?`<span class="why">${esc(al.desc)}</span>`:""}${al&&al.isDefault?`<span class="why">Your usual on early training days</span>`:""}${opts}${chg}</div></li>`}).join("");
   $("shiftnote").textContent=[scaleNote(ROTA_SEL),s.note].filter(Boolean).join(" ");
   if($("rota-rugby"))$("rota-rugby").innerHTML=rugbyEditHTML(ROTA_SEL);
   renderOnce(inf);if($("rota-sleep"))$("rota-sleep").innerHTML=sleepHTML(ROTA_SEL);
@@ -3184,7 +3186,14 @@ function renderRota(){
 }
 $("rota-shift").addEventListener("click",e=>{const b=e.target.closest("[data-shift]");if(!b)return;const v=b.dataset.shift;if((dayInfo(ROTA_SEL).ot||"")===v)return;setShift(ROTA_SEL,v)});
 $("rota").addEventListener("click",e=>{const b=e.target.closest(".rd");if(!b)return;ROTA_SEL=b.dataset.rd;OPEN_HER.clear();renderRota()});
-const OPEN_HER=new Set();const herLog=d=>{const c0=D.food[d]||{};return {...c0,date:d,eaten:{...(c0.eaten||{})},swaps:{...(c0.swaps||{})},extras:c0.extras||[],her:{...(c0.her||{})}}};
+const OPEN_HER=new Set(),OPEN_CHG=new Set();
+/* Change a meal on one date: skip the planned row and add the new meal at the same time (or swap a meal already added for that day) */
+$("timeline").addEventListener("click",e=>{const b=e.target.closest("[data-rchg]");if(!b)return;const k=b.dataset.rchg;if(OPEN_CHG.has(k))OPEN_CHG.delete(k);else{OPEN_CHG.clear();OPEN_CHG.add(k)}renderRota()});
+$("timeline").addEventListener("change",async e=>{const k=e.target.dataset.rchgsel;if(k==null)return;const nid=e.target.value;if(!MEALS[nid])return;const d=ROTA_SEL,dd=D.days[d]||{},[t,id]=[k.slice(0,k.indexOf("|")),k.slice(k.indexOf("|")+1)];
+  const add=dcl(dd.add||[]),ai=add.findIndex(a=>a[0]===t&&a[1]===id);
+  if(ai>=0)add[ai]=[t,nid];else add.push([t,nid]);
+  const skip=ai>=0?(dd.skip||[]):[...new Set([...(dd.skip||[]),k])];
+  OPEN_CHG.clear();await saveDayDoc(d,{add,skip});flash("once-msg",`${MEALS[nid].m} instead of ${MEALS[id]?MEALS[id].m:"that meal"} on ${nice(d)}. Undo it under "Just for this day".`)});const herLog=d=>{const c0=D.food[d]||{};return {...c0,date:d,eaten:{...(c0.eaten||{})},swaps:{...(c0.swaps||{})},extras:c0.extras||[],her:{...(c0.her||{})}}};
 $("timeline").addEventListener("click",e=>{const ho=e.target.closest("[data-heropen]");if(ho){OPEN_HER.add(ho.dataset.heropen);renderRota();return}const hb=e.target.closest("[data-her]");if(hb&&db){const [mid,v]=hb.dataset.her.split(":"),d=ROTA_SEL,c=herLog(d),prev=c.her[mid];
     c.her[mid]=v==="own"?{own:(prev&&prev.own)||""}:{p:+v};if(v!=="own")OPEN_HER.delete(mid);saveFood(d,c);renderRota();renderShop();renderPrep();if(v==="own")setTimeout(()=>{const i=document.querySelector(`[data-herown="${mid}"]`);if(i)i.focus()},30);return}});
 $("timeline").addEventListener("change",e=>{const id=e.target.dataset.herown;if(!id||!db)return;const d=ROTA_SEL,c=herLog(d);c.her[id]={own:e.target.value.trim()};OPEN_HER.delete(id);saveFood(d,c);renderRota();renderShop()});
@@ -3366,7 +3375,7 @@ window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings
 /* Calories burned (Daily log box, Your week stat, eaten vs burned card): can be switched off in Settings; off by default in the trial copy */
 function burnOn(){return L.burnOn!==undefined?!!L.burnOn:!IS_TRIAL}
 document.addEventListener("change",e=>{if(e.target.id!=="burn-on")return;L.burnOn=e.target.checked;saveL();applyPrefs();try{renderWeek()}catch(er){}try{renderInOut()}catch(er){}});
-const APP_VERSION="27 Nov 2026 (k)";
+const APP_VERSION="27 Nov 2026 (l)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont",IS_TRIAL?(L.hfont||"sport"):"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
@@ -3568,7 +3577,7 @@ $("med").addEventListener("click",async e=>{if(!MED)return;const t=e.target.clos
 let PED=null;
 function pedLoad(slot,type){const s=SCHED[slot][type];PED={slot,type,sum:s.sum||"",note:s.note||"",wake:WAKE[slot][type],rows:dcl(s.rows).map(r=>r[1]==="run"?[r[0],"run",r[2]||"",r[3]||"easy"]:[r[0],r[1],r[2]||""]),dirty:false}}
 const rowKind=id=>["work","info","train","run"].includes(id)?id:"meal";
-function mealOptsHtml(sel){const ids=Object.keys(MEALS).filter(id=>(!MEALS[id].solo&&!MEALS[id].of)||id===sel).sort((a,b)=>(usedIn[a]||"zz").localeCompare(usedIn[b]||"zz")||MEALS[a].m.localeCompare(MEALS[b].m));
+function mealOptsHtml(sel){sel=(MEALS[sel]&&MEALS[sel].of)||sel;const ids=Object.keys(MEALS).filter(id=>(!MEALS[id].solo&&!MEALS[id].of)||id===sel).sort((a,b)=>(usedIn[a]||"zz").localeCompare(usedIn[b]||"zz")||MEALS[a].m.localeCompare(MEALS[b].m));
   return ids.map(id=>`<option value="${id}" ${id===sel?"selected":""}>${esc(MEALS[id].m)} · ${mealMac(id).kcal} kcal${usedIn[id]?" · "+usedIn[id]:""}</option>`).join("")+`<option value="__new">+ New meal…</option>`}
 function pedTotals(){const t={kcal:0,p:0,c:0,f:0};PED.rows.forEach(r=>{if(MEALS[r[1]]){const m=mealMac(r[1]);t.kcal+=m.kcal;t.p+=m.p;t.c+=m.c;t.f+=m.f}});return t}
 function renderTargets(){const el=$("tg-card");if(!el)return;
@@ -3935,7 +3944,7 @@ function renderOnce(inf){const el=$("once-status");if(!el)return;const d=ROTA_SE
   el.innerHTML=L_.length?`<ul>${L_.join("")}</ul>`:`<p class="note">Nothing changed for this day.</p>`;
   const rows=rowsFor(inf),on=new Set(rows.map(r=>r[1])),added=new Set((dd.add||[]).map(a=>a[0]+"|"+a[1]));
   const keep=(sel,html)=>{const v=sel.value;sel.innerHTML=html;if([...sel.options].some(o=>o.value===v))sel.value=v};
-  keep($("oa-meal"),Object.values(MEALS).filter(m=>!on.has(m.id)).sort((a,b)=>a.m.localeCompare(b.m)).map(m=>`<option value="${m.id}">${esc(m.m)} · ${mealMac(m.id).kcal} kcal${usedLabel(m.id).startsWith("On")?" · "+usedLabel(m.id).slice(4):""}</option>`).join(""));
+  keep($("oa-meal"),Object.values(MEALS).filter(m=>!m.of&&!m.solo&&!on.has(m.id)&&![...on].some(x=>MEALS[x]&&MEALS[x].of===m.id)).sort((a,b)=>a.m.localeCompare(b.m)).map(m=>`<option value="${m.id}">${esc(m.m)} · ${mealMac(m.id).kcal} kcal${usedLabel(m.id).startsWith("On")?" · "+usedLabel(m.id).slice(4):""}</option>`).join(""));
   keep($("os-row"),rows.filter(r=>MEALS[r[1]]&&!added.has(r[0]+"|"+r[1])).map(r=>`<option value="${r[0]}|${r[1]}">${r[0]} ${esc(MEALS[r[1]].m)}</option>`).join(""))}
 $("oa-type").addEventListener("change",e=>{const v=e.target.value;$("oa-txt-f").hidden=v!=="info";$("oa-meal-f").hidden=v!=="meal";$("oa-food-f").hidden=v!=="food";$("oa-amt-f").hidden=v!=="food";
   if(v==="food"){$("oa-food").innerHTML=foodOpts($("oa-food").value||"bagel");const k=$("oa-food").value;$("oa-amt").value=(FM[k]&&FM[k].def)||(F[k]&&F[k].u===""?1:100)}});
