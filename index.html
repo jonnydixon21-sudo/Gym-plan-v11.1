@@ -100,7 +100,7 @@ details.fold[open]>summary::after{transform:rotate(-90deg)}
 details.fold>summary>span{margin-left:auto}
 details.card.fold{display:block}details.fold>*+*{margin-top:12px}details.fold:not([open])>summary{margin:0}
 details.fold.sub{border-top:1px solid var(--line);padding-top:10px}
-details.fold.glance{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px}details.fold.glance>summary h2{font-size:1.05rem;flex:1}details.fold.glance>.fw-inner{padding:0;background:none;border:0;box-shadow:none}
+details.fold.glance{border-bottom:1px solid var(--line);padding:6px 0 8px;margin:0}details.fold.glance+details.fold.glance{margin-top:2px}#macro-card>details.fold.glance:last-of-type{margin-bottom:14px}details.fold.glance[open]>summary{margin-bottom:8px}details.fold.glance>summary h2{font-size:1.05rem;flex:1}details.fold.glance>.fw-inner{padding:0;background:none;border:0;box-shadow:none}
 .stat{border:0!important}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -3358,7 +3358,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (g)";
+const APP_VERSION="27 Nov 2026 (h)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont","sport");
@@ -4572,12 +4572,18 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
     OPEN_ADJ=null;await saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},amt:ov});return}
   if(t.dataset.adjreset){const id=t.dataset.adjreset,ov={...(cur.amt||{})};Object.keys(ov).forEach(k=>{if(k.startsWith(id+"_"))delete ov[k]});OPEN_ADJ=null;await saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},amt:ov})}});
 
+/* Opening a section scrolls so what's inside is on screen (as much as fits, never past its heading) */
+document.addEventListener("click",e=>{const sm=e.target.closest&&e.target.closest("summary");if(!sm)return;const d=sm.parentElement;if(!d||d.tagName!=="DETAILS"||d.closest(".med,.calpage"))return;
+  setTimeout(()=>{if(!d.open)return;const r=d.getBoundingClientRect(),tb=document.querySelector(".tabs"),tbr=tb?tb.getBoundingClientRect():null,bottom=tbr&&tbr.top>window.innerHeight/2?tbr.top:window.innerHeight,top=tbr&&tbr.top<=window.innerHeight/2?tbr.bottom:0;
+    if(r.bottom<=bottom-8)return;const dy=Math.min(r.bottom-(bottom-8),r.top-top-8);if(dy>4)window.scrollBy({top:dy,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})},80)});
 /* ---------- collapsible sections everywhere (except Today's macros and plan, Progress week and stats, Nutrition) ---------- */
 function foldWrap(el,key,title,open,keep){if(!el||el.dataset.wrapped)return;el.dataset.wrapped="1";const d=document.createElement("details");d.className="card fold fw";d.dataset.fold=key;if(open)d.open=true;
   d.innerHTML=`<summary><h2>${title}</h2></summary>`;el.parentNode.insertBefore(d,el);d.appendChild(el);el.classList.remove("card");el.classList.add(keep?"fw-keep":"fw-inner");return d}
 function applyFolds(){const card=(pane,sel)=>{const el=$(pane);if(!el)return null;const x=el.querySelector(sel);return x?x.closest(".card"):null};
-  foldWrap(card("view-today","#log-save"),"log","Daily log");
-  foldWrap($("io-card"),"inout","Calories in vs out",true);foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");{const d=foldWrap($("daily-card"),"basics","Daily targets");if(d){const sc=$("habit-score");sc.classList.add("pill");d.querySelector("summary").appendChild(sc);const mc=$("macro-card");if(mc){d.className="fold glance";mc.insertBefore(d,mc.firstChild)}}}foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
+  const logF=foldWrap(card("view-today","#log-save"),"log","Daily log");
+  foldWrap($("io-card"),"inout","Calories in vs out",true);foldWrap(card("view-progress","#ch-weight"),"weight","Weight");foldWrap($("waist-card"),"waist","Measurements");{const d=foldWrap($("daily-card"),"basics","Daily targets");if(d){const sc=$("habit-score");sc.classList.add("pill");d.querySelector("summary").appendChild(sc);const mc=$("macro-card");if(mc){d.className="fold glance";mc.insertBefore(d,mc.firstChild);
+    /* Daily log and Supplements sit under Daily targets in the same slim style */
+    let after=d;[logF,$("supp-card")].forEach(x=>{if(!x)return;x.className="fold glance";after.after(x);after=x});const sc2=$("sup-count");if(sc2)sc2.classList.add("pill")}}}foldWrap(card("view-progress","#c-save"),"checkin","How the week felt");
   foldWrap($("lift-dash"),"liftdash","Lift progression");foldWrap($("pr-card"),"prs","Personal records");foldWrap($("vol-card"),"volume","Volume by muscle");foldWrap($("effort-card"),"effort","Effort and recovery");
   foldWrap(card("view-photos","#compare"),"compare","Compare photos");foldWrap($("p-upload-card"),"upload","Add progress photos");
   foldWrap(card("view-coach","#review"),"review","Weekly review");
