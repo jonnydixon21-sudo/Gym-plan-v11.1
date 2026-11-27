@@ -117,6 +117,7 @@ details.fold.glance{border-bottom:1px solid var(--line);padding-bottom:10px;marg
 .btn.small{padding:4px 10px;font-size:.8rem}
 .chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.88rem}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.mfix{font-size:.88rem}.mfix small{display:block;font-weight:400}
 .chip.tr-add{min-width:40px;padding:6px 12px;font-size:1.05rem;line-height:1}.chip.tr-add[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
 .tr-pick{margin:0 0 12px}.tr-pick label{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-weight:700}.tr-pick label:first-of-type{border-top:0}.tr-pick input{width:22px;height:22px;accent-color:var(--accent)}.tr-pick small{display:block;font-weight:400;color:var(--muted)}
 .field{display:grid;gap:4px;font-size:.8rem;color:var(--muted);font-weight:700;min-width:0}
@@ -1569,9 +1570,11 @@ function itemActive(id,i,d){const k=id+"_"+i;let x=d;if(!x){try{x=VIEW}catch(e){
 const carbItem=(k,v)=>!!(F[k]&&F[k].u==="g"&&(F[k].a!=="Veg"||k==="pot")&&v&&v[0]>0&&v[2]*4/v[0]>0.6);
 function carbShift(d){const t=dayType(d),fx=flexAdj(d)-flexOf(d),tg=TG(t).c-PLAN[t].c;return {g:Math.round(tg+fx/4),flex:Math.round(fx/4),tg}}
 const NO_SCALE={n_oo:1,oor:1,g_pre:1,g_post:1};            /* overnight oats never change */
+/* a meal set to "Fixed portions" (plan.fixed) is never resized by fitting, auto-adjust or the day's catch-up; per-day versions follow their meal */
+const noScale=id=>{const m=MEALS[id],b=(m&&m.of)||id,fx=(D.plan&&D.plan.fixed)||{};return fx[b]!==undefined?!!fx[b]:fx[id]!==undefined?!!fx[id]:!!(NO_SCALE[id]||NO_SCALE[b])};
 const MIN_AMT={basmati:50,cor:40,bread:50,oats:40,rice:40,pasta:50,sweet:100,pot:100,rasp:50,blue:50,melon:100,pine:50,honey:10,jam:20};
 function dayScale(d){if(!d||d<SCALE_FROM||typeof dayInfo!=="function")return null;const cs=carbShift(d);if(!cs.g)return null;
-  const ids=rowsFor(dayInfo(d)).map(r=>r[1]).filter(id=>MEALS[id]&&!effAlt(d,id)&&!NO_SCALE[id]);
+  const ids=rowsFor(dayInfo(d)).map(r=>r[1]).filter(id=>MEALS[id]&&!effAlt(d,id)&&!noScale(id));
   const items=[];ids.forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id][i];if(!isRemoved(k)&&itemActive(id,i,d)&&carbItem(k,v))items.push({key:id+"_"+i,k,a,cpg:v[2]/a,min:Math.min(a,MIN_AMT[k]||5),max:a*1.6})}));
   if(!items.length)return null;
   /* spread the change over the portions; any portion that hits its minimum stays there and the rest take up the slack */
@@ -3070,7 +3073,7 @@ function altList(id){const a=Object.entries(D.alts).filter(([,x])=>x.for===id);
   const form=MEALS[id].kind==="drink"?"":`<details class="addown"><summary>+ Add your own</summary><div class="form" style="margin-top:8px"><label class="field" for="c-n-${id}">Name<input id="c-n-${id}" type="text" maxlength="50" placeholder="e.g. Chicken stir fry"></label><label class="field" for="c-d-${id}">What's in it<input id="c-d-${id}" type="text" maxlength="160" placeholder="e.g. 150g chicken, 80g rice, veg"></label><label class="field" for="c-k-${id}">kcal<input id="c-k-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="c-p-${id}">Protein (g)<input id="c-p-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="c-c-${id}">Carbs (g)<input id="c-c-${id}" type="number" min="0" inputmode="numeric"></label><label class="field" for="c-f-${id}">Fat (g)<input id="c-f-${id}" type="number" min="0" inputmode="numeric"></label></div><div class="row" style="margin-top:8px"><button class="btn small primary" type="button" data-addcustom="${id}">Save meal</button>${sample?`<button class="btn small" type="button" data-estimate="${id}" ${sample?"":"hidden"}>Work out macros for me</button>`:""}<span class="err" id="c-e-${id}"></span></div></details>`;
   if(!a.length)return "";
   return `<div class="altlist"><span class="note">Alternatives</span>${a.map(([aid,x])=>`<div class="altrow"><div><b>${esc(x.name)}</b>${x.desc?`<small>${esc(x.desc)}</small>`:""}<span class="mono">${x.p}P · ${x.c}C · ${x.f}F · ${x.kcal} kcal</span></div><button class="x" data-delalt="${aid}" type="button">Delete</button></div>`).join("")}</div>`}
-const mealCard=m=>`<article class="meal${m.kind?" snack":""}" id="meal-${m.id}"><header><strong>${m.m}</strong>${m.tag?`<em>${m.tag}</em>`:""}<button class="cogm" data-medit="${m.id}" aria-label="Edit foods in ${m.m}" title="Edit foods and amounts">${COG}</button></header><p class="note usedin">${usedLabel(m.id)}</p><ul>${m.items.filter(([k],i)=>!isRemoved(k)&&itemActive(m.id,i,TODAY)).map(([k,a,l])=>`<li><span>${F[k].n}</span><span class="mono">${l||fmt(a,F[k].u)}</span></li>`).join("")}</ul>${altList(m.id)}${swaps[m.id]?`<div class="swap">${swaps[m.id]}</div>`:""}<footer><span>${macT(mealMac(m.id))}</span>${m.kind==="drink"?"":`<button class="btn small" data-swap="${m.id}" ${sample?"":"hidden"}>Swap</button>`}</footer></article>`;
+const mealCard=m=>`<article class="meal${m.kind?" snack":""}" id="meal-${m.id}"><header><strong>${m.m}</strong>${m.tag?`<em>${m.tag}</em>`:""}<button class="cogm" data-medit="${m.id}" aria-label="Edit foods in ${m.m}" title="Edit foods and amounts">${COG}</button></header><p class="note usedin">${usedLabel(m.id)}</p><ul>${m.items.filter(([k],i)=>!isRemoved(k)&&itemActive(m.id,i,TODAY)).map(([k,a,l])=>`<li><span>${F[k].n}</span><span class="mono">${l||fmt(a,F[k].u)}</span></li>`).join("")}</ul>${altList(m.id)}${swaps[m.id]?`<div class="swap">${swaps[m.id]}</div>`:""}${IS_TRIAL&&m.kind!=="drink"?`<label class="chkline mfix"><input type="checkbox" data-mfix="${m.id}" ${noScale(m.id)?"checked":""}> <span>Fixed portions<small class="note">Never resized to fit your macros</small></span></label>`:""}<footer><span>${macT(mealMac(m.id))}</span>${m.kind==="drink"?"":`<button class="btn small" data-swap="${m.id}" ${sample?"":"hidden"}>Swap</button>`}</footer></article>`;
 function renderPlans(){const rm=((D.shop&&D.shop.never)||[]).filter(k=>F[k]&&Object.values(MEALS).some(m=>m.items.some(it=>it[0]===k)));$("removed").innerHTML=rm.length?`Removed from your meals: ${rm.map(k=>`<button class="x" data-unrm="${k}" type="button">${F[k].n} (put back)</button>`).join(" · ")}`:"";$("plans").innerHTML=mealsListHTML();try{renderAutoAdj()}catch(e){}}
 /* Meals tab: one entry per meal name. Meals with several versions (different amounts for different days) open to show each one. */
 var MQ="",MF="",MG_OPEN=new Set();
@@ -3084,6 +3087,7 @@ function mealsListHTML(){const seen=new Set(),all=[...PLAN.T.meals,...PLAN.R.mea
 $("mq").addEventListener("input",e=>{MQ=e.target.value;renderPlans()});
 $("mf-chips").addEventListener("click",e=>{const b=e.target.closest("[data-mf]");if(!b)return;MF=b.dataset.mf;document.querySelectorAll("#mf-chips [data-mf]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderPlans()});
 $("plans").addEventListener("toggle",e=>{const d=e.target;if(!d.dataset||!d.dataset.mg)return;if(d.open)MG_OPEN.add(d.dataset.mg);else MG_OPEN.delete(d.dataset.mg)},true);
+$("plans").addEventListener("change",async e=>{const id=e.target.dataset.mfix;if(!id)return;const P=planDoc();P.fixed={...(P.fixed||{}),[id]:e.target.checked};D.plan=P;await savePlan();gToast(e.target.checked?`${MEALS[id].m}: fixed. Fitting and catch-up won't change its portions.`:`${MEALS[id].m}: portions can now change to fit your macros.`,4500)});
 $("plans").addEventListener("change",async e=>{const id=e.target.dataset.share;if(!id)return;const sh={...sharedMeals()};if(e.target.checked)sh[id]=true;else delete sh[id];D.home={...(D.home||{}),shared:sh};renderShop();renderPrep();renderDay();if(db){try{await db.doc("prefs/home").set(D.home)}catch(err){}}});
 $("plans").addEventListener("change",async e=>{const id=e.target.dataset.herdef;if(!id)return;const po={...((D.home||{}).portion||{}),[id]:+e.target.value};D.home={...(D.home||{}),portion:po};renderShop();renderPrep();renderDay();renderRota();if(db){try{await db.doc("prefs/home").set(D.home)}catch(err){}}});
 $("plans").addEventListener("click",async e=>{
@@ -3320,7 +3324,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (c)";
+const APP_VERSION="27 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont","sport");
@@ -3549,7 +3553,7 @@ function weekTotalsHTML(){const w=weekTotals(),K=["kcal","p","c","f"],r=x=>Math.
   <tr class="wka"><td>Per day<small>target</small></td>${K.map(k=>`<td class="n">${r(w.ml[k]/7)}<small>${r(w.tg[k]/7)}</small></td>`).join("")}</tr></tbody></table></div></div>`}
 function fitCarbs(meals,t,targetKcal){const done=new Set();
   SLOTS.forEach(([s])=>{const ids=[...new Set(SCHED[s][t].rows.map(r=>r[1]).filter(id=>MEALS[id]))];let total=0;ids.forEach(id=>total+=mealMac(id).kcal);
-    const its=[];let scal=0;ids.filter(id=>!NO_SCALE[id]&&!done.has(id)).forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id][i];if(carbItem(k,v)){scal+=v[0];its.push([id,i,k,a])}}));
+    const its=[];let scal=0;ids.filter(id=>!noScale(id)&&!done.has(id)).forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id][i];if(carbItem(k,v)){scal+=v[0];its.push([id,i,k,a])}}));
     if(!scal)return;const f=Math.min(1.8,Math.max(0.4,(scal+(targetKcal-total))/scal));
     its.forEach(([id,i,k,a])=>{const step=k==="pot"?10:5,na=Math.max(MIN_AMT[k]||step,Math.round(a*f/step)*step);
       const cur=(meals[id]&&meals[id].items)||dcl(MEALS[id].items);cur[i]=[k,na,autoLabel(k,na)].filter((x,j)=>j<2||x!==undefined);meals[id]={m:MEALS[id].m,items:cur}});
@@ -4380,7 +4384,7 @@ function fitPlanAll(){let P=planDoc();const plans=[];
   /* 1. solve each day plan on its own */
   plans.forEach(pl=>{const its=[];let fixed=[0,0,0,0];
     pl.rows.forEach(({r},ri)=>{const id=r[1];MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!v||isRemoved(k))return;const f=F[k];
-      const c=!NO_SCALE[id]&&f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0?fitCat(v):null;
+      const c=!noScale(id)&&f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0?fitCat(v):null;
       if(c){const an=fitAnchor(P,id,i,a,id.replace(/_(day|n1|n2|off1|off)[TR]$/,"")),cap=fitCap(k,c),mx=Math.min(cap,k==="oil"?Math.max(15,an*3):an*1.8),mn=Math.min(mx,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,an*0.5));
         its.push({ri,id,i,k,a,amt:Math.min(mx,Math.max(mn,a)),per:v.map(q=>q/a),cat:c,min:mn,max:mx})}else fixed=fixed.map((q,j)=>q+v[j])})});
     const tot=j=>fixed[j]+its.reduce((s,x)=>s+x.amt*x.per[j],0),J={p:1,f:3,c:2};
@@ -4414,7 +4418,7 @@ function rebalanceMeals(lock){const L_=new Set(lock),plans=[];
   const affected=plans.filter(p=>p.ids.some(id=>L_.has(id)));if(!affected.length)return {meals:{},changes:[],keys:[]};
   /* only meals that are used solely on the affected days move, so every other day stays exactly as it is */
   const onlyAffected=id=>plans.every(p=>!p.ids.includes(id)||affected.includes(p));
-  const varIds=new Set(affected.flatMap(p=>p.ids).filter(id=>!L_.has(id)&&!NO_SCALE[id]&&onlyAffected(id))),its=[],byMeal={},PB=planDoc();
+  const varIds=new Set(affected.flatMap(p=>p.ids).filter(id=>!L_.has(id)&&!noScale(id)&&onlyAffected(id))),its=[],byMeal={},PB=planDoc();
   varIds.forEach(id=>MEALS[id].items.forEach(([k,a],i)=>{const v=IM[id]&&IM[id][i];if(!v||isRemoved(k))return;const f=F[k];if(!(f&&(f.u==="g"||f.u==="ml")&&a>0&&v[0]>0))return;const c=fitCat(v);if(!c)return;
     const an=fitAnchor(PB,id,i,a),cap=fitCap(k,c),mx=Math.min(cap,k==="oil"?Math.max(15,an*3):an*1.8),mn=Math.min(mx,Math.max(MIN_AMT[k]||FIT_MIN[k]||10,an*0.5));
     const x={id,i,k,a,amt:Math.min(mx,Math.max(mn,a)),per:v.map(q=>q/a),cat:c,min:mn,max:mx};its.push(x);(byMeal[id]=byMeal[id]||[]).push(x)}));
