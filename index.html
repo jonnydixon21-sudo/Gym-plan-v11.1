@@ -335,7 +335,7 @@ button.more{border:1px solid var(--line);background:var(--surface);color:var(--i
 .exalt span{font-size:.82rem;color:var(--muted)}
 .exalt .pill{justify-self:start}
 .xlist{display:grid;gap:4px;font-size:.88rem}
-.xlist div{display:flex;justify-content:space-between;gap:8px}
+.xlist>div:not(.xrow){display:flex;justify-content:space-between;gap:8px}.xlist{gap:10px}.xrow .xadjp{font-size:.9rem;padding:10px 12px;border-radius:12px;background:var(--surface-2)}.xrow .xadjp .row.between{flex-wrap:nowrap}
 .rota{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .rd{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px;display:grid;gap:2px;justify-items:center;text-align:center}
 .rd b{font-family:var(--f-display);font-size:.9rem}
@@ -484,6 +484,10 @@ li.shiftable{transition:transform .18s ease}
 li.lifted{position:relative;z-index:30;box-shadow:0 14px 30px rgba(0,0,0,.25);transition:box-shadow .15s ease;outline:2px solid var(--ink);outline-offset:-1px}
 li.justmoved{outline:2px solid var(--good);outline-offset:-1px}
 body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
+.eatplus{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.plusbtn{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.plusbtn[aria-expanded="true"]{transform:rotate(45deg)}.eatpmenu{display:flex;gap:8px;flex-wrap:wrap}.eatpmenu[hidden]{display:none}
+.xrow{display:grid;gap:8px}.xhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.xadjp{margin:0}
+.eatfoot>details[hidden]{display:none}
 .eatfoot{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-start;margin-top:10px}.eatfoot>details{flex:1 1 0;min-width:0}.eatfoot>details[open]{flex-basis:100%;order:2}
 .eatfoot .tlog{margin:0;flex:none}.eatfoot>#tadd{flex-basis:100%;order:3}#ta-list ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}#ta-list li{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:.9rem}#run-done .tldone{margin-top:8px}
 .rota.wide .rd{padding:10px 6px}.rota.wide .rd b{font-size:.95rem}.rota.wide .rd small{font-size:.72rem}.rota.wide .rd span{font-size:.7rem;white-space:normal;text-align:center}
@@ -853,7 +857,9 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
       <p class="note">Tick things off as you go: meals, training and shift reminders. For a meal, tick it all or tap just the foods you had.</p>
       <p class="note" id="eat-adj" hidden></p>
       <ol class="eat" id="eat"></ol>
-      <div class="eatfoot"><details class="extra">
+      <div class="eatplus"><button type="button" class="plusbtn" id="eat-plus" aria-expanded="false" aria-controls="eat-pmenu" aria-label="Add something to this day">+</button>
+        <div class="eatpmenu" id="eat-pmenu" hidden><button type="button" class="btn small" data-eatopen="extra">Ate something not on the plan</button><button type="button" class="btn small" data-eatopen="tadd">Add to today's plan</button></div></div>
+      <div class="eatfoot"><details class="extra" id="xadd" hidden>
         <summary>Ate something not on the plan?</summary>
         <div id="x-recent" class="xrecent"></div>
         <div class="pick" style="margin-top:10px">
@@ -886,7 +892,7 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
         </div>
         <div class="row" style="margin-top:10px"><button class="btn" id="x-add">Add</button><span class="toast" id="x-toast"></span></div>
       </details><div id="train-log" class="tlog"></div>
-      <details class="extra" id="tadd"><summary id="tadd-sum">Add to today's plan</summary>
+      <details class="extra" id="tadd" hidden><summary id="tadd-sum">Add to today's plan</summary>
         <p class="note" style="margin-top:8px">Gym, a run, rugby, work or a note, just for this day. Your usual plan stays as it is. Food goes in "Ate something not on the plan?" above.</p>
         <div class="form"><label class="field" for="ta-type">What<select id="ta-type"><option value="train">Gym session</option><option value="run">Run</option><option value="rugby">Rugby</option><option value="work">Work</option><option value="info">Note</option></select></label><label class="field" for="ta-at">Time<input type="time" id="ta-at" value="17:00"></label></div>
         <div class="form" id="ta-extra"></div>
@@ -2184,7 +2190,7 @@ function renderDay(){if(EDITING_TIME)return;if(typeof refreshHub==="function")re
     if(id==="train")return (VIEW===TODAY&&plannedWorkout(VIEW)&&tplOf(plannedWorkout(VIEW))?tstep(time,plannedWorkout(VIEW),stepKey(r.orig,"train"),trainedToday):step(time,"Train"+(plannedWorkout(VIEW)?" · "+plannedWorkout(VIEW):""),stepKey(r.orig,"train"),trainedToday))+(MEALS.intra?card("intra",{time:"",name:"Intra-workout drink"},"train"):"");
     const m=MEALS[id];if(!m)return "";
     return card(id,{time,name:esc(mealTitle(VIEW,id)),next:next&&next[1]===id},next&&next[1]===id?"now":"");
-  }).join("")+((log.extras||[]).length?`<li><time></time><span class="dot"></span><div class="body"><div class="xlist">${log.extras.map((x,i)=>`<div><span><b>${esc(x.name)}</b> <span class="mono note">${x.kcal} kcal · ${x.p}P ${x.c}C ${x.f}F</span></span><button class="x" data-xrm="${i}">Remove</button></div>`).join("")}</div></div></li>`:"");
+  }).join("")+((log.extras||[]).length?`<li><time></time><span class="dot"></span><div class="body"><div class="xlist">${log.extras.map((x,i)=>xRowHTML(x,i)).join("")}</div></div></li>`:"");
   {const sn=scaleNote(VIEW);$("eat-adj").hidden=!sn;$("eat-adj").textContent=sn}
   renderNextUp();
   $("eat-count").textContent=`${done}/${total} done`;$("eat-count").className="note mono"+(total&&done===total?" hit":done?" prog":"");
@@ -2238,7 +2244,27 @@ $("eat").addEventListener("click",e=>{const b=e.target.closest("button.food");if
   expandMeal(eaten,id);if(eaten[id+"_"+i])delete eaten[id+"_"+i];else eaten[id+"_"+i]=true;
   saveFood(VIEW,{...cur,date:VIEW,eaten,extras:cur.extras||[]});
 });
-$("eat").addEventListener("click",e=>{const i=e.target.dataset.xrm;if(i==null)return;
+/* Things logged with "Ate something not on the plan?" from a meal or a food keep their foods, so the amounts can be adjusted like a planned meal */
+var XADJ=null;
+function xItemsMac(items,mid){const t={kcal:0,p:0,c:0,f:0},mi=mid&&MEALS[mid]?MEALS[mid].items:null;
+  items.forEach(([k,a])=>{if(!(a>0))return;const j=mi?mi.findIndex(it=>it[0]===k&&it[1]>0):-1,v=j>=0&&IM[mid]&&IM[mid][j];
+    const m=v&&v[0]>0?{kcal:v[0]/mi[j][1],p:v[1]/mi[j][1],c:v[2]/mi[j][1],f:v[3]/mi[j][1]}:pfNut(k);if(!m)return;t.kcal+=m.kcal*a;t.p+=m.p*a;t.c+=m.c*a;t.f+=m.f*a});return {kcal:Math.round(t.kcal),p:Math.round(t.p),c:Math.round(t.c),f:Math.round(t.f)}}
+function xRowHTML(x,i){const can=Array.isArray(x.items)&&x.items.length,open=can&&XADJ&&XADJ.i===i;
+  return `<div class="xrow"><div class="xhead"><span><b>${esc(x.name)}</b> <span class="mono note">${x.kcal} kcal · ${x.p}P ${x.c}C ${x.f}F</span></span><span class="row" style="gap:10px;flex-wrap:nowrap">${can?`<button class="x" type="button" data-xadj="${i}" aria-expanded="${open}">${open?"Close":"Adjust"}</button>`:""}<button class="x" data-xrm="${i}">Remove</button></span></div>
+    ${open?`<div class="swapp adjp xadjp"><b>Adjust what you had</b>${XADJ.items.map(([k,a],j)=>`<label class="adjrow"><span>${esc(F[k]?F[k].n:k)}</span><input inputmode="decimal" data-xadjv="${j}" value="${+(+a).toFixed(1)}" aria-label="${esc(F[k]?F[k].n:k)} amount"><span class="note">${F[k]&&F[k].u===""?"each":(F[k]||{}).u||""}</span></label>`).join("")}
+      <div class="row between"><span class="mono note" id="xadj-mac">${(m=>`${m.kcal} kcal · ${m.p}P ${m.c}C ${m.f}F`)(xItemsMac(XADJ.items,x.meal))}</span><button class="btn small primary" type="button" data-xadjsave="${i}">Save</button></div>
+      <p class="note">Set a food to 0 if you didn't have it.</p></div>`:""}</div>`}
+$("eat").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-xadj],[data-xadjsave]");if(!t)return;
+  const log=D.food[VIEW]||{},ex=log.extras||[];
+  if(t.dataset.xadj!=null){const i=+t.dataset.xadj;XADJ=XADJ&&XADJ.i===i?null:{i,meal:ex[i].meal,items:(ex[i].items||[]).map(x=>[x[0],x[1]])};renderDay();return}
+  const i=+t.dataset.xadjsave,x=ex[i];if(!x||!XADJ)return;const items=XADJ.items.filter(([,a])=>a>0);
+  if(!items.length){XADJ=null;return saveFood(VIEW,{...log,date:VIEW,eaten:log.eaten||{},extras:ex.filter((_,j)=>j!==i)})}
+  const m=xItemsMac(items,x.meal),nx={...x,...m,items,name:x.meal&&MEALS[x.meal]?MEALS[x.meal].m+(xSame(x.meal,items)?"":" (adjusted)"):items.length===1&&F[items[0][0]]?`${F[items[0][0]].n} ${fmt(items[0][1],F[items[0][0]].u)}`:x.name};
+  XADJ=null;saveFood(VIEW,{...log,date:VIEW,eaten:log.eaten||{},extras:ex.map((y,j)=>j===i?nx:y)})});
+$("eat").addEventListener("input",e=>{const j=e.target.dataset.xadjv;if(j==null||!XADJ)return;const v=parseFloat(String(e.target.value).replace(",","."));XADJ.items[+j][1]=v>0?v:0;
+  const m=xItemsMac(XADJ.items,XADJ.meal),el=$("xadj-mac");if(el)el.textContent=`${m.kcal} kcal · ${m.p}P ${m.c}C ${m.f}F`});
+const xSame=(id,items)=>{const it=MEALS[id].items;return it.length===items.length&&it.every(([k,a],j)=>items[j][0]===k&&Math.abs(items[j][1]-a)<0.01)};
+$("eat").addEventListener("click",e=>{const i=e.target.dataset.xrm;if(i==null)return;XADJ=null;
   const cur=D.food[VIEW]||{};const extras=(cur.extras||[]).filter((_,j)=>j!=i);saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras})});
 /* per unit [kcal,P,C,F] for foods that aren't in the plan yet (estimates from typical labels) */
 const NUT_EXTRA={steak:[1.35,.22,0,.05],beans:[.98,.07,.13,.006],burger:[160,22,0,7.5],sausage:[60,8,2,2],eggs:[78,6.3,.4,5.3],yog:[.55,.10,.04,.002],phil:[1.1,.08,.05,.07],cheese:[2.6,.30,.01,.14],apple:[80,.4,19,.3],banana:[90,1.1,21,.3],rasp:[.52,.012,.12,.007],blue:[.57,.007,.145,.003],pine:[.5,.005,.13,.001],melon:[.3,.006,.076,.002],avo:[1.6,.02,.09,.15],mush:[.22,.03,.03,.003],spin:[.23,.029,.036,.004],tom:[.18,.009,.039,.002],stir:[.3,.02,.05,.002],sweet:[.86,.016,.2,.001],asp:[.2,.022,.04,.001],pep:[.31,.01,.06,.003],pot:[.77,.02,.17,.001],broc:[.34,.028,.07,.004],bagel:[120,6,22,1.5],wrap:[150,4,25,4],brioche:[190,5,30,5],pasta:[3.5,.12,.72,.015],weetabix:[68,2.25,13,.4],almondmilk:[.13,.004,0,.011],rice:[3.6,.07,.8,.007],oats:[3.75,.117,.633,.083],cakes:[35,.7,7.5,.3],jam:[2.5,.004,.6,0],honey:[3.05,.003,.82,0],almond:[6.1,.2,.1,.6],choc:[6,.1,.2,.46],oil:[9,0,0,1],whey:[3.93,.8,.09,.05],eaa:[0,0,0,0],creatine:[0,0,0,0],glut:[0,0,0,0],cor:[3.6,.07,.8,.01],bread:[2.6,.1,.41,.055],butter:[7.4,.005,0,.82],berries:[.4,.007,.09,.003],basmati:[3.5,.085,.77,.01],skyr:[.6,.11,.04,.002],mince:[1.25,.207,0,.047],chicken:[1.06,.24,0,.013],wrapcb:[140,8,15,4]};
@@ -2256,7 +2282,7 @@ function pfCalc(){const k=$("pf-food").value,q=num($("pf-amt").value);if(!k||!pf
 $("pf-food").addEventListener("change",()=>{const k=$("pf-food").value;const u=k?F[k].u:"";$("pf-unit").textContent=u==="g"?(["rice","basmati","pasta","oats"].includes(k)?"Grams (dry)":"Grams"):u==="ml"?"Millilitres":"How many";if(k)$("pf-amt").value=pfNut(k).def;pfCalc()});
 $("pf-amt").addEventListener("input",pfCalc);
 $("pf-add").addEventListener("click",()=>{const k=$("pf-food").value,q=num($("pf-amt").value),r=pfCalc();if(!k||!r)return flash("pf-toast","Choose a food and amount");
-  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r}]});
+  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:`${F[k].n} ${fmt(q,F[k].u)}`,...r,items:[[k,q]]}]});
   $("pf-food").value="";$("pf-amt").value="";$("pf-mac").textContent="";flash("pf-toast","Added")});
 pfFill();
 function pmFill(){const sel=$("pm-meal");if(!sel)return;const keep=sel.value;
@@ -2266,8 +2292,13 @@ function pmCalc(){const id=$("pm-meal").value,q=num($("pm-qty").value);if(!id||!
   const m=mealMac(id),r={kcal:Math.round(m.kcal*q),p:Math.round(m.p*q),c:Math.round(m.c*q),f:Math.round(m.f*q)};$("pm-mac").textContent=`${r.p}P · ${r.c}C · ${r.f}F · ${r.kcal} kcal`;return r}
 $("pm-meal").addEventListener("change",pmCalc);$("pm-qty").addEventListener("input",pmCalc);
 $("pm-add").addEventListener("click",()=>{const id=$("pm-meal").value,q=num($("pm-qty").value),r=pmCalc();if(!id||!r)return flash("pm-toast","Choose a meal");
-  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:MEALS[id].m+(q!==1?" ×"+q:""),...r}]});
+  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:MEALS[id].m+(q!==1?" ×"+q:""),...r,meal:id,items:MEALS[id].items.filter(([k,a])=>a>0&&pfNut(k)).map(([k,a])=>[k,Math.round(a*q*100)/100])}]});
   $("pm-meal").value="";$("pm-qty").value="1";$("pm-mac").textContent="";flash("pm-toast","Added")});
+/* the + under Today's plan opens one of the two panels; closing a panel tucks it away again */
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#eat-plus,[data-eatopen]");if(!t)return;
+  if(t.id==="eat-plus"){const m=$("eat-pmenu"),open=m.hidden;m.hidden=!open;t.setAttribute("aria-expanded",String(open));if(!open){["xadd","tadd"].forEach(id=>{$(id).open=false})}return}
+  const d=$(t.dataset.eatopen==="tadd"?"tadd":"xadd"),o=$(t.dataset.eatopen==="tadd"?"xadd":"tadd");o.open=false;d.open=true;$("eat-pmenu").hidden=true;$("eat-plus").setAttribute("aria-expanded","false");d.scrollIntoView({block:"nearest"})});
+["xadd","tadd"].forEach(id=>$(id).addEventListener("toggle",()=>{$(id).hidden=!$(id).open}));
 pmFill();document.addEventListener("toggle",e=>{if(e.target.matches&&e.target.matches(".eatfoot>details.extra:not(#tadd)")&&e.target.open)pmFill()},true);
 $("x-add").addEventListener("click",()=>{setTimeout(()=>{if(!$("x-name").value){XS=null;xsRender();$("xs-code").value=""}},50);
   const name=$("x-name").value.trim(),kcal=Math.round(num($("x-kcal").value)||0);
@@ -3324,7 +3355,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (e)";
+const APP_VERSION="27 Nov 2026 (d)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont","sport");
@@ -4748,7 +4779,7 @@ function recentExtras(){const out=[],seen=new Set();Object.keys(D.food).sort().r
 function renderRecent(){const el=$("x-recent");if(!el)return;const r=recentExtras();
   el.innerHTML=r.length?`<span class="note">Recent: tap to add again</span><div class="row xrec">${r.map((x,i)=>`<button type="button" class="chip" data-xrec="${i}">${esc(x.name)} <small>${Math.round(+x.kcal||0)} kcal</small></button>`).join("")}</div><span class="toast" id="xrec-toast"></span>`:""}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-xrec]");if(!b)return;const x=recentExtras()[+b.dataset.xrec];if(!x)return;
-  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:x.name,kcal:+x.kcal||0,p:+x.p||0,c:+x.c||0,f:+x.f||0}]});flash("xrec-toast","Added "+x.name)});
+  const cur=D.food[VIEW]||{};saveFood(VIEW,{...cur,date:VIEW,eaten:cur.eaten||{},extras:[...(cur.extras||[]),{name:x.name,kcal:+x.kcal||0,p:+x.p||0,c:+x.c||0,f:+x.f||0,...(Array.isArray(x.items)?{items:x.items.map(y=>[y[0],y[1]])}:{}),...(x.meal?{meal:x.meal}:{})}]});flash("xrec-toast","Added "+x.name)});
 /* ---------- book leave across several days ---------- */
 document.addEventListener("click",async e=>{const t=e.target.closest&&e.target.closest("#lv-save,#lv-clear");if(!t)return;
   const a=$("lv-from").value,b=$("lv-to").value||a,msg=$("lv-msg");if(!/^\d{4}-\d\d-\d\d$/.test(a)){msg.textContent="Pick the first day.";return}
