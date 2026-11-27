@@ -3358,7 +3358,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (i)";
+const APP_VERSION="27 Nov 2026 (j)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont","sport");
@@ -3477,7 +3477,9 @@ function applyPlan(){if(D.plan&&oneMealOn())compactPlan(D.plan);const P=D.plan||
   pfFill();
 }
 async function savePlan(){applyPlan();if(db){try{await db.doc("prefs/plan").set(D.plan)}catch(e){}}renderPlanViews()}
-function renderPlanViews(){try{renderDayAll();renderPlans();renderDays();renderDay();renderShop()}catch(e){console.error(e)}}
+function renderPlanViews(){try{renderDayAll();renderPlans();renderDays();renderDay();renderShop()}catch(e){console.error(e)}
+  /* Coach cards read your targets too: redraw them once your own plan has loaded (they were showing the default targets) */
+  [()=>renderAdjust(),()=>renderRecs(),()=>renderReviews()].forEach(f=>{try{f()}catch(e){console.error(e)}})}
 const slotName=s=>(SLOTS.find(x=>x[0]===s)||[])[1]||s;
 const usedIn=(()=>{const o={};SLOTS.forEach(([s,n])=>["T","R"].forEach(t=>BASE.SCHED[s][t].rows.forEach(r=>{if(!o[r[1]])o[r[1]]=n})));return o})();
 const COG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
