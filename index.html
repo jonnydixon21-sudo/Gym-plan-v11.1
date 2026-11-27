@@ -1218,6 +1218,9 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
       <h2>About this copy</h2>
       <p class="note mono" id="app-ver" style="white-space:pre-line"></p>
       <div class="row"><button class="btn" type="button" id="upd-btn">Check for updates</button><button class="btn ghost" type="button" id="reload-btn">Reload app</button><span class="toast" id="upd-msg" aria-live="polite"></span></div>
+      <h3>Update alerts</h3>
+      <p class="note">Get a phone notification whenever the app is updated, with what changed and who changed it. Uses the free ntfy app (the same one as rest alerts): open it, tap +, and subscribe to <b class="mono">gymplan-updates-02b3ba93cc</b>, or tap the button.</p>
+      <div class="row"><a class="btn" id="upd-alerts" href="https://ntfy.sh/gymplan-updates-02b3ba93cc" target="_blank" rel="noopener">Get update alerts</a></div>
       <p class="note">The app checks for new versions each time you open it. "Reload app" is a full refresh, like pulling down to refresh a web page. Your data isn't affected by either.</p>
     </div>
   </section>
@@ -3317,7 +3320,7 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (b)";
+const APP_VERSION="27 Nov 2026 (c)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont","sport");
@@ -4557,7 +4560,9 @@ function hardReload(){location.reload()}
 async function remoteVersion(){const r=await fetch("index.html?check="+Date.now(),{cache:"no-store"});const t=await r.text(),m=t.match(/const APP_VERSION="([^"]+)"/);return m?m[1]:null}
 let UPD_LAST=0;
 async function autoUpdCheck(force){if(!force&&Date.now()-UPD_LAST<10*60e3)return;UPD_LAST=Date.now();if(!navigator.onLine||location.protocol==="file:")return;
-  try{const v=await remoteVersion();if(v&&v!==APP_VERSION){$("upd-bar-t").textContent=`A new version is ready (${v}).`;$("upd-bar").hidden=false}}catch(e){}}
+  try{const v=await remoteVersion();if(v&&v!==APP_VERSION){$("upd-bar-t").textContent=`A new version is ready (${v}).`;$("upd-bar").hidden=false;
+    /* what changed and who made it (written by the publish step) */
+    try{const w=await (await fetch("whatsnew.json?check="+Date.now(),{cache:"no-store"})).json();if(w&&w.v===v&&w.msg)$("upd-bar-t").textContent=`New: ${String(w.msg).replace(/\.$/,"")}${w.by?` (by ${w.by})`:""}.`}catch(e){}}}catch(e){}}
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("#reload-btn,#upd-now");if(!t)return;t.textContent="Reloading…";t.disabled=true;hardReload()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")autoUpdCheck()});
 setTimeout(()=>autoUpdCheck(true),2500);
