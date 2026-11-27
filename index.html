@@ -910,12 +910,12 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
         <label class="field" for="q-weight">Weight (kg)<input id="q-weight" type="number" step="0.1" min="40" max="200" inputmode="decimal" placeholder="94.2"></label>
         <label class="field" for="a-steps">Steps<input id="a-steps" type="number" min="0" step="100" inputmode="numeric" placeholder="10450"></label>
         <label class="field" for="a-cmin" hidden>Cardio (min)<input id="a-cmin" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
-        <label class="field" for="a-burn">Calories burned<input id="a-burn" type="number" min="0" step="10" inputmode="numeric" placeholder="e.g. 2900"></label>
+        <label class="field" for="a-burn" id="a-burn-f">Calories burned<input id="a-burn" type="number" min="0" step="10" inputmode="numeric" placeholder="e.g. 2900"></label>
         <div class="field slf"><span>Sleep</span><div class="hm"><input id="sl-h" type="number" min="0" max="16" step="1" inputmode="numeric" placeholder="7" aria-label="Sleep hours"><span>h</span><input id="sl-m" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="30" aria-label="Sleep minutes"><span>m</span></div></div>
       </div>
       <div class="row"><button class="btn primary" id="log-save">Save</button><button class="btn small" id="a-stair" hidden>+ 15 min stair master</button><span class="toast" id="a-toast" aria-live="polite"></span></div>
       <p class="note" id="a-note"></p>
-      <p class="note">Weight first thing in the morning. Sleep is the sleep you woke up from today (after a night shift, your daytime sleep). Calories burned is the day's total from your watch or fitness app (resting plus active).</p>
+      <p class="note">Weight first thing in the morning. Sleep is the sleep you woke up from today (after a night shift, your daytime sleep). <span id="a-burn-n">Calories burned is the day's total from your watch or fitness app (resting plus active).</span></p>
       <div hidden><button id="q-save"></button><button id="a-save"></button><button id="sl-save"></button><span id="q-toast"></span><span id="sl-toast"></span><span id="sl-sum"></span><div id="sl-bar"><div id="sl-fill"></div></div><div class="stats" id="today-stats"></div></div>
     </div>
 
@@ -1178,7 +1178,11 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
       <h2>Display</h2>
       <h3>Zoom</h3>
       <p class="note">Makes everything bigger or smaller on every screen.</p>
-      <div class="row" id="zoom-chips"><button class="chip" data-z="0.9">90%</button><button class="chip" data-z="1">100%</button><button class="chip" data-z="1.1">110%</button><button class="chip" data-z="1.25">125%</button><button class="chip" data-z="1.4">140%</button></div>
+      <div class="row" id="zoom-chips"><button class="chip trialonly" data-z="0.75" hidden>75%</button><button class="chip trialonly" data-z="0.8" hidden>80%</button><button class="chip" data-z="0.9">90%</button><button class="chip" data-z="1">100%</button><button class="chip" data-z="1.1">110%</button><button class="chip" data-z="1.25">125%</button><button class="chip" data-z="1.4">140%</button></div>
+      <div class="trialonly" style="display:grid;gap:12px" hidden><h3>Heading style</h3>
+      <div class="row" id="hf-chips"><button class="chip" data-hf="sport">Sport</button><button class="chip" data-hf="standard">Standard</button></div>
+      <h3>Calories burned</h3>
+      <label class="chkline"><input type="checkbox" id="burn-on"> <span>Track calories burned<small class="note" style="display:block">A box in Daily log for your watch's total, plus eaten vs burned on Progress.</small></span></label></div>
       <h3>Background</h3>
       <div class="row" id="th-chips"><button class="chip" data-th="">Match phone</button><button class="chip" data-th="light">Light</button><button class="chip" data-th="dark">Dark</button></div>
       <h3>Button colour</h3>
@@ -1476,6 +1480,7 @@ function flash(el,msg,ms=2200){$(el).textContent=msg;clearTimeout(flash[el]);fla
 
 /* ---------- local conveniences ---------- */
 const KEY="gym-plan-v1";
+var IS_TRIAL=false;/* the trial build sets this to true */
 let L={ticked:{},have:{},calc:null,tab:"today",lift:null,over:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&typeof s==="object"){delete s.week;L={...L,...s}}}catch(e){}
 const saveL=()=>{if(window.__wiping)return;try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}};
@@ -3358,10 +3363,15 @@ document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest
 window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings"){SET_PUSHED=false;show("today");window.scrollTo({top:0})}});
 
 /* ---------- backup, settings, calendar ---------- */
-const APP_VERSION="27 Nov 2026 (j)";
+/* Calories burned (Daily log box, Your week stat, eaten vs burned card): can be switched off in Settings; off by default in the trial copy */
+function burnOn(){return L.burnOn!==undefined?!!L.burnOn:!IS_TRIAL}
+document.addEventListener("change",e=>{if(e.target.id!=="burn-on")return;L.burnOn=e.target.checked;saveL();applyPrefs();try{renderWeek()}catch(er){}try{renderInOut()}catch(er){}});
+const APP_VERSION="27 Nov 2026 (k)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
-  r.setAttribute("data-hfont","sport");
+  r.setAttribute("data-hfont",IS_TRIAL?(L.hfont||"sport"):"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
+  if(IS_TRIAL)document.querySelectorAll(".trialonly").forEach(x=>x.hidden=false);
+  {const bo=burnOn(),f=$("a-burn-f"),n=$("a-burn-n"),c=$("burn-on");if(f)f.hidden=!bo;if(n)n.hidden=!bo;if(c)c.checked=bo}
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
   document.querySelectorAll("[data-ac]").forEach(b=>{const on=b.dataset.ac===(L.accent||"");b.setAttribute("aria-pressed",String(on));if(on&&$("ac-name"))$("ac-name").textContent=b.title});
   document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===(L.theme||""))));
@@ -3394,6 +3404,7 @@ function icsBuild(days){const out=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//My
   out.push("END:VCALENDAR");return {text:out.join("\r\n"),n}}
 document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;
   if(t.dataset.z){L.zoom=+t.dataset.z;saveL();applyPrefs()}
+  if(t.dataset.hf&&t.closest("#hf-chips")){L.hfont=t.dataset.hf;saveL();applyPrefs()}
   if(t.dataset.ac!==undefined&&t.closest("#ac-chips")){L.accent=t.dataset.ac;saveL();applyPrefs()}
   if(t.dataset.th!==undefined&&t.closest("#th-chips")){L.theme=t.dataset.th;saveL();applyPrefs()}
   if(t.id==="bk-export")bkExport();
@@ -3408,7 +3419,7 @@ const SLOTS=[["day","Day shift"],["n1","Night 1"],["n2","Night 2"],["off1","Off,
 const BASE={T:dcl(PLAN.T.meals),R:dcl(PLAN.R.meals),IM:dcl(IM),SCHED:dcl(SCHED),WAKE:dcl(WAKE),
   TG:{T:{kcal:PLAN.T.kcal,p:PLAN.T.p,c:PLAN.T.c,f:PLAN.T.f},R:{kcal:PLAN.R.kcal,p:PLAN.R.p,c:PLAN.R.c,f:PLAN.R.f}}};
 const BASE_IDS=new Set([...BASE.T,...BASE.R].map(m=>m.id));
-var IS_TRIAL=false;/* the trial build sets this to true */
+/* IS_TRIAL is set near the top of the script so early code (applyPrefs) sees it */
 /* Trial copies set up before starter meals existed still used the original owner's meals. Swap them for starter meals sized to that person's own targets, once. Their own meals are kept. */
 function trialMealFix(){if(!IS_TRIAL||!L.profile||L.trialMealsFixed)return;L.trialMealsFixed=1;saveL();
   const usesBase=SLOTS.some(([s])=>["T","R"].some(t=>SCHED[s]&&SCHED[s][t]&&SCHED[s][t].rows.some(r=>BASE_IDS.has(r[1])&&MEALS[r[1]])));if(!usesBase)return;
@@ -4374,7 +4385,7 @@ function renderWeek(){const el=$("week-card");if(!el)return;const from=addDays(T
   ${stat("Lifts up",String(up.length),up.length?esc(up.slice(0,3).join(", "))+(up.length>3?" and more":""):"None yet this week")}${stat("Protein",prot.length?Math.round(av(prot))+"g":"–",prot.length?`a day on ${prot.length} logged day${prot.length>1?"s":""} (target ${PLAN.T.p}g)`:"Tick meals on Today to track it")}
   ${stat("Sleep",sl.length?f1(av(sl))+"h":"–",sl.length?`average over ${sl.length} night${sl.length>1?"s":""}`:"Log sleep on Today")}${stat("Running",f1(km)+" km",`${(D.runs||[]).filter(r=>r.date>=from&&r.date<=TODAY).length} runs`)}
   ${(()=>{const e=days.map(d=>eatenTotals(d).kcal).filter(v=>v>0),b=days.map(d=>num((D.habits[d]||{}).burned)).filter(v=>v!=null&&v>0),sum=a=>Math.round(a.reduce((x,y)=>x+y,0));
-    return stat("Calories eaten",e.length?sum(e).toLocaleString("en-GB"):"–",e.length?`over ${e.length} day${e.length>1?"s":""} · ${Math.round(sum(e)/e.length).toLocaleString("en-GB")} a day`:"Tick meals on Today")+stat("Calories burned",b.length?sum(b).toLocaleString("en-GB"):"–",b.length?`over ${b.length} day${b.length>1?"s":""} · ${Math.round(sum(b)/b.length).toLocaleString("en-GB")} a day`:"Add it in Daily log")})()}</div>`;renderInOut()}
+    return stat("Calories eaten",e.length?sum(e).toLocaleString("en-GB"):"–",e.length?`over ${e.length} day${e.length>1?"s":""} · ${Math.round(sum(e)/e.length).toLocaleString("en-GB")} a day`:"Tick meals on Today")+(!burnOn()?"":stat("Calories burned",b.length?sum(b).toLocaleString("en-GB"):"–",b.length?`over ${b.length} day${b.length>1?"s":""} · ${Math.round(sum(b)/b.length).toLocaleString("en-GB")} a day`:"Add it in Daily log"))})()}</div>`;renderInOut()}
 
 /* ================= protein fit (Targets) ================= */
 function fitProtein(meals,t,targetP){const done=new Set();
@@ -5053,7 +5064,7 @@ document.addEventListener("change",async e=>{const t=e.target;if(!PED||!t.closes
 var IO_DAYS=14,IO_TIP=null;
 function ioData(n){const days=[...Array(n)].map((_,i)=>addDays(TODAY,i-n+1));return days.map(d=>{const t=eatenTotals(d),b=num((D.habits[d]||{}).burned);return {d,eat:t.kcal>0?Math.round(t.kcal):null,burn:b!=null&&b>0?Math.round(b):null}})}
 function ioGoal(){const w=weightNow().cur??SETUP.startWeight;if(!w)return null;const kg=unitW()==="lb"?w/2.20462:w,P=PACE(),k=x=>Math.round(kg*x/100*7700/7/10)*10;return {lo:k(P.lo),hi:k(P.hi),mid:k(P.mid),word:P.word}}
-function renderInOut(){const el=$("io-card");if(!el)return;const n=IO_DAYS,data=ioData(n),both=data.filter(x=>x.eat!=null&&x.burn!=null),G=ioGoal(),fmtk=v=>Math.round(v).toLocaleString("en-GB");
+function renderInOut(){const el=$("io-card");if(!el)return;el.hidden=!burnOn();if(el.hidden)return;const n=IO_DAYS,data=ioData(n),both=data.filter(x=>x.eat!=null&&x.burn!=null),G=ioGoal(),fmtk=v=>Math.round(v).toLocaleString("en-GB");
   const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null,ae=avg(data.filter(x=>x.eat!=null).map(x=>x.eat)),ab=avg(data.filter(x=>x.burn!=null).map(x=>x.burn)),bal=avg(both.map(x=>x.eat-x.burn));
   let verdict="";if(bal!=null&&G){const ok=bal>=G.lo&&bal<=G.hi;verdict=`<span class="pill ${ok?"good":"warn"}">${ok?"On track":bal<G.lo?(G.word==="cut"?"Deficit too big":"Not enough food"):(G.word==="cut"?"Deficit too small":"Eating more than needed")}</span>`}
   const W_=340,H_=170,pl=34,pr=4,pt=10,pb=22,cw=W_-pl-pr,ch=H_-pt-pb,mx=Math.max(1000,...data.map(x=>Math.max(x.eat||0,x.burn||0))),top=Math.ceil(mx/1000)*1000,y=v=>pt+ch-v/top*ch,gw=cw/n,bw=Math.max(2,Math.min(14,(gw-4)/2-1));
