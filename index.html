@@ -511,6 +511,8 @@ body.dragging,body.dragging *{-webkit-user-select:none;user-select:none}
 .sets{display:grid;gap:6px}
 .set{display:grid;grid-template-columns:26px minmax(0,1fr) 64px 52px 48px 44px;gap:5px;align-items:center}
 .set select.rir{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:9px 2px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;min-width:0;text-align:center;text-align-last:center}
+/* simple workout screen (trial copy): no rest picker, RIR column or Failed/Spotted/Cheat */
+:root[data-simplew] .set{grid-template-columns:26px minmax(0,1fr) 72px 60px 44px}:root[data-simplew] .set select.rir,:root[data-simplew] .set.hd>span:nth-child(5),:root[data-simplew] .setx,:root[data-simplew] .restpick{display:none!important}
 .set.hd{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
 .set .no{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;text-align:center}
 .set .prev{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1182,6 +1184,8 @@ body.sdopen{overflow:hidden}.sdpage{display:grid;gap:12px;align-content:start;ma
       <div class="row" id="zoom-chips"><button class="chip trialonly" data-z="0.75" hidden>75%</button><button class="chip trialonly" data-z="0.8" hidden>80%</button><button class="chip" data-z="0.9">90%</button><button class="chip" data-z="1">100%</button><button class="chip" data-z="1.1">110%</button><button class="chip" data-z="1.25">125%</button><button class="chip" data-z="1.4">140%</button></div>
       <div class="trialonly" style="display:grid;gap:12px" hidden><h3>Heading style</h3>
       <div class="row" id="hf-chips"><button class="chip" data-hf="sport">Sport</button><button class="chip" data-hf="standard">Standard</button></div>
+      <h3>Workouts</h3>
+      <label class="chkline"><input type="checkbox" id="simplew-on"> <span>Simple workout screen<small class="note" style="display:block">Hides the rest time picker, the RIR (reps left) column and Failed / Spotted / Cheat. Your rest timer still runs.</small></span></label>
       <h3>Calories burned</h3>
       <label class="chkline"><input type="checkbox" id="burn-on"> <span>Track calories burned<small class="note" style="display:block">A box in Daily log for your watch's total, plus eaten vs burned on Progress.</small></span></label></div>
       <h3>Background</h3>
@@ -2796,7 +2800,7 @@ function renderLive(){try{updWBack()}catch(e){}
       <div class="swany"><label class="note" for="sw-any">Or pick any exercise (type to search, or type a new one)</label><div class="row" style="flex-wrap:nowrap"><input id="sw-any" list="sw-list" placeholder="e.g. Machine chest press" autocomplete="off"><button class="btn small primary" type="button" data-pickany="${ei}">Swap</button></div><datalist id="sw-list">${libNames().map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist></div>
       <div class="row">${sample?`<button class="btn small" id="sw-ai" data-ex="${ei}">Ask Claude for more</button>`:""}<button class="btn small ghost" id="sw-close">Close</button><span class="err" id="sw-err"></span></div></div>`:"";
     return `<div class="wex${ex.ss||(ei>0&&W.exercises[ei-1].ss)?" ssx":""}" data-ex="${ei}"><div class="top"><div><b>${esc(ex.name)}</b><small>${ex.groups.map(([n,r])=>`${n} × ${r}`).join(" then ")}${last?` · last ${nice(last.date)}`:""}${ex.from?` · swapped from ${esc(ex.from)}${swapInfo(ex.from)?` until ${nice(swapInfo(ex.from).until)}`:""}`:""}</small></div><div class="row" style="flex-wrap:nowrap"><button class="btn small" data-swapex="${ei}">Swap</button><button class="x" data-rmex="${ei}">Remove</button></div></div>${panel}
-    <div class="extools"><label class="note">Rest <select data-rest="${ei}" aria-label="Rest time for ${esc(ex.name)}">${[45,60,75,90,105,120,150,180,210,240,300].map(v=>`<option value="${v}" ${restOf(ex,ex.sets[0]&&ex.sets[0].target)===v?"selected":""}>${mmss(v)}</option>`).join("")}</select></label>${ei<W.exercises.length-1?`<button type="button" class="chip${ex.ss?"":" ghost"}" data-ss="${ei}" aria-pressed="${!!ex.ss}">${ex.ss?"Superset ✓":"Superset with next"}</button>`:""}${workKg(ex)>0?`<button type="button" class="chip" data-wu="${ei}" aria-pressed="${wuOpen(ei)}">Warm-up</button>`:""}${isBar(ex)?`<button type="button" class="chip" data-plates="${ei}" aria-pressed="${PLATE_EX===ei}">Plates</button>`:""}</div>
+    <div class="extools"><label class="note restpick">Rest <select data-rest="${ei}" aria-label="Rest time for ${esc(ex.name)}">${[45,60,75,90,105,120,150,180,210,240,300].map(v=>`<option value="${v}" ${restOf(ex,ex.sets[0]&&ex.sets[0].target)===v?"selected":""}>${mmss(v)}</option>`).join("")}</select></label>${ei<W.exercises.length-1?`<button type="button" class="chip${ex.ss?"":" ghost"}" data-ss="${ei}" aria-pressed="${!!ex.ss}">${ex.ss?"Superset ✓":"Superset with next"}</button>`:""}${workKg(ex)>0?`<button type="button" class="chip" data-wu="${ei}" aria-pressed="${wuOpen(ei)}">Warm-up</button>`:""}${isBar(ex)?`<button type="button" class="chip" data-plates="${ei}" aria-pressed="${PLATE_EX===ei}">Plates</button>`:""}</div>
     ${ex.ss?`<p class="note ssnote">Superset with <b>${esc(W.exercises[ei+1].name)}</b>: go straight to it, rest after.</p>`:ei>0&&W.exercises[ei-1].ss?`<p class="note ssnote">Second half of a superset. Rest after this one.</p>`:""}
     ${wuOpen(ei)&&workKg(ex)>0?warmPanel(ei):""}${PLATE_EX===ei?platePanel(ei):""}
     ${h?`<div class="hint ${h.cls}">${esc(h.t)}</div>`:""}
@@ -3374,12 +3378,14 @@ window.addEventListener("popstate",()=>{if(document.body.dataset.tab==="settings
 /* ---------- backup, settings, calendar ---------- */
 /* Calories burned (Daily log box, Your week stat, eaten vs burned card): can be switched off in Settings; off by default in the trial copy */
 function burnOn(){return L.burnOn!==undefined?!!L.burnOn:!IS_TRIAL}
+document.addEventListener("change",e=>{if(e.target.id!=="simplew-on")return;L.simpleW=e.target.checked;saveL();applyPrefs()});
 document.addEventListener("change",e=>{if(e.target.id!=="burn-on")return;L.burnOn=e.target.checked;saveL();applyPrefs();try{renderWeek()}catch(er){}try{renderInOut()}catch(er){}});
-const APP_VERSION="27 Nov 2026 (l)";
+const APP_VERSION="28 Nov 2026 (a)";
 function applyPrefs(){const av=$("app-ver");if(av)av.textContent=`Version ${APP_VERSION}\nAddress: ${location.origin}${location.pathname.replace(/index\.html$/,"")}\nSaved data is kept for this address only.`;const r=document.documentElement,z=+L.zoom||1;if(window.__fit)window.__fit();if(L.accent)r.setAttribute("data-accent",L.accent);else r.removeAttribute("data-accent");
   if(L.theme==="light"||L.theme==="dark")r.setAttribute("data-theme",L.theme);else r.removeAttribute("data-theme");
   r.setAttribute("data-hfont",IS_TRIAL?(L.hfont||"sport"):"sport");document.querySelectorAll("[data-hf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.hf===(L.hfont||"sport"))));
   if(IS_TRIAL)document.querySelectorAll(".trialonly").forEach(x=>x.hidden=false);
+  r.toggleAttribute("data-simplew",IS_TRIAL&&L.simpleW!==false);if($("simplew-on"))$("simplew-on").checked=IS_TRIAL&&L.simpleW!==false;
   {const bo=burnOn(),f=$("a-burn-f"),n=$("a-burn-n"),c=$("burn-on");if(f)f.hidden=!bo;if(n)n.hidden=!bo;if(c)c.checked=bo}
   document.querySelectorAll("[data-z]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.z===z)));
   document.querySelectorAll("[data-ac]").forEach(b=>{const on=b.dataset.ac===(L.accent||"");b.setAttribute("aria-pressed",String(on));if(on&&$("ac-name"))$("ac-name").textContent=b.title});
